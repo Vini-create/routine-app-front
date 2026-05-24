@@ -1,0 +1,391 @@
+@import url("https://fonts.googleapis.com/css2?family=Old+Standard+TT:wght@400;700&family=Sunshiney&display=swap");
+@import "tailwindcss";
+
+:root {
+  --background: #f7f4ee;
+  --foreground: #18181b;
+  --font-sunshiney: "Sunshiney", cursive;
+  --font-old-standard: "Old Standard TT", serif;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+}
+
+@theme {
+  --shadow-soft: 0 18px 50px -24px rgb(24 24 27 / 0.32);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #080807;
+    --foreground: #f4f4f5;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+}
+
+button,
+a,
+input,
+textarea,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+.font-sunshiney {
+  font-family: var(--font-sunshiney);
+}
+
+.font-old-standard {
+  font-family: var(--font-old-standard), Georgia, "Times New Roman", Times, serif;
+}
+
+.newspaperQuote {
+  font-family: var(--font-old-standard), Georgia, "Times New Roman", Times, serif !important;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.habitCard {
+  border-width: 1px;
+  border-style: solid;
+  isolation: isolate;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+.habitCard:hover {
+  transform: translateY(-1px);
+}
+
+.habitCard::before,
+.habitCard::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.habitCard::before {
+  inset: -28% auto auto -12%;
+  width: 72%;
+  aspect-ratio: 1;
+  border-radius: 999px;
+  filter: blur(30px);
+}
+
+.habitCard::after {
+  inset: auto -18% -42% auto;
+  width: 58%;
+  aspect-ratio: 1;
+  border-radius: 999px;
+  filter: blur(34px);
+}
+
+.habitCardFire {
+  border-color: rgba(255, 120, 20, 0.92);
+  background:
+    radial-gradient(circle at 18% 4%, rgba(255, 45, 15, 0.32), transparent 34%),
+    radial-gradient(circle at 86% 105%, rgba(255, 190, 35, 0.2), transparent 38%),
+    linear-gradient(145deg, rgba(24, 8, 4, 0.98), rgba(52, 12, 6, 0.96) 52%, rgba(24, 12, 4, 0.98));
+  box-shadow:
+    0 0 0 1px rgba(255, 180, 50, 0.22),
+    0 0 22px rgba(255, 80, 0, 0.44),
+    0 24px 60px -28px rgba(220, 38, 38, 0.95),
+    inset 0 0 34px rgba(255, 60, 0, 0.16);
+}
+
+.habitCardFire::before {
+  opacity: 0.58;
+  background: radial-gradient(circle, rgba(255, 52, 24, 0.82), rgba(249, 115, 22, 0.48), transparent 68%);
+  animation: habit-fire-glow 2.8s ease-in-out infinite alternate;
+}
+
+.habitCardFire::after {
+  opacity: 0.36;
+  background: radial-gradient(circle, rgba(255, 214, 80, 0.62), rgba(255, 90, 20, 0.28), transparent 70%);
+}
+
+.habitCardIce {
+  border-color: rgba(80, 220, 255, 0.94);
+  background:
+    radial-gradient(circle at 16% 0%, rgba(80, 220, 255, 0.28), transparent 34%),
+    radial-gradient(circle at 92% 100%, rgba(37, 99, 235, 0.24), transparent 42%),
+    linear-gradient(145deg, rgba(3, 12, 24, 0.98), rgba(5, 30, 48, 0.96) 52%, rgba(7, 15, 30, 0.98));
+  box-shadow:
+    0 0 0 1px rgba(125, 241, 255, 0.2),
+    0 0 24px rgba(80, 220, 255, 0.42),
+    0 24px 60px -28px rgba(14, 165, 233, 0.9),
+    inset 0 0 36px rgba(80, 180, 255, 0.16);
+}
+
+.habitCardIce::before {
+  opacity: 0.58;
+  background: radial-gradient(circle, rgba(103, 232, 249, 0.72), rgba(37, 99, 235, 0.42), transparent 70%);
+  animation: habit-ice-glow 4s ease-in-out infinite alternate;
+}
+
+.habitCardIce::after {
+  opacity: 0.34;
+  background:
+    linear-gradient(135deg, transparent 18%, rgba(186, 230, 253, 0.28) 19%, transparent 22%),
+    radial-gradient(circle, rgba(147, 197, 253, 0.58), rgba(34, 211, 238, 0.2), transparent 70%);
+}
+
+.habitCardGrass {
+  border-color: rgba(30, 220, 120, 0.82);
+  background:
+    radial-gradient(circle at 18% 4%, rgba(30, 220, 120, 0.22), transparent 35%),
+    radial-gradient(circle at 92% 100%, rgba(132, 204, 22, 0.14), transparent 38%),
+    linear-gradient(145deg, rgba(4, 22, 14, 0.98), rgba(8, 42, 25, 0.96) 52%, rgba(7, 20, 14, 0.98));
+  box-shadow:
+    0 0 0 1px rgba(74, 222, 128, 0.16),
+    0 0 16px rgba(30, 220, 120, 0.28),
+    0 22px 54px -30px rgba(22, 163, 74, 0.86),
+    inset 0 0 28px rgba(30, 220, 120, 0.1);
+}
+
+.habitCardEmpty {
+  border-color: rgba(148, 163, 184, 0.55);
+  background:
+    radial-gradient(circle at 18% 4%, rgba(148, 163, 184, 0.16), transparent 34%),
+    linear-gradient(145deg, rgba(18, 18, 20, 0.98), rgba(35, 35, 40, 0.96) 52%, rgba(16, 16, 18, 0.98));
+  box-shadow:
+    0 0 0 1px rgba(148, 163, 184, 0.12),
+    0 18px 46px -32px rgba(15, 23, 42, 0.8),
+    inset 0 0 24px rgba(148, 163, 184, 0.06);
+}
+
+.habitCardEmpty::before {
+  opacity: 0.24;
+  background: radial-gradient(circle, rgba(148, 163, 184, 0.38), rgba(100, 116, 139, 0.18), transparent 72%);
+}
+
+.habitCardEmpty::after {
+  opacity: 0.16;
+  background: radial-gradient(circle, rgba(226, 232, 240, 0.3), rgba(71, 85, 105, 0.14), transparent 70%);
+}
+
+.habitCardGrass::before {
+  opacity: 0.45;
+  background: radial-gradient(circle, rgba(34, 197, 94, 0.6), rgba(132, 204, 22, 0.28), transparent 70%);
+}
+
+.habitCardGrass::after {
+  opacity: 0.22;
+  background: radial-gradient(circle, rgba(190, 242, 100, 0.52), rgba(21, 128, 61, 0.18), transparent 72%);
+}
+
+.habitCard h3,
+.habitCard .text-zinc-500,
+.habitCard .text-zinc-600,
+.habitCard .dark\:text-zinc-400,
+.habitCard .dark\:text-zinc-300 {
+  color: rgba(244, 244, 245, 0.88);
+}
+
+.habitCard p,
+.habitCard span {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes habit-fire-glow {
+  from {
+    opacity: 0.25;
+    transform: translateY(4px) scale(0.94);
+  }
+  to {
+    opacity: 0.48;
+    transform: translateY(-2px) scale(1.05);
+  }
+}
+
+@keyframes habit-ice-glow {
+  from {
+    opacity: 0.22;
+    transform: translateX(-2px) scale(0.96);
+  }
+  to {
+    opacity: 0.4;
+    transform: translateX(3px) scale(1.02);
+  }
+}
+
+.assistantShell {
+  animation: assistant-rise 420ms ease both;
+}
+
+.assistantOrb {
+  position: relative;
+  overflow: hidden;
+}
+
+.assistantOrb::after {
+  content: "";
+  position: absolute;
+  inset: -45%;
+  background: conic-gradient(from 120deg, transparent, rgba(255, 255, 255, 0.5), rgba(113, 113, 122, 0.45), transparent);
+  animation: assistant-orb-spin 5s linear infinite;
+  mix-blend-mode: screen;
+  opacity: 0.5;
+}
+
+.assistantSuggestion {
+  transform: translateZ(0);
+}
+
+.assistantSuggestion:hover {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.38),
+    0 18px 42px -24px rgba(63, 63, 70, 0.68);
+}
+
+.assistantQuickScroll,
+.assistantConversation {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(113, 113, 122, 0.42) transparent;
+}
+
+.assistantQuickScroll::-webkit-scrollbar {
+  height: 8px;
+}
+
+.assistantConversation::-webkit-scrollbar {
+  width: 8px;
+}
+
+.assistantQuickScroll::-webkit-scrollbar-track,
+.assistantConversation::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 10px;
+}
+
+.assistantQuickScroll::-webkit-scrollbar-thumb,
+.assistantConversation::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background-clip: content-box;
+  background-color: rgba(113, 113, 122, 0.42);
+}
+
+.assistantQuickScroll::-webkit-scrollbar-thumb:hover,
+.assistantConversation::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(161, 161, 170, 0.64);
+}
+
+.assistantMessageRow {
+  opacity: 0;
+  animation: assistant-message-in 360ms ease forwards;
+}
+
+.assistantBubble {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background:
+    linear-gradient(145deg, rgba(39, 39, 42, 0.68), rgba(24, 24, 27, 0.44));
+  box-shadow:
+    0 16px 38px -30px rgba(0, 0, 0, 0.78),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(18px);
+}
+
+.assistantBubbleUser {
+  color: rgb(244, 244, 245);
+  background:
+    linear-gradient(145deg, rgba(63, 63, 70, 0.72), rgba(39, 39, 42, 0.52));
+}
+
+.assistantBubbleBot {
+  color: rgb(244, 244, 245);
+  background:
+    linear-gradient(145deg, rgba(39, 39, 42, 0.68), rgba(24, 24, 27, 0.5));
+}
+
+.assistantTyping span {
+  animation: assistant-typing 1.1s ease-in-out infinite;
+}
+
+.assistantTyping span:nth-child(2) {
+  animation-delay: 140ms;
+}
+
+.assistantTyping span:nth-child(3) {
+  animation-delay: 280ms;
+}
+
+@media (prefers-color-scheme: dark) {
+  .assistantBubble {
+    border-color: rgba(255, 255, 255, 0.12);
+    box-shadow:
+      0 22px 58px -34px rgba(0, 0, 0, 0.9),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+
+  .assistantBubbleUser {
+    color: rgb(244, 244, 245);
+    background:
+      linear-gradient(145deg, rgba(63, 63, 70, 0.58), rgba(39, 39, 42, 0.42));
+  }
+
+  .assistantBubbleBot {
+    color: rgb(244, 244, 245);
+    background:
+      linear-gradient(145deg, rgba(39, 39, 42, 0.52), rgba(24, 24, 27, 0.42));
+  }
+}
+
+@keyframes assistant-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes assistant-message-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes assistant-orb-spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+@keyframes assistant-typing {
+  0%,
+  80%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
