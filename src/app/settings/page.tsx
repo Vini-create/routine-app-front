@@ -5,6 +5,7 @@ import { AppShell } from "@/components/app/AppShell";
 import { LanguageSelect } from "@/components/app/LanguageSelect";
 import { useTranslations } from "@/components/app/LanguageProvider";
 import { SectionTitle } from "@/components/app/SectionTitle";
+import { ThemeToggle } from "@/components/app/ThemeToggle";
 import { useAppData } from "@/components/app/useAppData";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -65,12 +66,18 @@ export default function SettingsPage() {
             <FieldLabel label={settings.sleepTime}><Input name="sleepTime" type="time" defaultValue={user.sleepTime} /></FieldLabel>
           </div>
           <Button type="submit">{settings.saveChanges}</Button>
-          {saved ? <p className="text-sm font-semibold text-emerald-600 dark:text-emerald-300">{settings.saved}</p> : null}
-          <p className="text-xs leading-5 text-zinc-500">{settings.privacyNote}</p>
+          {saved ? <p className="text-sm font-semibold text-[#D8B08C]">{settings.saved}</p> : null}
+          <p className="text-xs leading-5 text-[#8B847B]">{settings.privacyNote}</p>
         </form>
       </Card>
       <Card className="grid gap-4">
         <h2 className="text-lg font-bold">{settings.preferences}</h2>
+        <ThemeToggle
+          title={settings.appearance}
+          description={settings.appearanceDescription}
+          lightLabel={settings.lightMode}
+          darkLabel={settings.darkMode}
+        />
         <FieldLabel label={settings.language}><LanguageSelect /></FieldLabel>
       </Card>
       <Card className="grid gap-3">

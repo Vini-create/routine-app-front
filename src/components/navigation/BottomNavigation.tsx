@@ -19,7 +19,7 @@ export function BottomNavigation() {
   const nav = useTranslations("nav");
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-zinc-200/70 bg-white/90 px-3 pb-3 pt-2 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/90">
+    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-[#2B2B31] bg-[#0B0B0D]/92 px-3 pb-3 pt-2 backdrop-blur">
       <div className="mx-auto grid max-w-3xl grid-cols-6 gap-1">
         {items.map((item) => {
           const active = pathname === item.href;
@@ -28,8 +28,8 @@ export function BottomNavigation() {
               key={item.href}
               href={item.href}
               className={cn(
-                "grid min-h-14 place-items-center rounded-2xl px-1 text-xs font-semibold text-zinc-500 transition",
-                active && "bg-zinc-950 text-white shadow-soft dark:bg-white dark:text-zinc-950",
+                "relative grid min-h-14 place-items-center rounded-xl px-1 text-xs font-semibold text-[#8B847B] transition hover:bg-[#17171A] hover:text-[#EDE6DA]",
+                active && "bg-[#17171A] text-[#D8B08C] shadow-soft before:absolute before:top-0 before:h-0.5 before:w-8 before:rounded-full before:bg-[linear-gradient(90deg,#6F3A1B,#D8B08C,#B87333)]",
               )}
             >
               <span className="text-lg leading-none">{item.icon}</span>

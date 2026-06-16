@@ -110,7 +110,7 @@ export default function AssistantPage() {
         <div className="shrink-0">
           <div className="flex items-center gap-3">
             <div className="assistantOrb grid size-12 shrink-0 place-items-center rounded-3xl bg-zinc-950 text-lg font-black text-white shadow-[0_18px_42px_-22px_rgba(24,24,27,0.9)] dark:bg-white dark:text-zinc-950">
-              AI
+              A
             </div>
             <div>
               <p className="text-xs font-black uppercase tracking-[0.18em] text-zinc-500 dark:text-zinc-400">{assistant.status}</p>
@@ -168,7 +168,7 @@ export default function AssistantPage() {
               >
                 {message.role === "assistant" ? (
                   <div className="mb-1 grid size-8 shrink-0 place-items-center rounded-2xl bg-zinc-950 text-[11px] font-black text-white shadow-[0_12px_30px_-22px_rgba(0,0,0,0.75)] dark:bg-white/90 dark:text-zinc-950">
-                    AI
+                    A
                   </div>
                 ) : null}
                 <div

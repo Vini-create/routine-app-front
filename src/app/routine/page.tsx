@@ -440,19 +440,19 @@ export default function RoutinePage() {
             const isSelected = dateKey(day) === selectedKey;
             const isToday = dateKey(day) === dateKey(today);
             const dayButtonState = isPast
-              ? "cursor-not-allowed bg-white text-zinc-500 dark:bg-zinc-950 dark:text-zinc-400"
+              ? "cursor-not-allowed border border-[#2B2B31] bg-[#17171A] text-[#8B847B]"
               : isToday
-                ? "bg-emerald-200 text-emerald-950 hover:bg-emerald-200 hover:text-emerald-950 dark:bg-emerald-300 dark:text-zinc-950 dark:hover:bg-emerald-300 dark:hover:text-zinc-950"
+                ? "border border-[#B87333] bg-[#B87333] text-[#F6F1E8] hover:bg-[#C78A52] hover:text-[#F6F1E8]"
                 : isSelected
-                  ? "bg-zinc-950 text-white hover:bg-zinc-950 hover:text-white dark:bg-white dark:text-zinc-950 dark:hover:bg-white dark:hover:text-zinc-950"
-                  : "bg-white text-zinc-800 hover:bg-emerald-50 hover:text-emerald-800 dark:bg-zinc-950 dark:text-zinc-100 dark:hover:bg-emerald-950 dark:hover:text-emerald-100";
+                  ? "border border-[#D8B08C] bg-[#F6F1E8] text-[#0B0B0D] hover:bg-[#F6F1E8] hover:text-[#0B0B0D]"
+                  : "border border-[#2B2B31] bg-[#17171A] text-[#EDE6DA] hover:border-[#B87333]/60 hover:bg-[#B87333]/12 hover:text-[#F6F1E8]";
             const dayNumberState = isToday
-              ? "text-emerald-950 dark:text-zinc-950"
+              ? "text-[#F6F1E8]"
               : isSelected
-                ? "text-white dark:text-zinc-950"
+                ? "text-[#0B0B0D]"
                 : isPast
-                  ? "text-zinc-400 dark:text-zinc-600"
-                  : "text-zinc-800 group-hover:text-emerald-800 dark:text-zinc-100 dark:group-hover:text-emerald-100";
+                  ? "text-[#8B847B]"
+                  : "text-[#EDE6DA] group-hover:text-[#F6F1E8]";
 
             return (
               <button
@@ -474,7 +474,7 @@ export default function RoutinePage() {
                     x
                   </span>
                 ) : null}
-                {isToday ? <span className="absolute bottom-1 size-1.5 rounded-full bg-emerald-400" /> : null}
+                {isToday ? <span className="absolute bottom-1 size-1.5 rounded-full bg-[#F6F1E8]" /> : null}
               </button>
             );
           })}

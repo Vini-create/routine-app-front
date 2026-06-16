@@ -33,11 +33,11 @@ export default function DashboardPage() {
 
   return (
     <AppShell title={dashboard.title}>
-      <section className="border-l-4 border-zinc-950 py-2 pl-5 dark:border-zinc-100">
-        <p className="newspaperQuote text-[2.85rem] leading-[0.95] text-zinc-950 dark:text-zinc-50 sm:text-7xl">
+      <section className="border-l-4 border-[#B87333] py-2 pl-5">
+        <p className="newspaperQuote text-[2.85rem] leading-[0.95] text-[#F6F1E8] sm:text-7xl">
           “{quote.quote}”
         </p>
-        <p className="mt-4 text-sm font-black uppercase tracking-[0.2em] text-zinc-600 dark:text-zinc-400">{quote.author}</p>
+        <p className="mt-4 text-sm font-black uppercase tracking-[0.2em] text-[#8B847B]">{quote.author}</p>
       </section>
 
       <Card className="grid gap-4 border-zinc-800 bg-zinc-950 text-zinc-50 shadow-[0_24px_70px_-42px_rgba(0,0,0,0.95)] dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50">

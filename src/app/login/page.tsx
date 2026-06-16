@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent } from "react";
+import { BrandMark } from "@/components/app/BrandMark";
 import { useTranslations } from "@/components/app/LanguageProvider";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -25,17 +26,18 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="grid min-h-dvh place-items-center bg-[#f7f4ee] px-5 py-10 text-zinc-950 dark:bg-[#080807] dark:text-zinc-50">
+    <main className="alfredPage grid min-h-dvh place-items-center px-5 py-10">
       <Card className="w-full max-w-md">
-        <h1 className="text-3xl font-black tracking-tight">{login.title}</h1>
-        <p className="mt-2 text-sm text-zinc-500">{login.subtitle}</p>
+        <BrandMark className="mb-6" />
+        <h1 className="font-brand text-4xl font-semibold tracking-normal">{login.title}</h1>
+        <p className="mt-2 text-sm text-[#8B847B]">{login.subtitle}</p>
         <form onSubmit={onSubmit} className="mt-6 grid gap-4">
           <FieldLabel label={login.email}><Input name="email" type="email" placeholder={login.emailPlaceholder} /></FieldLabel>
           <FieldLabel label={login.password}><Input name="password" type="password" placeholder="••••••••" /></FieldLabel>
           <Button type="submit">{login.submit}</Button>
         </form>
-        <p className="mt-5 text-center text-sm text-zinc-500">
-          {login.noAccount} <Link href="/register" className="font-bold text-zinc-950 dark:text-white">{login.createAccount}</Link>
+        <p className="mt-5 text-center text-sm text-[#8B847B]">
+          {login.noAccount} <Link href="/register" className="font-bold text-[#D8B08C]">{login.createAccount}</Link>
         </p>
       </Card>
     </main>

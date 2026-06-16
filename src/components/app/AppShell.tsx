@@ -4,9 +4,14 @@ import { BottomNavigation } from "@/components/navigation/BottomNavigation";
 
 export function AppShell({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <div className="min-h-dvh bg-[#f7f4ee] text-zinc-950 dark:bg-[#080807] dark:text-zinc-50">
-      <MobileHeader title={title} />
-      <main className="mx-auto grid max-w-3xl gap-5 px-5 pb-28 pt-5">{children}</main>
+    <div className="alfredPage min-h-dvh">
+      <MobileHeader />
+      <main className="mx-auto grid max-w-3xl gap-5 px-5 pb-28 pt-5">
+        <h1 className="font-brand text-4xl font-semibold leading-tight tracking-normal text-[#C78A52] sm:text-5xl">
+          {title}
+        </h1>
+        {children}
+      </main>
       <BottomNavigation />
     </div>
   );

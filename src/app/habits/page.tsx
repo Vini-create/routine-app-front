@@ -55,14 +55,14 @@ export default function HabitsPage() {
         <Button onClick={() => setOpen(true)} className="shrink-0">{labels.add}</Button>
       </div>
       <Card className="grid gap-3">
-        <p className="text-sm font-semibold leading-6 text-zinc-600 dark:text-zinc-300">
+        <p className="text-sm font-semibold leading-6 text-[#B9B0A4]">
           {labels.consistencyGuide}
         </p>
-        <div className="flex flex-wrap gap-2 text-xs font-bold text-zinc-500">
-          <span className="rounded-full border border-orange-400/70 bg-orange-500/10 px-3 py-1 text-orange-700 dark:text-orange-200">{labels.fireGuide}</span>
-          <span className="rounded-full border border-emerald-400/70 bg-emerald-500/10 px-3 py-1 text-emerald-700 dark:text-emerald-200">{labels.grassGuide}</span>
-          <span className="rounded-full border border-sky-400/70 bg-sky-500/10 px-3 py-1 text-sky-700 dark:text-sky-200">{labels.iceGuide}</span>
-          <span className="rounded-full border border-zinc-300 bg-zinc-100 px-3 py-1 text-zinc-600 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300">{labels.emptyGuide}</span>
+        <div className="flex flex-wrap gap-2 text-xs font-bold text-[#8B847B]">
+          <span className="rounded-full border border-[#B87333]/70 bg-[#B87333]/12 px-3 py-1 text-[#D8B08C]">{labels.fireGuide}</span>
+          <span className="rounded-full border border-[#C78A52]/60 bg-[#C78A52]/10 px-3 py-1 text-[#D8B08C]">{labels.grassGuide}</span>
+          <span className="rounded-full border border-[#8B847B]/60 bg-[#8B847B]/10 px-3 py-1 text-[#EDE6DA]">{labels.iceGuide}</span>
+          <span className="rounded-full border border-[#2B2B31] bg-[#17171A] px-3 py-1 text-[#8B847B]">{labels.emptyGuide}</span>
         </div>
       </Card>
       {habits.length ? (

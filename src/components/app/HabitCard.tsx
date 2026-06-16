@@ -37,11 +37,11 @@ export function HabitCard({
   const habitVariant = getHabitVariant(percentage, stats.hasEnoughRoutineData);
 
   const statusClass = {
-    done: "bg-emerald-700 shadow-[0_8px_18px_-10px_rgba(4,120,87,0.9)] dark:bg-emerald-500",
-    partial: "bg-amber-500 shadow-[0_8px_18px_-10px_rgba(217,119,6,0.95)] dark:bg-amber-400",
-    low: "bg-red-700 shadow-[0_8px_18px_-10px_rgba(185,28,28,0.95)] dark:bg-red-500",
-    future: "bg-zinc-100 dark:bg-zinc-900",
-    off: "bg-zinc-100 text-zinc-400 dark:bg-zinc-900 dark:text-zinc-600",
+    done: "bg-[#B87333] shadow-[0_8px_18px_-10px_rgba(184,115,51,0.9)]",
+    partial: "bg-[#D8B08C] shadow-[0_8px_18px_-10px_rgba(216,176,140,0.8)]",
+    low: "bg-[#5A2B20] shadow-[0_8px_18px_-10px_rgba(90,43,32,0.9)]",
+    future: "bg-[#2B2B31]",
+    off: "bg-[#2B2B31] text-[#8B847B]",
   };
 
   return (
@@ -57,10 +57,10 @@ export function HabitCard({
       <span
         className={cn(
           "pointer-events-none absolute inset-x-4 top-0 z-[1] h-1 rounded-b-full",
-          habitVariant === "fire" && "bg-gradient-to-r from-red-700 via-orange-500 to-yellow-300",
-          habitVariant === "ice" && "bg-gradient-to-r from-blue-800 via-sky-400 to-cyan-200",
-          habitVariant === "grass" && "bg-gradient-to-r from-emerald-800 via-green-500 to-lime-300",
-          habitVariant === "empty" && "bg-gradient-to-r from-zinc-600 via-zinc-400 to-zinc-300",
+          habitVariant === "fire" && "bg-gradient-to-r from-[#9E612B] via-[#B87333] to-[#D8B08C]",
+          habitVariant === "ice" && "bg-gradient-to-r from-[#2B2B31] via-[#8B847B] to-[#EDE6DA]",
+          habitVariant === "grass" && "bg-gradient-to-r from-[#6F6A52] via-[#B87333] to-[#D8B08C]",
+          habitVariant === "empty" && "bg-gradient-to-r from-[#2B2B31] via-[#8B847B] to-[#EDE6DA]",
         )}
       />
       <div className="flex items-start justify-between gap-4">
@@ -91,9 +91,9 @@ export function HabitCard({
       </div>
 
       <div className="flex flex-wrap gap-3 text-xs font-semibold text-zinc-500">
-        <span className="inline-flex items-center gap-2"><i className="size-2.5 rounded-full bg-emerald-700 dark:bg-emerald-500" /> {labels.greenLegend}</span>
-        <span className="inline-flex items-center gap-2"><i className="size-2.5 rounded-full bg-amber-500 dark:bg-amber-400" /> {labels.yellowLegend}</span>
-        <span className="inline-flex items-center gap-2"><i className="size-2.5 rounded-full bg-red-700 dark:bg-red-500" /> {labels.redLegend}</span>
+        <span className="inline-flex items-center gap-2"><i className="size-2.5 rounded-full bg-[#B87333]" /> {labels.greenLegend}</span>
+        <span className="inline-flex items-center gap-2"><i className="size-2.5 rounded-full bg-[#D8B08C]" /> {labels.yellowLegend}</span>
+        <span className="inline-flex items-center gap-2"><i className="size-2.5 rounded-full bg-[#5A2B20]" /> {labels.redLegend}</span>
       </div>
 
       <p className="text-sm leading-6 text-zinc-500 dark:text-zinc-400">{habit.reason}</p>

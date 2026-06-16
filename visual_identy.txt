@@ -1,0 +1,548 @@
+ALFRED — VISUAL IDENTITY / DESIGN SYSTEM CONTEXT
+
+O site/app se chama Alfred. A identidade visual deve transmitir uma sensação premium, sofisticada, aspiracional e de pertencimento. O Alfred é um AI Coach para pessoas ambiciosas, focadas em evolução, disciplina, rotina, metas e performance pessoal.
+
+A estética principal deve misturar:
+- Off-black como base dominante;
+- Off-white / ivory como cor principal de texto e contraste;
+- Cobre metalizado como cor de destaque;
+- Grafite e charcoal para cards, bordas e superfícies;
+- Visual limpo, elegante, moderno e de alto padrão.
+
+A marca deve parecer:
+- Premium;
+- Inteligente;
+- Forte;
+- Disciplinada;
+- Aspiracional;
+- Pertencente a uma comunidade de alta performance;
+- Mais parecida com uma marca de lifestyle/elite performance do que com um app genérico de hábitos.
+
+Evitar:
+- Cores vibrantes demais;
+- Visual infantil;
+- Gradientes exagerados;
+- Neon gamer;
+- Cards muito coloridos;
+- Aparência genérica de SaaS;
+- Excesso de glassmorphism;
+- Sombras pesadas demais;
+- Bordas muito arredondadas estilo cartoon.
+
+==================================================
+COLOR PALETTE
+==================================================
+
+Primary Colors:
+
+Off Black
+HEX: #0B0B0D
+Uso:
+- Background principal do site/app;
+- Header;
+- Sidebar;
+- Navbar;
+- Fundo de páginas;
+- Fundo de seções hero.
+
+Charcoal
+HEX: #17171A
+Uso:
+- Cards principais;
+- Containers;
+- Modais;
+- Inputs;
+- Painéis internos;
+- Bottom navigation.
+
+Graphite
+HEX: #2B2B31
+Uso:
+- Bordas;
+- Divisores;
+- Estados disabled;
+- Cards secundários;
+- Background de elementos menos importantes.
+
+Warm Ivory
+HEX: #F6F1E8
+Uso:
+- Texto principal;
+- Logo em fundo escuro;
+- Títulos;
+- Ícones principais;
+- Botões com fundo cobre.
+
+Soft Off White
+HEX: #EDE6DA
+Uso:
+- Texto secundário em destaque;
+- Subtítulos;
+- Labels importantes;
+- Background claro pontual;
+- Versões invertidas do logo.
+
+Metallic Copper
+HEX: #B87333
+Uso:
+- Cor primária de ação;
+- Botões principais;
+- Links importantes;
+- Estados ativos;
+- Barras de progresso;
+- Ícones de destaque;
+- Pequenos detalhes de luxo.
+
+Burnished Copper
+HEX: #C78A52
+Uso:
+- Hover de botões;
+- Bordas em destaque;
+- Gráficos;
+- Badges premium;
+- Linhas e detalhes decorativos.
+
+Muted Copper Tint
+HEX: #D8B08C
+Uso:
+- Texto auxiliar premium;
+- Detalhes suaves;
+- Badges secundários;
+- Highlights discretos;
+- Elementos de suporte.
+
+Muted Text
+HEX: #8B847B
+Uso:
+- Texto desabilitado;
+- Placeholders;
+- Labels secundários;
+- Datas;
+- Descrições menos importantes.
+
+==================================================
+CSS VARIABLES SUGERIDAS
+==================================================
+
+:root {
+  --color-bg: #0B0B0D;
+  --color-surface: #17171A;
+  --color-surface-2: #2B2B31;
+  --color-text: #F6F1E8;
+  --color-text-soft: #EDE6DA;
+  --color-text-muted: #8B847B;
+
+  --color-accent: #B87333;
+  --color-accent-hover: #C78A52;
+  --color-accent-soft: #D8B08C;
+
+  --color-border: #2B2B31;
+  --color-border-strong: #B87333;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  --shadow-card: 0px 8px 24px rgba(0, 0, 0, 0.45), 0px 1px 0px rgba(255, 255, 255, 0.04);
+  --shadow-soft: 0px 4px 16px rgba(0, 0, 0, 0.32);
+}
+
+==================================================
+TYPOGRAPHY
+==================================================
+
+Usar uma combinação elegante de fonte serifada para títulos e fonte sans-serif moderna para UI.
+
+Heading Font:
+- Preferência: Playfair Display, Cormorant Garamond ou similar.
+- Uso: Hero title, títulos grandes, chamadas principais, seções premium.
+- Estilo: sofisticado, editorial, high-end.
+- Peso sugerido: 500, 600 ou 700.
+- Letter spacing em títulos grandes: entre -0.02em e 0em.
+
+Body/UI Font:
+- Preferência: Inter, Sora ou similar.
+- Uso: textos, botões, labels, cards, inputs, navegação e UI geral.
+- Estilo: limpo, moderno, legível.
+- Peso sugerido: 400, 500, 600.
+
+Escala sugerida:
+- H1: 48px a 64px, serif, weight 600/700, line-height 1.05
+- H2: 32px a 40px, serif, weight 600, line-height 1.15
+- H3: 24px a 28px, serif ou sans, weight 600, line-height 1.25
+- Body large: 16px a 18px, sans, weight 400, line-height 1.6
+- Body base: 14px a 16px, sans, weight 400, line-height 1.6
+- Caption: 12px, sans, weight 400, line-height 1.4
+- Overline: 11px, sans, uppercase, letter-spacing 0.08em, weight 600
+
+==================================================
+LOGO / BRAND MARK
+==================================================
+
+A marca Alfred usa um símbolo baseado em:
+- Um círculo/ring aberto;
+- Três barras ascendentes;
+- Uma estrela de quatro pontas representando IA, inteligência, clareza e ascensão.
+
+O logo deve funcionar em:
+- Branco/ivory sobre off-black;
+- Off-black sobre ivory;
+- Versão cobre para detalhes premium;
+- App icon;
+- Favicon;
+- Avatar social.
+
+Quando o SVG final for adicionado, usar o logo em:
+- Header;
+- Tela inicial;
+- Sidebar/mobile nav;
+- Cards principais;
+- Splash/loading;
+- Avatar do CoachBot.
+
+Evitar distorcer o logo. Manter proporção original e área livre ao redor.
+
+==================================================
+BACKGROUND / PAGE STYLE
+==================================================
+
+Background principal:
+- Usar #0B0B0D como base.
+- Pode ter textura muito sutil, quase imperceptível.
+- Pode usar radial gradients discretos para profundidade, mas sem deixar colorido demais.
+
+Exemplo:
+background:
+  radial-gradient(circle at top right, rgba(184, 115, 51, 0.08), transparent 32%),
+  radial-gradient(circle at bottom left, rgba(246, 241, 232, 0.04), transparent 28%),
+  #0B0B0D;
+
+Seções principais:
+- Devem ter bastante espaçamento.
+- Usar linhas finas e divisores em #2B2B31.
+- Usar cobre apenas como detalhe, nunca como fundo dominante da página inteira.
+
+==================================================
+CARD SYSTEM
+==================================================
+
+Cards devem ser premium, escuros, minimalistas e bem espaçados.
+
+Card principal:
+- Background: #17171A
+- Border: 1px solid #2B2B31
+- Text: #F6F1E8
+- Secondary text: #8B847B ou #EDE6DA
+- Accent: #B87333
+- Border radius: 16px ou 20px
+- Shadow: var(--shadow-card)
+- Padding: 20px a 28px
+
+Card hover:
+- Border: 1px solid rgba(184, 115, 51, 0.55)
+- Background pode subir levemente para #1B1B1F
+- Transform: translateY(-2px)
+- Transition: 180ms ease
+
+Metric Card:
+- Usar número grande em #F6F1E8
+- Label em #8B847B
+- Variação positiva em #B87333 ou #C78A52
+- Mini gráfico ou barra em cobre.
+
+Progress Card:
+- Background #17171A
+- Progress ring ou barra com:
+  - Track: #2B2B31
+  - Fill: #B87333
+- Porcentagem em #F6F1E8
+
+Feature Card:
+- Ícone pequeno em #B87333
+- Título em #F6F1E8
+- Descrição em #8B847B
+- Link “Learn more” ou equivalente em #C78A52
+
+Quote/Testimonial Card:
+- Aspas grandes em #B87333
+- Texto em #EDE6DA
+- Autor em #8B847B
+- Visual mais editorial.
+
+==================================================
+BUTTON SYSTEM
+==================================================
+
+Primary Button:
+- Background: #B87333
+- Text: #F6F1E8
+- Hover background: #C78A52
+- Active background: #9E612B
+- Border: none
+- Border radius: 999px ou 12px, dependendo do componente
+- Padding desktop: 12px 20px
+- Padding mobile: 12px 16px
+- Font: Inter/Sora, 600, 14px
+- Deve ter sensação premium, não chamativa demais.
+
+Secondary Button:
+- Background: transparent
+- Border: 1px solid #C78A52
+- Text: #F6F1E8
+- Hover background: rgba(184, 115, 51, 0.12)
+- Hover border: #B87333
+- Border radius: 999px ou 12px
+
+Ghost Button:
+- Background: transparent
+- Border: transparent
+- Text: #D8B08C
+- Hover text: #C78A52
+- Hover background: rgba(216, 176, 140, 0.08)
+
+Disabled Button:
+- Background: #2B2B31
+- Text: #8B847B
+- Border: 1px solid #2B2B31
+- Cursor: not-allowed
+- Opacity: 0.7
+
+Icon Button:
+- Background: #17171A
+- Border: 1px solid #2B2B31
+- Icon: #EDE6DA
+- Hover background: rgba(184, 115, 51, 0.12)
+- Hover border: #B87333
+- Active icon: #B87333
+
+==================================================
+FORM CONTROLS
+==================================================
+
+Input default:
+- Background: #17171A
+- Border: 1px solid #2B2B31
+- Text: #F6F1E8
+- Placeholder: #8B847B
+- Border radius: 12px
+- Padding: 12px 14px
+
+Input focus:
+- Border: 1px solid #B87333
+- Box shadow: 0 0 0 3px rgba(184, 115, 51, 0.12)
+- Outline: none
+
+Dropdown:
+- Background: #17171A
+- Border: #2B2B31
+- Text: #F6F1E8
+- Icon: #8B847B
+- Focus/active border: #B87333
+
+Checkbox:
+- Unchecked border: #2B2B31
+- Checked background: #B87333
+- Checked icon: #F6F1E8
+
+Toggle:
+- Inactive background: #2B2B31
+- Active background: #B87333
+- Thumb: #F6F1E8
+
+Search Field:
+- Background: #17171A
+- Border: #2B2B31
+- Icon: #8B847B
+- Text: #F6F1E8
+- Focus border: #B87333
+
+==================================================
+NAVIGATION
+==================================================
+
+Desktop Navbar:
+- Background: rgba(11, 11, 13, 0.82)
+- Backdrop blur: 16px, se fizer sentido
+- Border bottom: 1px solid #2B2B31
+- Logo: #F6F1E8
+- Nav text: #EDE6DA
+- Nav hover: #B87333
+- Active: #B87333
+- CTA button: primary button
+
+Mobile Bottom Nav:
+- Background: #0B0B0D
+- Border top: 1px solid #2B2B31
+- Inactive icon/text: #8B847B
+- Active icon/text: #B87333
+- Active item pode ter glow sutil ou pequena linha superior em #B87333
+- Evitar botões muito grandes ou coloridos demais.
+
+Sidebar, se existir:
+- Background: #0B0B0D ou #17171A
+- Border right: #2B2B31
+- Active route: rgba(184, 115, 51, 0.12)
+- Active text/icon: #B87333
+
+==================================================
+CHIPS / BADGES / TAGS
+==================================================
+
+Default Chip:
+- Background: #17171A
+- Border: 1px solid #2B2B31
+- Text: #EDE6DA
+- Border radius: 999px
+
+Active Chip:
+- Background: #B87333
+- Border: #B87333
+- Text: #F6F1E8
+
+Premium Badge:
+- Background: rgba(184, 115, 51, 0.14)
+- Border: 1px solid rgba(184, 115, 51, 0.5)
+- Text: #D8B08C
+
+AI Badge:
+- Background: rgba(246, 241, 232, 0.06)
+- Border: 1px solid #2B2B31
+- Text: #F6F1E8
+- Ícone de estrela em #B87333
+
+==================================================
+CHARTS / DATA VISUALIZATION
+==================================================
+
+Usar gráficos discretos, premium e legíveis.
+
+Chart colors:
+- Primary series: #B87333
+- Secondary series: #C78A52
+- Tertiary series: #D8B08C
+- Grid / axis: #2B2B31
+- Text labels: #EDE6DA
+- Muted labels: #8B847B
+- Background: #17171A
+
+Line chart:
+- Linha principal em #B87333
+- Pontos em #C78A52
+- Linha de meta em dashed #8B847B
+- Grid sutil em #2B2B31
+
+Bar chart:
+- Barra atual: #B87333
+- Barra anterior/comparação: #2B2B31 ou #8B847B
+- Hover da barra: #C78A52
+
+Progress bar:
+- Track: #2B2B31
+- Fill: linear-gradient(90deg, #B87333, #C78A52)
+- Text: #F6F1E8
+
+==================================================
+SPACING / RADIUS / SHADOW
+==================================================
+
+Spacing scale:
+- 4px
+- 8px
+- 12px
+- 16px
+- 24px
+- 32px
+- 48px
+- 64px
+- 96px
+
+Border radius:
+- Small elements: 8px
+- Inputs/buttons: 12px
+- Cards: 16px
+- Large containers: 20px ou 24px
+- Pills/chips: 999px
+
+Shadow:
+- Usar sombras sutis, com profundidade elegante.
+- Evitar glow exagerado.
+- Default card shadow:
+  0px 8px 24px rgba(0, 0, 0, 0.45),
+  0px 1px 0px rgba(255, 255, 255, 0.04)
+
+Hover card shadow:
+  0px 12px 32px rgba(0, 0, 0, 0.55),
+  0px 0px 0px 1px rgba(184, 115, 51, 0.22)
+
+==================================================
+ICONS
+==================================================
+
+Ícones devem ser:
+- Lineares;
+- Minimalistas;
+- Em #EDE6DA por padrão;
+- Em #B87333 quando ativos;
+- Sem preenchimento colorido exagerado;
+- Com stroke entre 1.5px e 2px;
+- Estilo consistente.
+
+Ícones importantes:
+- Belonging / comunidade;
+- Discipline / escudo;
+- Intelligence / estrela IA ou cérebro/circuito;
+- Ascension / barras subindo;
+- Focus / alvo;
+- Unity / círculos conectados.
+
+A estrela de IA deve ser uma estrela de quatro pontas simples, usada com moderação em:
+- Logo;
+- CoachBot;
+- Feedbacks;
+- Cards de insight;
+- Badges “AI Powered”.
+
+==================================================
+UI FEEL
+==================================================
+
+A interface precisa parecer:
+- Premium, mas funcional;
+- Escura, mas legível;
+- Forte, mas calma;
+- Aspiracional, mas não agressiva;
+- Moderna, mas com toque editorial.
+
+O usuário deve sentir que entrou em uma plataforma de evolução pessoal de alto nível, não em um app comum de checklist.
+
+Mensagens/frases de marca possíveis:
+- AI coach for ambitious minds.
+- Belonging. Discipline. Intelligence.
+- Elevate your potential.
+- Clarity today. Impact forever.
+- Your ascent starts now.
+- Alfred is more than an app. It’s a partner in your ascent.
+- Discipline compounds.
+- Focus is your edge.
+- Small steps. Massive results.
+
+==================================================
+IMPLEMENTATION GOAL
+==================================================
+
+Transformar o site atual para seguir essa identidade visual sem quebrar funcionalidades existentes.
+
+Prioridades:
+1. Aplicar a nova paleta globalmente.
+2. Criar tokens/variáveis de tema.
+3. Refatorar cards, botões, inputs, navbar e componentes principais.
+4. Melhorar tipografia e hierarquia visual.
+5. Usar o visual off-black + ivory + copper de forma consistente.
+6. Garantir responsividade mobile/desktop.
+7. Manter o site limpo, rápido e acessível.
+8. Não remover funcionalidades existentes.
+9. Não criar dados mockados permanentes.
+10. Manter o código organizado e fácil de evoluir.
+
+O resultado final deve parecer um produto premium de AI coaching, rotina, hábitos e metas, com uma identidade forte o suficiente para gerar pertencimento.

@@ -10,12 +10,12 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 
 const variants = {
   primary:
-    "bg-zinc-950 text-white shadow-soft hover:-translate-y-0.5 hover:bg-zinc-800 hover:text-white dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200 dark:hover:text-zinc-950",
+    "metallicButton border border-transparent text-[#F6F1E8] hover:-translate-y-0.5 hover:text-[#F6F1E8] active:brightness-90 disabled:border-[#2B2B31] disabled:bg-[#2B2B31] disabled:text-[#8B847B]",
   secondary:
-    "border border-zinc-200 bg-white text-zinc-950 hover:bg-zinc-100 hover:text-zinc-950 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white dark:hover:bg-zinc-800 dark:hover:text-white",
+    "metallicButtonSecondary border text-[#F6F1E8] hover:-translate-y-0.5 hover:text-[#F6F1E8]",
   ghost:
-    "text-zinc-700 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-200 dark:hover:bg-zinc-900 dark:hover:text-white",
-  danger: "bg-red-500 text-white shadow-soft hover:bg-red-600 hover:text-white",
+    "border border-transparent text-[#D8B08C] hover:bg-[#D8B08C]/10 hover:text-[#C78A52]",
+  danger: "border border-red-500/40 bg-red-950/40 text-red-100 shadow-soft hover:bg-red-900/70 hover:text-white",
 };
 
 export function Button({
@@ -26,7 +26,7 @@ export function Button({
   ...props
 }: ButtonProps) {
   const classes = cn(
-    "inline-flex min-h-11 items-center justify-center rounded-2xl px-5 text-sm font-semibold transition",
+    "inline-flex min-h-11 items-center justify-center rounded-xl px-5 text-sm font-semibold transition duration-200 disabled:cursor-not-allowed disabled:opacity-70",
     variants[variant],
     className,
   );
