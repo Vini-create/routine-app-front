@@ -35,6 +35,24 @@ export function getCurrentWeekDates(today = new Date()) {
   });
 }
 
+export function getCurrentMonthRange(today = new Date()) {
+  const normalizedToday = startOfDay(today);
+  return {
+    start: new Date(normalizedToday.getFullYear(), normalizedToday.getMonth(), 1),
+    end: normalizedToday,
+  };
+}
+
+export function isHabitScheduledForDate(habit: Habit, date: Date) {
+  if (habit.recurrenceType === "monthly") {
+    const monthlyDays = habit.monthlyDays?.length ? habit.monthlyDays : [1];
+    return monthlyDays.includes(date.getDate());
+  }
+
+  const scheduledDays = habit.scheduledDays?.length ? habit.scheduledDays : [0, 1, 2, 3, 4, 5, 6];
+  return scheduledDays.includes(date.getDay());
+}
+
 export function readRoutineHabitRecords(): RoutineHabitRecord[] {
   // API_CONNECTION_POINT: later replace localStorage with GET /routine/habit-records for the current week.
   if (typeof window === "undefined") return [];
@@ -66,10 +84,9 @@ export function removeRoutineHabitRecord(records: RoutineHabitRecord[], habitId:
 export function getHabitRoutineStats(habit: Habit, records: RoutineHabitRecord[], today = new Date()) {
   const normalizedToday = startOfDay(today);
   const weekDates = getCurrentWeekDates(normalizedToday);
-  const scheduledDays = habit.scheduledDays?.length ? habit.scheduledDays : [0, 1, 2, 3, 4, 5, 6];
   const habitRecords = records.filter((record) => record.habitId === habit.id);
   const recordsByDate = new Map(habitRecords.map((record) => [record.date, record]));
-  const eligibleDates = weekDates.filter((date) => scheduledDays.includes(date.getDay()) && startOfDay(date) <= normalizedToday);
+  const eligibleDates = weekDates.filter((date) => isHabitScheduledForDate(habit, date) && startOfDay(date) <= normalizedToday);
   const recordedEligibleDates = eligibleDates.filter((date) => recordsByDate.has(dateKey(date)));
   const hasEnoughRoutineData = recordedEligibleDates.length > 0;
 
@@ -91,7 +108,7 @@ export function getHabitRoutineStats(habit: Habit, records: RoutineHabitRecord[]
     completedToday: todayRecord?.status === "done",
     streak: calculateStreak(habit, records, normalizedToday),
     weekDays: weekDates.map((date) => {
-      const isScheduled = scheduledDays.includes(date.getDay());
+      const isScheduled = isHabitScheduledForDate(habit, date);
       const isFuture = startOfDay(date) > normalizedToday;
       const record = recordsByDate.get(dateKey(date));
       const status: HabitWeekDayStatus = !isScheduled || isFuture ? "off" : record?.status ?? "off";
@@ -101,8 +118,42 @@ export function getHabitRoutineStats(habit: Habit, records: RoutineHabitRecord[]
   };
 }
 
+export function getHabitPeriodStats(habit: Habit, records: RoutineHabitRecord[], startDate: Date, endDate = new Date()) {
+  const start = startOfDay(startDate);
+  const end = startOfDay(endDate);
+  const recordsByDate = new Map(
+    records
+      .filter((record) => record.habitId === habit.id)
+      .map((record) => [record.date, record]),
+  );
+  const eligibleDates: Date[] = [];
+  const cursor = new Date(start);
+
+  while (cursor <= end) {
+    if (isHabitScheduledForDate(habit, cursor)) eligibleDates.push(new Date(cursor));
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  const recordedEligibleDates = eligibleDates.filter((date) => recordsByDate.has(dateKey(date)));
+  const hasEnoughRoutineData = recordedEligibleDates.length > 0;
+  const score = recordedEligibleDates.reduce((total, date) => {
+    const status = recordsByDate.get(dateKey(date))?.status;
+    if (status === "done") return total + 1;
+    if (status === "partial") return total + 0.5;
+    return total;
+  }, 0);
+
+  return {
+    hasEnoughRoutineData,
+    expectedCount: eligibleDates.length,
+    completedCount: recordedEligibleDates.filter((date) => recordsByDate.get(dateKey(date))?.status === "done").length,
+    partialCount: recordedEligibleDates.filter((date) => recordsByDate.get(dateKey(date))?.status === "partial").length,
+    lowCount: recordedEligibleDates.filter((date) => recordsByDate.get(dateKey(date))?.status === "low").length,
+    consistencyPercent: hasEnoughRoutineData ? Math.round((score / recordedEligibleDates.length) * 100) : 0,
+  };
+}
+
 function calculateStreak(habit: Habit, records: RoutineHabitRecord[], today: Date) {
-  const scheduledDays = habit.scheduledDays?.length ? habit.scheduledDays : [0, 1, 2, 3, 4, 5, 6];
   const recordsByDate = new Map(
     records
       .filter((record) => record.habitId === habit.id)
@@ -112,7 +163,7 @@ function calculateStreak(habit: Habit, records: RoutineHabitRecord[], today: Dat
   const cursor = startOfDay(today);
 
   for (let attempts = 0; attempts < 60; attempts += 1) {
-    if (!scheduledDays.includes(cursor.getDay())) {
+    if (!isHabitScheduledForDate(habit, cursor)) {
       cursor.setDate(cursor.getDate() - 1);
       continue;
     }

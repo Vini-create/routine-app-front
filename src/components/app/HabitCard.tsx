@@ -19,10 +19,12 @@ function getHabitVariant(progress: number, hasEnoughRoutineData: boolean): "fire
 
 export function HabitCard({
   habit,
+  goalTitle,
   routineRecords = [],
   onToggle,
 }: {
   habit: Habit;
+  goalTitle?: string;
   routineRecords?: RoutineHabitRecord[];
   onToggle?: (id: string) => void;
 }) {
@@ -35,13 +37,14 @@ export function HabitCard({
   }));
   const percentage = stats.weeklyProgress;
   const habitVariant = getHabitVariant(percentage, stats.hasEnoughRoutineData);
+  const resolvedGoalTitle = goalTitle ?? habit.goalTitle;
 
   const statusClass = {
-    done: "bg-[#B87333] shadow-[0_8px_18px_-10px_rgba(184,115,51,0.9)]",
-    partial: "bg-[#D8B08C] shadow-[0_8px_18px_-10px_rgba(216,176,140,0.8)]",
-    low: "bg-[#5A2B20] shadow-[0_8px_18px_-10px_rgba(90,43,32,0.9)]",
-    future: "bg-[#2B2B31]",
-    off: "bg-[#2B2B31] text-[#8B847B]",
+    done: "bg-[var(--text-primary)]",
+    partial: "bg-[linear-gradient(135deg,var(--text-primary)_0_50%,transparent_50%)] ring-[var(--border-strong)]",
+    low: "border border-dashed border-[var(--border-strong)] bg-transparent",
+    future: "bg-[var(--border-soft)]",
+    off: "bg-transparent text-[var(--text-tertiary)] ring-[var(--border-soft)]",
   };
 
   return (
@@ -55,18 +58,16 @@ export function HabitCard({
       )}
     >
       <span
-        className={cn(
-          "pointer-events-none absolute inset-x-4 top-0 z-[1] h-1 rounded-b-full",
-          habitVariant === "fire" && "bg-gradient-to-r from-[#9E612B] via-[#B87333] to-[#D8B08C]",
-          habitVariant === "ice" && "bg-gradient-to-r from-[#2B2B31] via-[#8B847B] to-[#EDE6DA]",
-          habitVariant === "grass" && "bg-gradient-to-r from-[#6F6A52] via-[#B87333] to-[#D8B08C]",
-          habitVariant === "empty" && "bg-gradient-to-r from-[#2B2B31] via-[#8B847B] to-[#EDE6DA]",
-        )}
+        className="habitCardAccent pointer-events-none absolute inset-x-4 top-0 z-[1] h-1 rounded-b-full"
       />
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h3 className="text-lg font-bold">{habit.name}</h3>
-          <p className="text-sm text-zinc-500">{habit.frequency} · {habit.preferredTime}</p>
+          <div className="mb-3 flex flex-wrap gap-2">
+            <Badge tone="neutral">{common.habit}</Badge>
+            <Badge tone="blue">{resolvedGoalTitle ?? common.unlinkedGoal}</Badge>
+          </div>
+          <h3 className="subtitle-display text-xl text-[var(--text-primary)]">{habit.name}</h3>
+          <p className="text-sm text-[var(--text-secondary)]">{habit.frequency} · {habit.preferredTime}</p>
         </div>
         <Badge tone={stats.completedToday ? "green" : "purple"}>{stats.streak} {common.days}</Badge>
       </div>
@@ -76,7 +77,7 @@ export function HabitCard({
           <p className="text-3xl font-black tracking-tight">
             {stats.hasEnoughRoutineData ? `${percentage}%` : "—"}
           </p>
-          <p className="text-xs font-semibold text-zinc-500">{labels.weekProgress}</p>
+          <p className="text-xs font-semibold text-[var(--text-secondary)]">{labels.weekProgress}</p>
         </div>
         <ProgressBar value={percentage} />
       </div>
@@ -84,20 +85,20 @@ export function HabitCard({
       <div className="grid grid-cols-7 gap-2">
         {days.map((day) => (
           <div key={day.label} className="grid gap-1 text-center">
-            <span className="text-[11px] font-bold text-zinc-500">{day.label}</span>
+            <span className="text-[11px] font-bold text-[var(--text-tertiary)]">{day.label}</span>
             <span className={cn("h-9 rounded-2xl ring-1 ring-black/5 dark:ring-white/10", statusClass[day.status])} />
           </div>
         ))}
       </div>
 
-      <div className="flex flex-wrap gap-3 text-xs font-semibold text-zinc-500">
-        <span className="inline-flex items-center gap-2"><i className="size-2.5 rounded-full bg-[#B87333]" /> {labels.greenLegend}</span>
-        <span className="inline-flex items-center gap-2"><i className="size-2.5 rounded-full bg-[#D8B08C]" /> {labels.yellowLegend}</span>
-        <span className="inline-flex items-center gap-2"><i className="size-2.5 rounded-full bg-[#5A2B20]" /> {labels.redLegend}</span>
+      <div className="flex flex-wrap gap-3 text-xs font-semibold text-[var(--text-secondary)]">
+        <span className="inline-flex items-center gap-2"><i className="size-2.5 rounded-full bg-[var(--text-primary)]" /> {labels.greenLegend}</span>
+        <span className="inline-flex items-center gap-2"><i className="size-2.5 rounded-full bg-[linear-gradient(135deg,var(--text-primary)_0_50%,transparent_50%)] ring-1 ring-[var(--border-strong)]" /> {labels.yellowLegend}</span>
+        <span className="inline-flex items-center gap-2"><i className="size-2.5 rounded-full border border-dashed border-[var(--border-strong)]" /> {labels.redLegend}</span>
       </div>
 
-      <p className="text-sm leading-6 text-zinc-500 dark:text-zinc-400">{habit.reason}</p>
-      <p className="rounded-2xl bg-white/65 p-3 text-xs font-semibold leading-5 text-zinc-600 dark:bg-zinc-900/70 dark:text-zinc-300">
+      <p className="text-sm leading-6 text-[var(--text-secondary)]">{habit.reason}</p>
+      <p className="rounded-2xl bg-[var(--surface-ambient)] p-3 text-xs font-semibold leading-5 text-[var(--text-secondary)]">
         {habitVariant === "fire"
           ? labels.hotMessage
           : habitVariant === "ice"

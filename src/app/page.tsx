@@ -20,7 +20,7 @@ export default function LandingPage() {
 
   return (
     <main className="alfredPage min-h-dvh">
-      <nav className="sticky top-0 z-30 border-b border-transparent bg-[#0B0B0D]/82 backdrop-blur [background:linear-gradient(#0B0B0Dd1,#0B0B0Ddd)_padding-box,linear-gradient(90deg,rgba(43,43,49,.8),rgba(216,176,140,.42),rgba(184,115,51,.34),rgba(43,43,49,.8))_border-box]">
+      <nav className="glass-ambient sticky top-0 z-30 border-b backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5">
         <Link href="/" aria-label="Winperium home">
           <BrandMark />
@@ -34,10 +34,10 @@ export default function LandingPage() {
       <section className="mx-auto grid max-w-6xl gap-8 px-5 pb-12 pt-10 md:grid-cols-[1.05fr_0.95fr] md:items-center">
         <div className="grid gap-6">
           <Badge tone="green" className="w-fit">Alfred AI coach for ambitious minds</Badge>
-          <h1 className="font-brand max-w-3xl text-5xl font-semibold leading-[1.05] tracking-normal text-[#F6F1E8] md:text-7xl">
+          <h1 className="display-title max-w-3xl text-6xl text-[var(--text-primary)] md:text-8xl">
             Winperium organiza sua disciplina para dias reais.
           </h1>
-          <p className="max-w-xl text-lg leading-8 text-[#B9B0A4]">
+          <p className="max-w-xl text-lg leading-8 text-[var(--text-secondary)]">
             {landing.subtitle}
           </p>
           <div className="grid gap-3 sm:flex">
@@ -46,17 +46,17 @@ export default function LandingPage() {
           </div>
         </div>
         <Card className="grid gap-4 p-4">
-          <div className="rounded-2xl border border-transparent bg-[linear-gradient(#0B0B0D,#0B0B0D)_padding-box,linear-gradient(135deg,rgba(216,176,140,.58),rgba(184,115,51,.28),rgba(246,241,232,.18))_border-box] p-5 text-[#F6F1E8] shadow-[inset_0_1px_0_rgba(246,241,232,0.08)]">
+          <div className="glass-focus rounded-2xl p-5">
             <div className="flex items-center justify-between gap-3">
-              <p className="text-sm font-semibold text-[#D8B08C]">{landing.heroScore}</p>
-              <BrandMark showWordmark={false} iconClassName="size-8 text-[#D8B08C]" />
+              <p className="text-sm font-semibold text-[var(--text-primary)]">{landing.heroScore}</p>
+              <BrandMark showWordmark={false} iconClassName="size-8 text-[var(--text-primary)]" />
             </div>
-            <h2 className="font-brand mt-2 text-3xl font-semibold">{landing.heroTitle}</h2>
+            <h2 className="font-display mt-2 text-4xl font-light uppercase leading-none">{landing.heroTitle}</h2>
           </div>
           {landingRoutineExamples.map((block) => (
-            <div key={block.id} className="flex items-center justify-between rounded-xl border border-[#2B2B31] bg-[#0B0B0D]/55 p-4">
+            <div key={block.id} className="flex items-center justify-between rounded-xl border border-[var(--border-soft)] bg-[var(--surface-ambient)] p-4">
               <div>
-                <p className="text-xs font-bold text-[#8B847B]">{block.time}</p>
+                <p className="text-xs font-bold text-[var(--text-tertiary)]">{block.time}</p>
                 <p className="font-semibold">{block.title}</p>
               </div>
               <Badge tone="blue">{block.duration}</Badge>
@@ -72,7 +72,7 @@ export default function LandingPage() {
             <Card key={item}>
               <Badge tone="blue">{index + 1}</Badge>
               <h3 className="mt-4 text-xl font-bold">{item}</h3>
-              <p className="mt-2 text-sm leading-6 text-[#8B847B]">{landing.howStepDescription}</p>
+              <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">{landing.howStepDescription}</p>
             </Card>
           ))}
         </div>
@@ -83,7 +83,7 @@ export default function LandingPage() {
         <div className="grid gap-3 md:grid-cols-2">
           {landing.benefits.map((benefit) => (
             <Card key={benefit} className="flex items-center gap-3">
-              <span className="grid size-9 place-items-center rounded-xl border border-[#B87333]/40 bg-[#B87333]/12 font-bold text-[#D8B08C]">✓</span>
+              <span className="grid size-9 place-items-center rounded-xl border border-[var(--border-medium)] bg-[var(--surface-ambient)] font-bold text-[var(--text-primary)]">✓</span>
               <p className="font-semibold">{benefit}</p>
             </Card>
           ))}
@@ -95,16 +95,16 @@ export default function LandingPage() {
           <SectionTitle title={landing.examplesTitle} description={landing.examplesDescription} />
           <div className="mt-5 grid gap-3">
             {landingRoutineExamples.map((block) => (
-              <div key={block.id} className="rounded-xl border border-[#2B2B31] bg-[#0B0B0D]/35 p-4">
-                <p className="text-sm font-bold text-[#8B847B]">{block.time} · {block.energy}</p>
+              <div key={block.id} className="rounded-xl border border-[var(--border-soft)] bg-[var(--surface-ambient)] p-4">
+                <p className="text-sm font-bold text-[var(--text-tertiary)]">{block.time} · {block.energy}</p>
                 <p className="font-semibold">{block.title}</p>
               </div>
             ))}
           </div>
         </Card>
-        <Card className="border-[#B87333]/40 bg-[#0B0B0D] text-[#F6F1E8]">
+        <Card className="glass-focus">
           <SectionTitle title={landing.aiTitle} description={landing.aiDescription} />
-          <p className="mt-8 rounded-2xl border border-[#2B2B31] bg-[#F6F1E8]/6 p-5 text-sm leading-7 text-[#EDE6DA]">
+          <p className="mt-8 rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-ambient)] p-5 text-sm leading-7 text-[var(--text-secondary)]">
             {landing.aiQuote}
           </p>
         </Card>
@@ -114,10 +114,10 @@ export default function LandingPage() {
         <SectionTitle title={landing.plansTitle} description={landing.plansDescription} />
         <div className="grid gap-4 md:grid-cols-3">
           {["Starter", "Pro", "Max"].map((plan, index) => (
-            <Card key={plan} className={index === 1 ? "border-[#B87333]" : ""}>
+            <Card key={plan} className={index === 1 ? "border-[var(--border-strong)]" : ""}>
               <h3 className="text-xl font-bold">{plan}</h3>
-              <p className="mt-2 text-3xl font-black text-[#F6F1E8]">$ {index === 0 ? "9" : index === 1 ? "19" : "39"}</p>
-              <p className="mt-3 text-sm text-[#8B847B]">{landing.planDescription}</p>
+              <p className="mt-2 font-display text-5xl font-light leading-none text-[var(--text-primary)]">$ {index === 0 ? "9" : index === 1 ? "19" : "39"}</p>
+              <p className="mt-3 text-sm text-[var(--text-secondary)]">{landing.planDescription}</p>
               <Button href="/register" className="mt-5 w-full" variant={index === 1 ? "primary" : "secondary"}>{landing.choosePlan}</Button>
             </Card>
           ))}
@@ -129,12 +129,12 @@ export default function LandingPage() {
         {landing.faqQuestions.map((q) => (
           <Card key={q}>
             <h3 className="font-bold">{q}</h3>
-            <p className="mt-2 text-sm text-[#8B847B]">{landing.faqAnswer}</p>
+            <p className="mt-2 text-sm text-[var(--text-secondary)]">{landing.faqAnswer}</p>
           </Card>
         ))}
       </section>
 
-      <footer className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-10 text-sm text-[#8B847B]">
+      <footer className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-10 text-sm text-[var(--text-secondary)]">
         <BrandMark iconClassName="size-8" />
         <span>{landing.footer}</span>
       </footer>

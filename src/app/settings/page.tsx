@@ -66,8 +66,8 @@ export default function SettingsPage() {
             <FieldLabel label={settings.sleepTime}><Input name="sleepTime" type="time" defaultValue={user.sleepTime} /></FieldLabel>
           </div>
           <Button type="submit">{settings.saveChanges}</Button>
-          {saved ? <p className="text-sm font-semibold text-[#D8B08C]">{settings.saved}</p> : null}
-          <p className="text-xs leading-5 text-[#8B847B]">{settings.privacyNote}</p>
+          {saved ? <p className="text-sm font-semibold text-[var(--text-primary)]">{settings.saved}</p> : null}
+          <p className="text-xs leading-5 text-[var(--text-secondary)]">{settings.privacyNote}</p>
         </form>
       </Card>
       <Card className="grid gap-4">

@@ -12,15 +12,15 @@ export function AiSuggestionCard({
   const common = useTranslations("common");
 
   return (
-    <Card className="border-[#B87333]/45 bg-[#B87333]/10">
+    <Card className="glass-focus">
       <div className="grid gap-3">
         <div className="flex items-center justify-between gap-3">
-          <p className="text-sm font-bold text-[#D8B08C]">{title ?? common.smartAdjustment}</p>
-          <span className="rounded-full border border-[#2B2B31] bg-[#0B0B0D] px-3 py-1 text-xs font-bold text-[#F6F1E8]">
+          <p className="text-sm font-bold text-[var(--text-primary)]">{title ?? common.smartAdjustment}</p>
+          <span className="rounded-full border border-[var(--border-medium)] bg-[var(--surface-standard)] px-3 py-1 text-xs font-bold text-[var(--text-primary)]">
             {common.ai}
           </span>
         </div>
-        <p className="text-sm leading-6 text-[#EDE6DA]">{text}</p>
+        <p className="text-sm leading-6 text-[var(--text-secondary)]">{text}</p>
         <Button href="/routine" variant="secondary" className="w-full">
           {common.applySuggestion}
         </Button>

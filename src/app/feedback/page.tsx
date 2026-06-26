@@ -85,7 +85,7 @@ export default function FeedbackPage() {
             />
           </FieldLabel>
           <p className="text-xs leading-5 text-zinc-500">{feedbackLabels.privacyNote}</p>
-          {validationMessage ? <p className="text-sm font-semibold text-amber-600 dark:text-amber-300">{validationMessage}</p> : null}
+          {validationMessage ? <p className="text-sm font-semibold text-[var(--text-primary)]">{validationMessage}</p> : null}
           <Button type="submit" disabled={!goal.trim() || isLoading}>
             {isLoading ? feedbackLabels.loading : feedbackLabels.generate}
           </Button>
@@ -130,26 +130,26 @@ export default function FeedbackPage() {
       </Card>
 
       {error ? (
-        <Card className="border-red-400/30 bg-red-950/20 text-red-100">
+        <Card className="border-[var(--border-medium)] bg-[var(--surface-standard)] text-[var(--text-primary)]">
           <p className="text-sm font-semibold">{error}</p>
         </Card>
       ) : null}
 
       {feedback ? (
-        <Card className="border-white/10 bg-zinc-950/85 text-white shadow-[0_22px_60px_-36px_rgba(0,0,0,0.9)] backdrop-blur-xl dark:bg-white/[0.06]">
-          <h2 className="text-xl font-black">{feedbackLabels.analysisTitle}</h2>
-          <div className="mt-4 grid gap-3 text-sm leading-6 text-zinc-200">
-            <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
-              <p className="text-xs font-black uppercase tracking-[0.14em] text-zinc-400">{feedbackLabels.strengths}</p>
+        <Card className="glass-focus">
+          <h2 className="font-display text-3xl font-light uppercase leading-none text-[var(--text-primary)]">{feedbackLabels.analysisTitle}</h2>
+          <div className="mt-4 grid gap-3 text-sm leading-6 text-[var(--text-secondary)]">
+            <div className="rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-ambient)] p-4">
+              <p className="label-micro">{feedbackLabels.strengths}</p>
               <p className="mt-2">{feedback}</p>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
-                <p className="text-xs font-black uppercase tracking-[0.14em] text-zinc-400">{feedbackLabels.attention}</p>
+              <div className="rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-ambient)] p-4">
+                <p className="label-micro">{feedbackLabels.attention}</p>
                 <p className="mt-2">{feedbackLabels.attentionText}</p>
               </div>
-              <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
-                <p className="text-xs font-black uppercase tracking-[0.14em] text-zinc-400">{feedbackLabels.practicalSuggestion}</p>
+              <div className="rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-ambient)] p-4">
+                <p className="label-micro">{feedbackLabels.practicalSuggestion}</p>
                 <p className="mt-2">{feedbackLabels.practicalText}</p>
               </div>
             </div>

@@ -2,9 +2,9 @@ import { percentageLabel } from "@/lib/utils";
 
 export function ProgressBar({ value }: { value: number }) {
   return (
-    <div className="h-2.5 overflow-hidden rounded-full bg-[#2B2B31]">
+    <div className="winperiumProgressTrack h-2.5 overflow-hidden rounded-full bg-[var(--border-soft)]">
       <div
-        className="h-full rounded-full bg-gradient-to-r from-[#B87333] to-[#C78A52]"
+        className="winperiumProgressFill h-full rounded-full"
         style={{ width: percentageLabel(value) }}
       />
     </div>

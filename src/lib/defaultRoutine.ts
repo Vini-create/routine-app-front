@@ -10,12 +10,15 @@ export type DefaultRoutineItem = {
   duration: string;
   category: RoutineBlock["category"];
   energy: RoutineBlock["energy"];
+  recurrenceType?: "weekly" | "monthly";
   scheduledDays: number[];
+  monthlyDays?: number[];
 };
 
 export type VacationPeriod = {
   start: string;
   end: string;
+  itemIds?: string[];
 };
 
 export type DefaultRoutineSettings = {
@@ -62,8 +65,13 @@ function isDefaultRoutineItem(value: unknown): value is DefaultRoutineItem {
     typeof item.duration === "string" &&
     (item.category === "saude" || item.category === "foco" || item.category === "trabalho" || item.category === "descanso" || item.category === "reflexao") &&
     (item.energy === "baixa" || item.energy === "media" || item.energy === "alta") &&
+    (item.recurrenceType === undefined || item.recurrenceType === "weekly" || item.recurrenceType === "monthly") &&
     Array.isArray(item.scheduledDays) &&
-    item.scheduledDays.every((day) => Number.isInteger(day) && day >= 0 && day <= 6)
+    item.scheduledDays.every((day) => Number.isInteger(day) && day >= 0 && day <= 6) &&
+    (item.monthlyDays === undefined || (
+      Array.isArray(item.monthlyDays) &&
+      item.monthlyDays.every((day) => Number.isInteger(day) && day >= 1 && day <= 31)
+    ))
   );
 }
 
@@ -71,5 +79,12 @@ function isVacationPeriod(value: unknown): value is VacationPeriod {
   if (!value || typeof value !== "object") return false;
 
   const vacation = value as Partial<VacationPeriod>;
-  return typeof vacation.start === "string" && typeof vacation.end === "string";
+  return (
+    typeof vacation.start === "string" &&
+    typeof vacation.end === "string" &&
+    (vacation.itemIds === undefined || (
+      Array.isArray(vacation.itemIds) &&
+      vacation.itemIds.every((id) => typeof id === "string")
+    ))
+  );
 }

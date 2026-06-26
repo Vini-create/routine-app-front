@@ -2,42 +2,158 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
+import { BrandMark } from "@/components/app/BrandMark";
 import { useTranslations } from "@/components/app/LanguageProvider";
 import { cn } from "@/lib/utils";
 
 const items = [
   { href: "/dashboard", labelKey: "home", icon: "⌂" },
   { href: "/routine", labelKey: "routine", icon: "◷" },
+  { href: "/goals", labelKey: "goals", icon: "◇" },
   { href: "/habits", labelKey: "habits", icon: "✓" },
   { href: "/feedback", labelKey: "feedback", icon: "◈" },
   { href: "/assistant", labelKey: "ai", icon: "✦" },
-  { href: "/settings", labelKey: "profile", icon: "◎" },
 ] as const;
 
 export function BottomNavigation() {
   const pathname = usePathname();
   const nav = useTranslations("nav");
+  const [open, setOpen] = useState(false);
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-[#2B2B31] bg-[#0B0B0D]/92 px-3 pb-3 pt-2 backdrop-blur">
-      <div className="mx-auto grid max-w-3xl grid-cols-6 gap-1">
+    <>
+      <aside className="winperiumSideRail fixed bottom-6 left-6 top-6 z-40 hidden w-[88px] flex-col items-center rounded-[30px] px-3 py-5 lg:flex">
+        <Link
+          href="/dashboard"
+          className="mb-9 grid size-11 place-items-center rounded-[17px] border border-[var(--border-soft)] bg-[var(--surface-ambient)] text-[var(--text-primary)] shadow-[inset_0_1px_0_rgba(255,255,255,.08)]"
+          aria-label="Winperium"
+        >
+          <BrandMark showWordmark={false} iconClassName="size-7" />
+        </Link>
         {items.map((item) => {
           const active = pathname === item.href;
           return (
             <Link
               key={item.href}
               href={item.href}
+              title={nav[item.labelKey]}
               className={cn(
-                "relative grid min-h-14 place-items-center rounded-xl px-1 text-xs font-semibold text-[#8B847B] transition hover:bg-[#17171A] hover:text-[#EDE6DA]",
-                active && "bg-[#17171A] text-[#D8B08C] shadow-soft before:absolute before:top-0 before:h-0.5 before:w-8 before:rounded-full before:bg-[linear-gradient(90deg,#6F3A1B,#D8B08C,#B87333)]",
+                "group/navitem relative my-1.5 grid size-11 place-items-center rounded-full text-base font-light text-[var(--text-tertiary)] transition duration-200 hover:bg-[var(--surface-ambient)] hover:text-[var(--text-primary)]",
+                active && "bg-[var(--text-primary)] text-[var(--background-primary)] shadow-[0_7px_18px_rgba(0,0,0,.12),inset_0_1px_0_rgba(255,255,255,.28)]",
               )}
             >
-              <span className="text-lg leading-none">{item.icon}</span>
-              <span>{nav[item.labelKey]}</span>
+              <span className="text-base leading-none">{item.icon}</span>
+              <span
+                className={cn(
+                  "glass-ambient pointer-events-none absolute left-[3.45rem] top-1/2 z-50 -translate-y-1/2 whitespace-nowrap rounded-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--text-secondary)] opacity-0 transition",
+                  "group-hover/navitem:translate-x-1 group-hover/navitem:opacity-100",
+                  active && "translate-x-1 opacity-100",
+                )}
+              >
+                {nav[item.labelKey]}
+              </span>
             </Link>
           );
         })}
-      </div>
-    </nav>
+        <div className="flex-1" />
+        <Link
+          href="/settings"
+          title={nav.profile}
+          className={cn(
+            "group/navitem relative grid size-10 place-items-center rounded-full text-sm text-[var(--text-tertiary)] transition hover:bg-[var(--surface-ambient)] hover:text-[var(--text-primary)]",
+            pathname === "/settings" && "bg-[var(--text-primary)] text-[var(--background-primary)]",
+          )}
+        >
+          ◐
+          <span
+            className={cn(
+              "glass-ambient pointer-events-none absolute left-[3.45rem] top-1/2 z-50 -translate-y-1/2 whitespace-nowrap rounded-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--text-secondary)] opacity-0 transition",
+              "group-hover/navitem:translate-x-1 group-hover/navitem:opacity-100",
+              pathname === "/settings" && "translate-x-1 opacity-100",
+            )}
+          >
+            {nav.profile}
+          </span>
+        </Link>
+      </aside>
+
+      <button
+        type="button"
+        aria-label={open ? "Fechar navegação" : "Abrir navegação"}
+        onClick={() => setOpen((current) => !current)}
+        className="glass-ambient fixed left-4 top-4 z-50 grid size-12 place-items-center rounded-2xl lg:hidden"
+      >
+        <span className="grid gap-1.5">
+          <i className={cn("block h-0.5 w-5 rounded-full bg-[var(--text-primary)] transition", open && "translate-y-2 rotate-45")} />
+          <i className={cn("block h-0.5 w-5 rounded-full bg-[var(--text-primary)] transition", open && "opacity-0")} />
+          <i className={cn("block h-0.5 w-5 rounded-full bg-[var(--text-primary)] transition", open && "-translate-y-2 -rotate-45")} />
+        </span>
+      </button>
+
+      {open ? (
+        <div className="fixed inset-0 z-40 bg-black/35 backdrop-blur-sm lg:hidden" onClick={() => setOpen(false)}>
+          <nav
+            className="glass-focus absolute left-4 top-20 grid w-[min(18rem,calc(100vw-2rem))] gap-2 rounded-[1.8rem] p-3"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="mb-2 flex items-center gap-3 px-2 py-2">
+              <span className="grid size-10 place-items-center rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-standard)] text-[var(--text-primary)]">
+                <BrandMark showWordmark={false} iconClassName="size-7" />
+              </span>
+              <span className="font-wordmark translate-y-0.5 text-2xl text-[var(--text-primary)]">Winperium</span>
+            </div>
+            {items.map((item) => {
+              const active = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setOpen(false)}
+                  className={cn(
+                    "grid min-h-12 grid-cols-[2.5rem_1fr] items-center rounded-[1.15rem] px-2 text-sm font-bold text-[var(--text-secondary)] transition hover:bg-[var(--surface-standard)] hover:text-[var(--text-primary)]",
+                    active && "bg-[var(--text-primary)] text-[var(--background-primary)]",
+                  )}
+                >
+                  <span className="grid size-9 place-items-center rounded-full">{item.icon}</span>
+                  <span>{nav[item.labelKey]}</span>
+                </Link>
+              );
+            })}
+            <Link
+              href="/settings"
+              onClick={() => setOpen(false)}
+              className={cn(
+                "mt-2 grid min-h-12 grid-cols-[2.5rem_1fr] items-center rounded-[1.15rem] border-t border-[var(--border-soft)] px-2 pt-2 text-sm font-bold text-[var(--text-secondary)] transition hover:bg-[var(--surface-standard)] hover:text-[var(--text-primary)]",
+                pathname === "/settings" && "bg-[var(--text-primary)] text-[var(--background-primary)]",
+              )}
+            >
+              <span className="grid size-9 place-items-center rounded-full">◎</span>
+              <span>{nav.profile}</span>
+            </Link>
+          </nav>
+        </div>
+      ) : null}
+
+      <nav className="glass-ambient fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] left-4 right-4 z-30 grid h-[66px] grid-cols-6 items-center rounded-full px-2 lg:hidden" aria-label="Primary">
+        {items.map((item) => {
+          const active = pathname === item.href;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              title={nav[item.labelKey]}
+              aria-label={nav[item.labelKey]}
+              className={cn(
+                "grid min-h-11 place-items-center rounded-full text-base text-[var(--text-tertiary)] transition",
+                active && "bg-[var(--text-primary)] text-[var(--background-primary)] shadow-[inset_0_1px_0_rgba(255,255,255,.22)]",
+              )}
+            >
+              <span className="leading-none">{item.icon}</span>
+            </Link>
+          );
+        })}
+      </nav>
+    </>
   );
 }

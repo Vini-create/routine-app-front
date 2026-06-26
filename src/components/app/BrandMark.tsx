@@ -34,7 +34,7 @@ export function BrandMark({
         />
       </span>
       {showWordmark ? (
-        <span className="font-wordmark translate-y-1 text-[2rem] font-normal leading-none tracking-normal text-[#F6F1E8] sm:text-[2.35rem]">
+        <span className="font-wordmark translate-y-1 text-[2rem] font-normal leading-none tracking-normal text-[var(--text-primary)] sm:text-[2.35rem]">
           Winperium
         </span>
       ) : null}

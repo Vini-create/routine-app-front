@@ -36,7 +36,7 @@ export default function InsightsPage() {
             </div>
           </Card>
         )) : (
-          <EmptyState title={labels.emptyTitle} description={labels.emptyDescription} />
+          <EmptyState title={labels.emptyTitle} description={labels.emptyDescription} href="/checkin" />
         )}
       </div>
     </AppShell>

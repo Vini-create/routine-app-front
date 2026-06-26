@@ -39,7 +39,7 @@ export default function CalendarPage() {
             </div>
           </Card>
         )) : (
-          <EmptyState title={calendar.emptyTitle} description={calendar.emptyDescription} />
+          <EmptyState title={calendar.emptyTitle} description={calendar.emptyDescription} href="/routine" />
         )}
       </div>
     </AppShell>

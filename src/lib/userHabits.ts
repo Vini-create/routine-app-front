@@ -36,7 +36,14 @@ function isStoredHabit(value: unknown): value is StoredHabit {
     typeof habit.category === "string" &&
     typeof habit.frequency === "string" &&
     typeof habit.preferredTime === "string" &&
-    Array.isArray(habit.scheduledDays) &&
-    habit.scheduledDays.every((day) => Number.isInteger(day) && day >= 0 && day <= 6)
+    (habit.recurrenceType === undefined || habit.recurrenceType === "weekly" || habit.recurrenceType === "monthly") &&
+    (habit.scheduledDays === undefined || (
+      Array.isArray(habit.scheduledDays) &&
+      habit.scheduledDays.every((day) => Number.isInteger(day) && day >= 0 && day <= 6)
+    )) &&
+    (habit.monthlyDays === undefined || (
+      Array.isArray(habit.monthlyDays) &&
+      habit.monthlyDays.every((day) => Number.isInteger(day) && day >= 1 && day <= 31)
+    ))
   );
 }

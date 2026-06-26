@@ -1,4 +1,4 @@
-export type RoutineStatus = "pending" | "active" | "done" | "skipped";
+export type RoutineStatus = "pending" | "active" | "done" | "skipped" | "missed";
 
 export type User = {
   id: string;
@@ -19,6 +19,8 @@ export type User = {
 export type RoutineBlock = {
   id: string;
   habitId?: string;
+  goalId?: string;
+  goalTitle?: string;
   time: string;
   title: string;
   description: string;
@@ -30,16 +32,30 @@ export type RoutineBlock = {
 
 export type Habit = {
   id: string;
+  goalId?: string;
+  goalTitle?: string;
+  createdAt?: string;
   name: string;
   category: string;
   frequency: string;
   preferredTime: string;
+  recurrenceType?: "weekly" | "monthly";
   scheduledDays?: number[];
+  monthlyDays?: number[];
   difficulty: "baixa" | "media" | "alta";
   reason: string;
   streak: number;
   weeklyProgress: number;
   completedToday: boolean;
+};
+
+export type Goal = {
+  id: string;
+  title: string;
+  description: string;
+  category: "health" | "productivity" | "learning" | "fitness" | "mental_wellness" | "other";
+  targetDate: string;
+  createdAt: string;
 };
 
 export type CheckIn = {

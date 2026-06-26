@@ -2,7 +2,7 @@ import { en } from "./en";
 
 export const fr = {
   ...en,
-  nav: { home: "Accueil", routine: "Routine", habits: "Habitudes", feedback: "Feedback", ai: "IA", profile: "Profil" },
+  nav: { home: "Accueil", routine: "Routine", goals: "Objectifs", habits: "Habitudes", feedback: "Feedback", ai: "IA", profile: "Profil" },
   auth: {
     ...en.auth,
     createAccount: "Créer un compte",

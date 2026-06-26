@@ -32,7 +32,7 @@ export default function OnboardingPage() {
           <h2 className="text-xl font-bold">{onboarding.goalsTitle}</h2>
           <div className="mt-4 grid gap-2 sm:grid-cols-2">
             {onboarding.goals.map((goal) => (
-              <label key={goal} className="flex items-center gap-3 rounded-xl border border-[#2B2B31] bg-[#0B0B0D]/35 p-3 text-sm font-semibold text-[#EDE6DA]">
+              <label key={goal} className="flex items-center gap-3 rounded-xl border border-[var(--border-soft)] bg-[var(--surface-ambient)] p-3 text-sm font-semibold text-[var(--text-secondary)]">
                 <input type="checkbox" /> {goal}
               </label>
             ))}
@@ -59,7 +59,7 @@ export default function OnboardingPage() {
         </Card>
         <Card className="grid gap-4">
           <h2 className="text-xl font-bold">{onboarding.summary}</h2>
-          <p className="text-sm leading-6 text-[#8B847B]">{onboarding.summaryText}</p>
+          <p className="text-sm leading-6 text-[var(--text-secondary)]">{onboarding.summaryText}</p>
           <Button href="/dashboard">{onboarding.generate}</Button>
         </Card>
       </div>

@@ -40,5 +40,17 @@ export function useRoutineHabitRecords() {
     });
   }, []);
 
-  return { records, upsertRecord, removeRecord };
+  const ensureRecords = useCallback((defaults: RoutineHabitRecord[]) => {
+    setRecords((current) => {
+      const existingKeys = new Set(current.map((record) => `${record.date}:${record.habitId}`));
+      const missing = defaults.filter((record) => !existingKeys.has(`${record.date}:${record.habitId}`));
+      if (!missing.length) return current;
+
+      const next = [...current, ...missing];
+      writeRoutineHabitRecords(next);
+      return next;
+    });
+  }, []);
+
+  return { records, upsertRecord, removeRecord, ensureRecords };
 }

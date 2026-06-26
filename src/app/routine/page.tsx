@@ -4,9 +4,11 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/app/AppShell";
 import { useLanguage, useTranslations } from "@/components/app/LanguageProvider";
 import { RoutineCard } from "@/components/app/RoutineCard";
+import { useRoutineBlockRecords } from "@/components/app/useRoutineBlockRecords";
 import { useRoutineHabitRecords } from "@/components/app/useRoutineHabitRecords";
 import { SectionTitle } from "@/components/app/SectionTitle";
 import { useAppData } from "@/components/app/useAppData";
+import { useStoredGoals } from "@/components/app/useStoredGoals";
 import { useStoredHabits } from "@/components/app/useStoredHabits";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -19,14 +21,18 @@ import {
   type DefaultRoutineItem,
   type DefaultRoutineSettings,
 } from "@/lib/defaultRoutine";
+import { getRoutineBlockSourceId, type RoutineBlockRecord } from "@/lib/routineBlockRecords";
+import { isHabitScheduledForDate, type RoutineHabitRecord } from "@/lib/routineHabitRecords";
 import { cn } from "@/lib/utils";
 import type { Habit, RoutineBlock, RoutineStatus } from "@/types";
 
 type ViewMode = "today" | "tomorrow" | "week";
+type DefaultRoutineRecurrenceType = "weekly" | "monthly";
 type EditableRoutineBlock = RoutineBlock & { previousStatus?: RoutineStatus };
 type RoutineByDate = Record<string, EditableRoutineBlock[]>;
 
 const filters: ViewMode[] = ["today", "tomorrow", "week"];
+const editableHistoryDays = 7;
 
 function startOfDay(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -69,10 +75,16 @@ function createBlocksForDate(date: Date, sourceBlocks: RoutineBlock[]): Editable
 
 function createHabitBlocksForDate(date: Date, habits: Habit[]): RoutineBlock[] {
   return habits
-    .filter((habit) => habit.scheduledDays?.includes(date.getDay()))
+    .filter((habit) => {
+      if (!isHabitScheduledForDate(habit, date)) return false;
+      if (!habit.createdAt) return true;
+      return startOfDay(date) >= startOfDay(new Date(habit.createdAt));
+    })
     .map((habit) => ({
       id: `habit-${habit.id}`,
       habitId: habit.id,
+      goalId: habit.goalId,
+      goalTitle: habit.goalTitle,
       time: getHabitTime(habit),
       title: habit.name,
       description: habit.reason || habit.category,
@@ -89,11 +101,25 @@ function isDateInVacation(date: Date, vacation: DefaultRoutineSettings["vacation
   return key >= vacation.start && key <= vacation.end;
 }
 
-function createDefaultRoutineBlocksForDate(date: Date, settings: DefaultRoutineSettings): RoutineBlock[] {
-  if (isDateInVacation(date, settings.vacation)) return [];
+function isDefaultRoutineItemArchived(date: Date, item: DefaultRoutineItem, vacation: DefaultRoutineSettings["vacation"]) {
+  if (!isDateInVacation(date, vacation)) return false;
+  if (!vacation?.itemIds?.length) return true;
+  return vacation.itemIds.includes(item.id);
+}
 
+function isDefaultRoutineItemScheduledForDate(item: DefaultRoutineItem, date: Date) {
+  if (item.recurrenceType === "monthly") {
+    const monthlyDays = item.monthlyDays?.length ? item.monthlyDays : [1];
+    return monthlyDays.includes(date.getDate());
+  }
+
+  return item.scheduledDays.includes(date.getDay());
+}
+
+function createDefaultRoutineBlocksForDate(date: Date, settings: DefaultRoutineSettings): RoutineBlock[] {
   return settings.items
-    .filter((item) => item.scheduledDays.includes(date.getDay()))
+    .filter((item) => isDefaultRoutineItemScheduledForDate(item, date))
+    .filter((item) => !isDefaultRoutineItemArchived(date, item, settings.vacation))
     .map((item) => ({
       id: `default-${item.id}`,
       time: item.time,
@@ -104,6 +130,39 @@ function createDefaultRoutineBlocksForDate(date: Date, settings: DefaultRoutineS
       status: "pending",
       energy: item.energy,
     }));
+}
+
+function buildDefaultBlocksForDate(
+  date: Date,
+  sourceRoutineBlocks: RoutineBlock[],
+  settings: DefaultRoutineSettings,
+  habits: Habit[],
+) {
+  const sourceBlocks = [
+    ...sourceRoutineBlocks,
+    ...createDefaultRoutineBlocksForDate(date, settings),
+    ...createHabitBlocksForDate(date, habits),
+  ];
+
+  return createBlocksForDate(date, sourceBlocks).sort((a, b) => a.time.localeCompare(b.time));
+}
+
+function mergeScheduledBlocksForDate(
+  date: Date,
+  sourceBlocks: EditableRoutineBlock[],
+  settings: DefaultRoutineSettings,
+  habits: Habit[],
+) {
+  const key = dateKey(date);
+  const existingSourceIds = new Set(sourceBlocks.map((block) => getRoutineBlockSourceId(block.id, key)));
+  const scheduledBlocks = [
+    ...createDefaultRoutineBlocksForDate(date, settings),
+    ...createHabitBlocksForDate(date, habits),
+  ]
+    .filter((block) => !existingSourceIds.has(block.id))
+    .map((block) => ({ ...block, id: `${key}-${block.id}` }));
+
+  return [...sourceBlocks, ...scheduledBlocks].sort((a, b) => a.time.localeCompare(b.time));
 }
 
 function getWeekDays(date: Date) {
@@ -136,18 +195,39 @@ function normalizeForm(formData: FormData, fallback?: RoutineBlock): RoutineBloc
     status: ((formData.get("status") as RoutineStatus) || fallback?.status || "pending"),
     energy: (formData.get("energy") as RoutineBlock["energy"]) || "media",
     habitId: fallback?.habitId,
+    goalId: fallback?.goalId,
+    goalTitle: fallback?.goalTitle,
   };
 }
 
 export default function RoutinePage() {
-  const today = useMemo(() => startOfDay(new Date()), []);
+  const [today, setToday] = useState(() => startOfDay(new Date()));
   const routine = useTranslations("routine");
   const routineCard = useTranslations("routineCard");
+  const common = useTranslations("common");
   const { language } = useLanguage();
   const { habits: initialHabits, routineBlocks } = useAppData();
+  const { storedGoals } = useStoredGoals();
   const { storedHabits } = useStoredHabits();
-  const { upsertRecord, removeRecord } = useRoutineHabitRecords();
-  const scheduledHabits = [...initialHabits, ...storedHabits];
+  const {
+    records: habitRecords,
+    upsertRecord,
+    removeRecord,
+    ensureRecords: ensureHabitRecords,
+  } = useRoutineHabitRecords();
+  const {
+    records: blockRecords,
+    upsertRecord: upsertBlockRecord,
+    removeRecord: removeBlockRecord,
+    ensureRecords: ensureBlockRecords,
+  } = useRoutineBlockRecords();
+  const goalTitleById = useMemo(() => new Map(storedGoals.map((goal) => [goal.id, goal.title])), [storedGoals]);
+  const scheduledHabits = useMemo(() => {
+    return [...initialHabits, ...storedHabits].map((habit) => ({
+      ...habit,
+      goalTitle: habit.goalTitle ?? (habit.goalId ? goalTitleById.get(habit.goalId) : undefined),
+    }));
+  }, [goalTitleById, initialHabits, storedHabits]);
   const [defaultRoutineSettings, setDefaultRoutineSettings] = useState<DefaultRoutineSettings>(readDefaultRoutineSettings);
   const [activeFilter, setActiveFilter] = useState<ViewMode>("today");
   const [selectedDate, setSelectedDate] = useState(today);
@@ -158,8 +238,15 @@ export default function RoutinePage() {
   }));
   const [editingBlock, setEditingBlock] = useState<RoutineBlock | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [defaultRoutineRecurrenceType, setDefaultRoutineRecurrenceType] = useState<DefaultRoutineRecurrenceType>("weekly");
 
   const selectedKey = dateKey(selectedDate);
+  const earliestEditableDate = addDays(today, -editableHistoryDays);
+  const blockRecordsByKey = useMemo(
+    () => new Map(blockRecords.map((record) => [`${record.date}:${record.blockId}`, record])),
+    [blockRecords],
+  );
+
   function localizeBlocks(sourceBlocks: EditableRoutineBlock[]) {
     return sourceBlocks.map((block) => {
       const baseId = block.id.split("-").at(-1);
@@ -176,31 +263,31 @@ export default function RoutinePage() {
   }
 
   function getDefaultBlocksForDate(date: Date) {
-    const sourceBlocks = [
-      ...routineBlocks,
-      ...createDefaultRoutineBlocksForDate(date, defaultRoutineSettings),
-      ...createHabitBlocksForDate(date, scheduledHabits),
-    ];
-    return createBlocksForDate(date, sourceBlocks).sort((a, b) => a.time.localeCompare(b.time));
+    return buildDefaultBlocksForDate(date, routineBlocks, defaultRoutineSettings, scheduledHabits);
   }
 
   function withScheduledBlocks(date: Date, sourceBlocks: EditableRoutineBlock[]) {
-    const key = dateKey(date);
-    const existingSourceIds = new Set(sourceBlocks.map((block) => block.id.split(`${key}-`)[1]));
-    const scheduledBlocks = [
-      ...createDefaultRoutineBlocksForDate(date, defaultRoutineSettings),
-      ...createHabitBlocksForDate(date, scheduledHabits),
-    ]
-      .filter((block) => !existingSourceIds.has(block.id))
-      .map((block) => ({
-        ...block,
-        id: `${key}-${block.id}`,
-      }));
-
-    return [...sourceBlocks, ...scheduledBlocks].sort((a, b) => a.time.localeCompare(b.time));
+    return mergeScheduledBlocksForDate(date, sourceBlocks, defaultRoutineSettings, scheduledHabits);
   }
 
-  const blocks = localizeBlocks(withScheduledBlocks(selectedDate, routines[selectedKey] ?? getDefaultBlocksForDate(selectedDate)));
+  function applyRecordedStatuses(date: Date, sourceBlocks: EditableRoutineBlock[]) {
+    const key = dateKey(date);
+    return sourceBlocks.map((block) => {
+      const sourceId = getRoutineBlockSourceId(block.id, key);
+      const record = blockRecordsByKey.get(`${key}:${sourceId}`);
+      if (!record) return block;
+
+      return {
+        ...block,
+        status: record.status === "done" ? "done" as const : "missed" as const,
+      };
+    });
+  }
+
+  const blocks = applyRecordedStatuses(
+    selectedDate,
+    localizeBlocks(withScheduledBlocks(selectedDate, routines[selectedKey] ?? getDefaultBlocksForDate(selectedDate))),
+  );
   const calendarDays = getCalendarDays(visibleMonth);
   const weekDays = getWeekDays(selectedDate);
 
@@ -218,13 +305,61 @@ export default function RoutinePage() {
     const timer = window.setInterval(() => {
       const now = new Date();
       setCurrentMinute(now.getHours() * 60 + now.getMinutes());
+      setToday((current) => dateKey(current) === dateKey(now) ? current : startOfDay(now));
     }, 30_000);
 
     return () => window.clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    const automaticBlockRecords: RoutineBlockRecord[] = [];
+    const automaticHabitRecords: RoutineHabitRecord[] = [];
+    const updatedAt = new Date().toISOString();
+    const existingHabitKeys = new Set(habitRecords.map((record) => `${record.date}:${record.habitId}`));
+
+    for (let offset = 1; offset <= editableHistoryDays; offset += 1) {
+      const date = addDays(today, -offset);
+      const key = dateKey(date);
+      const storedBlocks = routines[key] ?? buildDefaultBlocksForDate(date, routineBlocks, defaultRoutineSettings, scheduledHabits);
+      const dayBlocks = mergeScheduledBlocksForDate(date, storedBlocks, defaultRoutineSettings, scheduledHabits);
+
+      dayBlocks.forEach((block) => {
+        automaticBlockRecords.push({
+          blockId: getRoutineBlockSourceId(block.id, key),
+          date: key,
+          status: "not_done",
+          automatic: true,
+          updatedAt,
+        });
+
+        if (block.habitId && !existingHabitKeys.has(`${key}:${block.habitId}`)) {
+          existingHabitKeys.add(`${key}:${block.habitId}`);
+          automaticHabitRecords.push({
+            habitId: block.habitId,
+            date: key,
+            status: "low",
+            sourceBlockId: block.id,
+            updatedAt,
+          });
+        }
+      });
+    }
+
+    ensureBlockRecords(automaticBlockRecords);
+    ensureHabitRecords(automaticHabitRecords);
+  }, [
+    defaultRoutineSettings,
+    ensureBlockRecords,
+    ensureHabitRecords,
+    habitRecords,
+    routineBlocks,
+    routines,
+    scheduledHabits,
+    today,
+  ]);
+
   function openDate(date: Date, mode: ViewMode = "today") {
-    if (startOfDay(date) < today) return;
+    if (startOfDay(date) < earliestEditableDate) return;
     ensureDay(date);
     setSelectedDate(startOfDay(date));
     setActiveFilter(mode);
@@ -251,12 +386,43 @@ export default function RoutinePage() {
     }));
   }
 
+  function persistBlockStatus(block: RoutineBlock, status: RoutineBlockRecord["status"]) {
+    upsertBlockRecord({
+      blockId: getRoutineBlockSourceId(block.id, selectedKey),
+      date: selectedKey,
+      status,
+      automatic: false,
+      updatedAt: new Date().toISOString(),
+    });
+  }
+
   function toggleDone(id: string) {
     const targetBlock = blocks.find((block) => block.id === id);
+    if (!targetBlock) return;
 
-    if (targetBlock?.habitId) {
-      if (targetBlock.status === "done") {
-        removeRecord(targetBlock.habitId, selectedKey);
+    const isUndoing = targetBlock.status === "done";
+    const isPastDate = selectedDate < today;
+
+    if (isUndoing) {
+      if (isPastDate) persistBlockStatus(targetBlock, "not_done");
+      else removeBlockRecord(getRoutineBlockSourceId(targetBlock.id, selectedKey), selectedKey);
+    } else {
+      persistBlockStatus(targetBlock, "done");
+    }
+
+    if (targetBlock.habitId) {
+      if (isUndoing) {
+        if (isPastDate) {
+          upsertRecord({
+            habitId: targetBlock.habitId,
+            date: selectedKey,
+            status: "low",
+            sourceBlockId: targetBlock.id,
+            updatedAt: new Date().toISOString(),
+          });
+        } else {
+          removeRecord(targetBlock.habitId, selectedKey);
+        }
       } else {
         upsertRecord({
           habitId: targetBlock.habitId,
@@ -292,8 +458,11 @@ export default function RoutinePage() {
 
   function skipBlock(id: string) {
     const targetBlock = blocks.find((block) => block.id === id);
+    if (!targetBlock) return;
 
-    if (targetBlock?.habitId) {
+    persistBlockStatus(targetBlock, "not_done");
+
+    if (targetBlock.habitId) {
       upsertRecord({
         habitId: targetBlock.habitId,
         date: selectedKey,
@@ -307,9 +476,15 @@ export default function RoutinePage() {
   }
 
   function syncHabitRecordFromBlock(block: RoutineBlock) {
+    if (block.status === "done" || block.status === "skipped" || block.status === "missed") {
+      persistBlockStatus(block, block.status === "done" ? "done" : "not_done");
+    } else {
+      removeBlockRecord(getRoutineBlockSourceId(block.id, selectedKey), selectedKey);
+    }
+
     if (!block.habitId) return;
 
-    if (block.status === "done" || block.status === "skipped") {
+    if (block.status === "done" || block.status === "skipped" || block.status === "missed") {
       upsertRecord({
         habitId: block.habitId,
         date: selectedKey,
@@ -324,6 +499,12 @@ export default function RoutinePage() {
   }
 
   function deleteBlock(id: string) {
+    const targetBlock = blocks.find((block) => block.id === id);
+    if (targetBlock) {
+      removeBlockRecord(getRoutineBlockSourceId(targetBlock.id, selectedKey), selectedKey);
+      if (targetBlock.habitId) removeRecord(targetBlock.habitId, selectedKey);
+    }
+
     setRoutines((current) => ({
       ...current,
       [selectedKey]: blocks.filter((block) => block.id !== id),
@@ -366,6 +547,8 @@ export default function RoutinePage() {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     const scheduledDays = formData.getAll("defaultScheduledDays").map(Number);
+    const monthlyDays = formData.getAll("defaultMonthlyDays").map(Number);
+    const recurrenceType = (formData.get("defaultRecurrenceType") as DefaultRoutineRecurrenceType) || "weekly";
     const item: DefaultRoutineItem = {
       id: crypto.randomUUID(),
       title: String(formData.get("defaultTitle") || routine.defaultRoutineFallbackTitle),
@@ -374,7 +557,9 @@ export default function RoutinePage() {
       duration: String(formData.get("defaultDuration") || "1 h"),
       category: (formData.get("defaultCategory") as RoutineBlock["category"]) || "trabalho",
       energy: (formData.get("defaultEnergy") as RoutineBlock["energy"]) || "media",
-      scheduledDays: scheduledDays.length ? scheduledDays : [1, 2, 3, 4, 5],
+      recurrenceType,
+      scheduledDays: recurrenceType === "weekly" ? (scheduledDays.length ? scheduledDays : [1, 2, 3, 4, 5]) : [],
+      monthlyDays: recurrenceType === "monthly" ? (monthlyDays.length ? monthlyDays : [1]) : [],
     };
 
     persistDefaultRoutineSettings({
@@ -382,6 +567,7 @@ export default function RoutinePage() {
       items: [...defaultRoutineSettings.items, item],
     });
     event.currentTarget.reset();
+    setDefaultRoutineRecurrenceType("weekly");
   }
 
   function removeDefaultRoutineItem(id: string) {
@@ -396,10 +582,11 @@ export default function RoutinePage() {
     const formData = new FormData(event.currentTarget);
     const start = String(formData.get("vacationStart") || "");
     const end = String(formData.get("vacationEnd") || "");
+    const itemIds = formData.getAll("vacationItemIds").map(String);
 
     persistDefaultRoutineSettings({
       ...defaultRoutineSettings,
-      vacation: start && end ? { start, end } : undefined,
+      vacation: start && end ? { start, end, itemIds } : undefined,
     });
   }
 
@@ -437,28 +624,32 @@ export default function RoutinePage() {
           {calendarDays.map((day) => {
             const inMonth = day.getMonth() === visibleMonth.getMonth();
             const isPast = startOfDay(day) < today;
+            const isLockedPast = startOfDay(day) < earliestEditableDate;
+            const isEditablePast = isPast && !isLockedPast;
             const isSelected = dateKey(day) === selectedKey;
             const isToday = dateKey(day) === dateKey(today);
-            const dayButtonState = isPast
-              ? "cursor-not-allowed border border-[#2B2B31] bg-[#17171A] text-[#8B847B]"
+            const dayButtonState = isLockedPast
+              ? "cursor-not-allowed border border-[var(--border-soft)] bg-[var(--surface-ambient)] text-[var(--text-tertiary)]"
               : isToday
-                ? "border border-[#B87333] bg-[#B87333] text-[#F6F1E8] hover:bg-[#C78A52] hover:text-[#F6F1E8]"
+                ? "border border-[var(--silver-02)] bg-[linear-gradient(112deg,var(--silver-01),var(--silver-03)_48%,var(--silver-04))] text-[#050507] shadow-[0_10px_24px_rgba(0,0,0,0.22),inset_0_1px_1px_rgba(255,255,255,0.52)] hover:text-[#050507]"
                 : isSelected
-                  ? "border border-[#D8B08C] bg-[#F6F1E8] text-[#0B0B0D] hover:bg-[#F6F1E8] hover:text-[#0B0B0D]"
-                  : "border border-[#2B2B31] bg-[#17171A] text-[#EDE6DA] hover:border-[#B87333]/60 hover:bg-[#B87333]/12 hover:text-[#F6F1E8]";
+                  ? "border border-[var(--silver-02)] bg-[var(--text-primary)] text-[var(--background-primary)] hover:text-[var(--background-primary)]"
+                  : isEditablePast
+                    ? "border border-red-500/30 bg-red-500/[0.06] text-[var(--text-secondary)] hover:border-red-500/55 hover:bg-red-500/[0.1] hover:text-[var(--text-primary)]"
+                  : "border border-[var(--border-soft)] bg-[var(--surface-ambient)] text-[var(--text-secondary)] hover:border-[var(--border-strong)] hover:bg-[var(--surface-standard)] hover:text-[var(--text-primary)]";
             const dayNumberState = isToday
-              ? "text-[#F6F1E8]"
+              ? "text-[#050507]"
               : isSelected
-                ? "text-[#0B0B0D]"
-                : isPast
-                  ? "text-[#8B847B]"
-                  : "text-[#EDE6DA] group-hover:text-[#F6F1E8]";
+                ? "text-[var(--background-primary)]"
+                : isLockedPast
+                  ? "text-[var(--text-tertiary)]"
+                  : "text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]";
 
             return (
               <button
                 key={dateKey(day)}
                 type="button"
-                disabled={!inMonth || isPast}
+                disabled={!inMonth || isLockedPast}
                 onClick={() => openDate(day, "today")}
                 className={cn(
                   "group relative grid aspect-square place-items-center rounded-2xl text-sm font-bold transition",
@@ -470,11 +661,15 @@ export default function RoutinePage() {
                   {day.getDate()}
                 </span>
                 {isPast && inMonth ? (
-                  <span className="font-sunshiney pointer-events-none absolute inset-0 z-20 flex translate-y-[1px] items-center justify-center text-[5.25rem] leading-none text-red-500/20">
-                    x
+                  <span className={cn(
+                    "font-calendar-x pointer-events-none absolute inset-0 z-20 flex translate-y-[1px] items-center justify-center text-[5.25rem] leading-none text-red-500",
+                    isEditablePast ? "opacity-[0.35]" : "opacity-25",
+                  )}>
+                    X
                   </span>
                 ) : null}
-                {isToday ? <span className="absolute bottom-1 size-1.5 rounded-full bg-[#F6F1E8]" /> : null}
+                {isToday ? <span className="absolute bottom-1 size-1.5 rounded-full bg-[#050507]" /> : null}
+                {isEditablePast && !isSelected ? <span className="absolute bottom-1 size-1.5 rounded-full bg-red-500/70" /> : null}
               </button>
             );
           })}
@@ -494,8 +689,105 @@ export default function RoutinePage() {
         ))}
       </div>
 
+      <Card>
+        <div className="flex items-start justify-between gap-4">
+          <SectionTitle
+            title={activeFilter === "week" ? routine.weeklyAgenda : `${routine.timeline} · ${formatDisplayDate(selectedDate, language)}`}
+            description={routine.description}
+          />
+          <Button className="shrink-0" onClick={() => openEditor()}>
+            {routine.newBlock}
+          </Button>
+        </div>
+      </Card>
+
+      {activeFilter === "week" ? (
+        <div className="grid gap-4">
+          {weekDays.map((day) => {
+            const key = dateKey(day);
+            const dayBlocks = applyRecordedStatuses(
+              day,
+              localizeBlocks(withScheduledBlocks(day, routines[key] ?? getDefaultBlocksForDate(day))),
+            );
+            const isLockedPast = startOfDay(day) < earliestEditableDate;
+            return (
+              <Card key={key} className={cn(isLockedPast && "opacity-60")}>
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <Badge tone={dateKey(day) === selectedKey ? "green" : "blue"}>
+                      {routine.weekdays[day.getDay()]} · {day.toLocaleDateString(language, { day: "2-digit", month: "2-digit" })}
+                    </Badge>
+                    <h3 className="subtitle-display mt-3 text-xl text-[var(--text-primary)]">
+                      {isLockedPast ? routine.dayClosed : dayBlocks[0]?.title ?? routine.openRoutine}
+                    </h3>
+                  </div>
+                  {!isLockedPast ? (
+                    <Button variant="secondary" className="shrink-0 px-3" onClick={() => openDate(day, "today")}>
+                      {routine.open}
+                    </Button>
+                  ) : null}
+                </div>
+                <div className="mt-4 grid gap-2">
+                  {dayBlocks.slice(0, 4).map((block) => (
+                    <div key={block.id} className="flex items-center justify-between gap-3 rounded-2xl bg-zinc-50 px-4 py-3 text-sm dark:bg-zinc-900">
+                      <span className="font-bold text-zinc-500">{block.time}</span>
+                      <div className="flex min-w-0 flex-1 flex-wrap items-center justify-end gap-2">
+                        {block.habitId ? (
+                          <>
+                            <Badge tone="neutral">{common.habit}</Badge>
+                            <Badge tone="blue">{block.goalTitle ?? common.unlinkedGoal}</Badge>
+                          </>
+                        ) : null}
+                        <span className="subtitle-display text-base text-[var(--text-primary)]">{block.title}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="grid gap-4">
+          {blocks.map((block, index) => (
+            <RoutineCard
+              key={block.id}
+              block={block}
+              isCurrent={isCurrentBlock(block, index)}
+              onDone={toggleDone}
+              onSkip={skipBlock}
+              onEdit={openEditor}
+              onDelete={deleteBlock}
+            />
+          ))}
+          {!blocks.length ? (
+            <EmptyState title={routine.emptyTitle} description={routine.emptyDescription} />
+          ) : null}
+        </div>
+      )}
+
       <Card className="grid gap-4">
         <SectionTitle title={routine.defaultRoutine} description={routine.defaultRoutineDescription} />
+        {defaultRoutineSettings.items.length ? (
+          <div className="grid gap-2">
+            {defaultRoutineSettings.items.map((item) => (
+              <div key={item.id} className="flex items-center justify-between gap-3 rounded-2xl bg-zinc-50 px-4 py-3 text-sm dark:bg-zinc-900">
+                <div>
+                  <p className="subtitle-display text-base text-[var(--text-primary)]">{item.time} · {item.title}</p>
+                  <p className="text-xs text-zinc-500">
+                    {item.recurrenceType === "monthly"
+                      ? `${routine.monthly}: ${(item.monthlyDays?.length ? item.monthlyDays : [1]).join(", ")}`
+                      : item.scheduledDays.map((day) => routine.weekdays[day]).join(", ")}
+                  </p>
+                </div>
+                <Button variant="ghost" className="min-h-10 px-3 text-xs" onClick={() => removeDefaultRoutineItem(item.id)}>
+                  {routine.remove}
+                </Button>
+              </div>
+            ))}
+          </div>
+        ) : null}
+
         <form onSubmit={saveDefaultRoutineItem} className="grid gap-3">
           <div className="grid grid-cols-2 gap-3">
             <FieldLabel label={routine.titleField}>
@@ -522,18 +814,43 @@ export default function RoutinePage() {
           <FieldLabel label={routine.descriptionField}>
             <Textarea name="defaultDescription" placeholder={routine.defaultRoutineDescriptionPlaceholder} />
           </FieldLabel>
-          <FieldLabel label={routine.repeatOn}>
-            <div className="grid grid-cols-7 gap-1.5">
-              {routine.weekdays.map((day, index) => (
-                <label key={day} className="grid min-h-11 place-items-center rounded-2xl bg-zinc-50 text-xs font-bold dark:bg-zinc-900">
-                  <input className="peer sr-only" type="checkbox" name="defaultScheduledDays" value={index} defaultChecked={index > 0 && index < 6} />
-                  <span className="grid size-full place-items-center rounded-2xl transition peer-checked:bg-zinc-950 peer-checked:text-white dark:peer-checked:bg-white dark:peer-checked:text-zinc-950">
-                    {day}
-                  </span>
-                </label>
-              ))}
-            </div>
+          <FieldLabel label={routine.recurrence}>
+            <Select
+              name="defaultRecurrenceType"
+              value={defaultRoutineRecurrenceType}
+              onChange={(event) => setDefaultRoutineRecurrenceType(event.target.value as DefaultRoutineRecurrenceType)}
+            >
+              <option value="weekly">{routine.weekly}</option>
+              <option value="monthly">{routine.monthly}</option>
+            </Select>
           </FieldLabel>
+          {defaultRoutineRecurrenceType === "weekly" ? (
+            <FieldLabel label={routine.repeatOn}>
+              <div className="grid grid-cols-7 gap-1.5">
+                {routine.weekdays.map((day, index) => (
+                  <label key={day} className="grid min-h-11 place-items-center rounded-2xl bg-zinc-50 text-xs font-bold dark:bg-zinc-900">
+                    <input className="peer sr-only" type="checkbox" name="defaultScheduledDays" value={index} defaultChecked={index > 0 && index < 6} />
+                    <span className="grid size-full place-items-center rounded-2xl transition peer-checked:bg-zinc-950 peer-checked:text-white dark:peer-checked:bg-white dark:peer-checked:text-zinc-950">
+                      {day}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </FieldLabel>
+          ) : (
+            <FieldLabel label={routine.monthDays}>
+              <div className="grid grid-cols-7 gap-1.5">
+                {Array.from({ length: 31 }, (_, index) => index + 1).map((day) => (
+                  <label key={day} className="grid min-h-10 place-items-center rounded-2xl bg-zinc-50 text-xs font-bold dark:bg-zinc-900">
+                    <input className="peer sr-only" type="checkbox" name="defaultMonthlyDays" value={day} defaultChecked={day === 1} />
+                    <span className="grid size-full place-items-center rounded-2xl transition peer-checked:bg-zinc-950 peer-checked:text-white dark:peer-checked:bg-white dark:peer-checked:text-zinc-950">
+                      {day}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </FieldLabel>
+          )}
           <FieldLabel label={routine.energy}>
             <Select name="defaultEnergy" defaultValue="media">
               <option value="baixa">{routine.low}</option>
@@ -544,25 +861,27 @@ export default function RoutinePage() {
           <Button type="submit">{routine.addDefaultRoutineItem}</Button>
         </form>
 
-        {defaultRoutineSettings.items.length ? (
-          <div className="grid gap-2">
-            {defaultRoutineSettings.items.map((item) => (
-              <div key={item.id} className="flex items-center justify-between gap-3 rounded-2xl bg-zinc-50 px-4 py-3 text-sm dark:bg-zinc-900">
-                <div>
-                  <p className="font-black">{item.time} · {item.title}</p>
-                  <p className="text-xs text-zinc-500">{item.scheduledDays.map((day) => routine.weekdays[day]).join(", ")}</p>
-                </div>
-                <Button variant="ghost" className="min-h-10 px-3 text-xs" onClick={() => removeDefaultRoutineItem(item.id)}>
-                  {routine.remove}
-                </Button>
-              </div>
-            ))}
-          </div>
-        ) : null}
-
         <form onSubmit={saveVacationPeriod} className="grid gap-3 rounded-3xl border border-zinc-100 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900">
           <h3 className="text-sm font-black">{routine.vacationPeriod}</h3>
           <p className="text-xs leading-5 text-zinc-500">{routine.vacationDescription}</p>
+          {defaultRoutineSettings.items.length ? (
+            <FieldLabel label={routine.vacationItems}>
+              <div className="grid gap-2">
+                {defaultRoutineSettings.items.map((item) => (
+                  <label key={item.id} className="flex items-center justify-between gap-3 rounded-2xl bg-white/70 px-4 py-3 text-sm font-bold dark:bg-zinc-950/70">
+                    <span>{item.time} · {item.title}</span>
+                    <input
+                      className="size-4 accent-[var(--silver-02)]"
+                      type="checkbox"
+                      name="vacationItemIds"
+                      value={item.id}
+                      defaultChecked={defaultRoutineSettings.vacation?.itemIds?.includes(item.id) ?? false}
+                    />
+                  </label>
+                ))}
+              </div>
+            </FieldLabel>
+          ) : null}
           <div className="grid grid-cols-2 gap-3">
             <FieldLabel label={routine.startDate}>
               <Input name="vacationStart" type="date" defaultValue={defaultRoutineSettings.vacation?.start ?? ""} />
@@ -574,72 +893,6 @@ export default function RoutinePage() {
           <Button type="submit" variant="secondary">{routine.saveVacation}</Button>
         </form>
       </Card>
-
-      <Card>
-        <div className="flex items-start justify-between gap-4">
-          <SectionTitle
-            title={activeFilter === "week" ? routine.weeklyAgenda : `${routine.timeline} · ${formatDisplayDate(selectedDate, language)}`}
-            description={routine.description}
-          />
-          <Button className="shrink-0" onClick={() => openEditor()}>
-            {routine.newBlock}
-          </Button>
-        </div>
-      </Card>
-
-      {activeFilter === "week" ? (
-        <div className="grid gap-4">
-          {weekDays.map((day) => {
-            const key = dateKey(day);
-            const dayBlocks = localizeBlocks(withScheduledBlocks(day, routines[key] ?? getDefaultBlocksForDate(day)));
-            const isPast = startOfDay(day) < today;
-            return (
-              <Card key={key} className={cn(isPast && "opacity-60")}>
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <Badge tone={dateKey(day) === selectedKey ? "green" : "blue"}>
-                      {routine.weekdays[day.getDay()]} · {day.toLocaleDateString(language, { day: "2-digit", month: "2-digit" })}
-                    </Badge>
-                    <h3 className="mt-3 text-lg font-bold">
-                      {isPast ? routine.dayClosed : dayBlocks[0]?.title ?? routine.openRoutine}
-                    </h3>
-                  </div>
-                  {!isPast ? (
-                    <Button variant="secondary" className="shrink-0 px-3" onClick={() => openDate(day, "today")}>
-                      {routine.open}
-                    </Button>
-                  ) : null}
-                </div>
-                <div className="mt-4 grid gap-2">
-                  {dayBlocks.slice(0, 4).map((block) => (
-                    <div key={block.id} className="flex items-center justify-between rounded-2xl bg-zinc-50 px-4 py-3 text-sm dark:bg-zinc-900">
-                      <span className="font-bold text-zinc-500">{block.time}</span>
-                      <span className="font-semibold">{block.title}</span>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            );
-          })}
-        </div>
-      ) : (
-        <div className="grid gap-4">
-          {blocks.map((block, index) => (
-            <RoutineCard
-              key={block.id}
-              block={block}
-              isCurrent={isCurrentBlock(block, index)}
-              onDone={toggleDone}
-              onSkip={skipBlock}
-              onEdit={openEditor}
-              onDelete={deleteBlock}
-            />
-          ))}
-          {!blocks.length ? (
-            <EmptyState title={routine.emptyTitle} description={routine.emptyDescription} />
-          ) : null}
-        </div>
-      )}
 
       {modalOpen ? (
         <div className="fixed inset-0 z-50 grid place-items-end bg-black/40 p-4">
@@ -687,6 +940,7 @@ export default function RoutinePage() {
                     <option value="pending">{routineCard.pending}</option>
                     <option value="done">{routineCard.done}</option>
                     <option value="skipped">{routineCard.skipped}</option>
+                    <option value="missed">{routineCard.missed}</option>
                   </Select>
                 </FieldLabel>
               </div>

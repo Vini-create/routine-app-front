@@ -34,8 +34,19 @@ export default function AssistantPage() {
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const conversationRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const assistant = useTranslations("assistant");
+
+  function scrollConversationToBottom(behavior: ScrollBehavior = "smooth") {
+    const conversation = conversationRef.current;
+    if (!conversation) return;
+
+    conversation.scrollTo({
+      top: conversation.scrollHeight,
+      behavior,
+    });
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -65,7 +76,18 @@ export default function AssistantPage() {
   }, [assistant.historyError, conversationId]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    scrollConversationToBottom();
+    const firstFrame = window.requestAnimationFrame(() => scrollConversationToBottom());
+    const secondFrame = window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => scrollConversationToBottom());
+    });
+    const settleTimer = window.setTimeout(() => scrollConversationToBottom(), 180);
+
+    return () => {
+      window.cancelAnimationFrame(firstFrame);
+      window.cancelAnimationFrame(secondFrame);
+      window.clearTimeout(settleTimer);
+    };
   }, [messages, isSending]);
 
   async function sendMessage(event: FormEvent<HTMLFormElement>) {
@@ -84,6 +106,7 @@ export default function AssistantPage() {
     setText("");
     setIsSending(true);
     setError("");
+    window.requestAnimationFrame(() => scrollConversationToBottom());
 
     try {
       const response = await sendChatMessage({
@@ -105,16 +128,16 @@ export default function AssistantPage() {
   }
 
   return (
-    <AppShell title={assistant.title}>
-      <section className="assistantShell flex h-[calc(100dvh-10.25rem)] min-h-0 flex-col gap-4 overflow-hidden">
+    <AppShell title={assistant.title} showTitle={false} mainClassName="pt-3">
+      <section className="assistantShell flex h-[calc(100dvh-8rem)] min-h-0 flex-col gap-4 overflow-hidden">
         <div className="shrink-0">
           <div className="flex items-center gap-3">
-            <div className="assistantOrb grid size-12 shrink-0 place-items-center rounded-3xl bg-zinc-950 text-lg font-black text-white shadow-[0_18px_42px_-22px_rgba(24,24,27,0.9)] dark:bg-white dark:text-zinc-950">
+            <div className="assistantOrb grid size-12 shrink-0 place-items-center rounded-3xl bg-[var(--text-primary)] text-lg font-black text-[var(--background-primary)] shadow-[0_18px_42px_-22px_rgba(24,24,27,0.9)]">
               A
             </div>
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-zinc-500 dark:text-zinc-400">{assistant.status}</p>
-              <h2 className="text-xl font-black tracking-tight">{assistant.chatTitle}</h2>
+              <p className="label-micro">{assistant.status}</p>
+              <h2 className="font-display text-4xl font-light uppercase leading-none text-[var(--text-primary)]">{assistant.title}</h2>
             </div>
           </div>
         </div>
@@ -125,7 +148,7 @@ export default function AssistantPage() {
               <Button
                 key={action}
                 variant="secondary"
-                className="assistantSuggestion shrink-0 border-white/60 bg-white/55 text-zinc-800 shadow-[0_14px_34px_-24px_rgba(15,23,42,0.75)] backdrop-blur-xl hover:bg-white/80 dark:border-white/10 dark:bg-white/[0.07] dark:text-zinc-100 dark:hover:bg-white/[0.12]"
+                className="assistantSuggestion shrink-0 rounded-full border-[var(--border-medium)] bg-[var(--surface-standard)] px-5 text-[var(--text-primary)] shadow-[0_10px_26px_-20px_rgba(0,0,0,0.72),inset_0_1px_0_rgba(255,255,255,0.055)] backdrop-blur-xl hover:bg-[var(--surface-focus)]"
                 onClick={() => setText(action)}
               >
                 {action}
@@ -134,8 +157,8 @@ export default function AssistantPage() {
           </div>
         </div>
 
-        <div className="assistantConversation min-h-0 flex-1 overflow-y-auto px-1 pb-8 pr-3 [scrollbar-gutter:stable]">
-          <div className="grid gap-4 pb-8">
+        <div ref={conversationRef} className="assistantConversation min-h-0 flex-1 overflow-y-auto px-1 pb-40 pr-3 [scrollbar-gutter:stable]">
+          <div className="grid gap-4 pb-24">
             {isLoadingHistory ? (
               <div className="assistantBubble assistantBubbleBot mx-auto max-w-sm rounded-[1.4rem] px-4 py-3 text-center">
                 <p className="text-sm font-semibold">{assistant.loadingHistory}</p>
@@ -149,7 +172,7 @@ export default function AssistantPage() {
             ) : null}
 
             {error ? (
-              <div className="mx-auto grid max-w-sm gap-3 rounded-[1.4rem] border border-red-400/20 bg-red-950/20 px-4 py-3 text-center text-red-100 shadow-[0_18px_46px_-34px_rgba(127,29,29,0.9)] backdrop-blur-xl">
+              <div className="mx-auto grid max-w-sm gap-3 rounded-[1.4rem] border border-[var(--border-medium)] bg-[var(--surface-standard)] px-4 py-3 text-center text-[var(--text-primary)] shadow-soft backdrop-blur-xl">
                 <p className="text-sm font-semibold">{error}</p>
                 <Button variant="secondary" className="min-h-10 rounded-2xl" onClick={() => window.location.reload()}>
                   {assistant.retry}
@@ -204,7 +227,7 @@ export default function AssistantPage() {
 
         <form
           onSubmit={sendMessage}
-          className="assistantComposer sticky bottom-0 grid shrink-0 grid-cols-[1fr_auto] gap-2 rounded-[1.6rem] border border-white/18 bg-zinc-900/48 p-2 shadow-[0_20px_60px_-34px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-2xl"
+          className="assistantComposer fixed inset-x-5 bottom-[calc(6.35rem+env(safe-area-inset-bottom))] z-40 mx-auto grid max-w-3xl shrink-0 grid-cols-[1fr_auto] gap-2 rounded-[1.6rem] border border-white/18 bg-zinc-900/70 p-2 shadow-[0_22px_70px_-32px_rgba(0,0,0,0.95),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-2xl"
         >
           <Input
             ref={inputRef}
