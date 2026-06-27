@@ -135,7 +135,7 @@ export function BottomNavigation() {
         </div>
       ) : null}
 
-      <nav className="glass-ambient fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] left-4 right-4 z-30 grid h-[66px] grid-cols-6 items-center rounded-full px-2 lg:hidden" aria-label="Primary">
+      <nav className="glass-ambient winperiumMobileNav fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] left-4 right-4 z-30 grid h-[66px] grid-cols-6 items-center rounded-full px-2 lg:hidden" aria-label="Primary">
         {items.map((item) => {
           const active = pathname === item.href;
           return (

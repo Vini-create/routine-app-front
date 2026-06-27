@@ -662,7 +662,7 @@ export default function RoutinePage() {
                 </span>
                 {isPast && inMonth ? (
                   <span className={cn(
-                    "font-calendar-x pointer-events-none absolute inset-0 z-20 flex translate-y-[1px] items-center justify-center text-[5.25rem] leading-none text-red-500",
+                    "font-calendar-x pointer-events-none absolute inset-0 z-20 flex translate-y-[1px] items-center justify-center text-[3.75rem] leading-none text-red-500 sm:text-[5.25rem]",
                     isEditablePast ? "opacity-[0.35]" : "opacity-25",
                   )}>
                     X

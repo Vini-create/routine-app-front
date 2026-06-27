@@ -4,11 +4,13 @@ import { cn } from "@/lib/utils";
 export function BrandMark({
   className,
   iconClassName,
+  wordmarkClassName,
   showWordmark = true,
   logoSrc,
 }: {
   className?: string;
   iconClassName?: string;
+  wordmarkClassName?: string;
   showWordmark?: boolean;
   logoSrc?: string;
 }) {
@@ -18,8 +20,8 @@ export function BrandMark({
     <div className={cn("inline-flex items-center gap-3 alfredLogoSlot", className)} data-logo-slot="winperium-brand">
       <span
         className={cn(
-          "relative grid size-10 shrink-0 place-items-center overflow-hidden",
-          iconClassName,
+          "relative grid shrink-0 place-items-center overflow-hidden",
+          iconClassName ?? "size-10",
         )}
         aria-hidden="true"
         data-logo-slot="winperium-symbol"
@@ -34,7 +36,10 @@ export function BrandMark({
         />
       </span>
       {showWordmark ? (
-        <span className="font-wordmark translate-y-1 text-[2rem] font-normal leading-none tracking-normal text-[var(--text-primary)] sm:text-[2.35rem]">
+        <span className={cn(
+          "font-wordmark translate-y-1 font-normal leading-none tracking-normal text-[var(--text-primary)]",
+          wordmarkClassName ?? "text-[2rem] sm:text-[2.35rem]",
+        )}>
           Winperium
         </span>
       ) : null}

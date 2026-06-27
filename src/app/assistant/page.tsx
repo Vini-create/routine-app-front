@@ -1,7 +1,10 @@
 "use client";
 
+import Image from "next/image";
 import { FormEvent, useEffect, useRef, useState } from "react";
+import alfredAvatar from "../../../alfred.png";
 import { AppShell } from "@/components/app/AppShell";
+import { DevelopmentNotice } from "@/components/app/DevelopmentNotice";
 import { useTranslations } from "@/components/app/LanguageProvider";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Form";
@@ -132,18 +135,29 @@ export default function AssistantPage() {
       <section className="assistantShell flex h-[calc(100dvh-8rem)] min-h-0 flex-col gap-4 overflow-hidden">
         <div className="shrink-0">
           <div className="flex items-center gap-3">
-            <div className="assistantOrb grid size-12 shrink-0 place-items-center rounded-3xl bg-[var(--text-primary)] text-lg font-black text-[var(--background-primary)] shadow-[0_18px_42px_-22px_rgba(24,24,27,0.9)]">
-              A
-            </div>
+            <Image
+              src={alfredAvatar}
+              alt=""
+              priority
+              className="size-12 shrink-0 rounded-3xl border border-[var(--border-medium)] object-cover shadow-[0_18px_42px_-22px_rgba(24,24,27,0.9)]"
+              sizes="48px"
+            />
             <div>
-              <p className="label-micro">{assistant.status}</p>
-              <h2 className="font-display text-4xl font-light uppercase leading-none text-[var(--text-primary)]">{assistant.title}</h2>
+              <p className="label-micro assistantOnlineStatus">{assistant.status}</p>
+              <h2 className="display-title metallicPageTitle text-[2.65rem] sm:text-5xl">{assistant.title}</h2>
             </div>
           </div>
         </div>
 
+        <DevelopmentNotice
+          label={assistant.developmentLabel}
+          description={assistant.developmentDescription}
+          footnote={assistant.developmentFootnote}
+          className="shrink-0 p-4"
+        />
+
         <div className="assistantQuickScroll -mx-5 shrink-0 overflow-x-auto px-5 pb-5 pt-1 [scrollbar-gutter:stable]">
-          <div className="flex w-max gap-2 pr-5">
+          <div className="mx-auto flex w-max gap-2">
             {assistant.quickActions.map((action) => (
               <Button
                 key={action}
@@ -200,7 +214,7 @@ export default function AssistantPage() {
                     message.role === "user" ? "assistantBubbleUser rounded-br-md" : "assistantBubbleBot rounded-bl-md",
                   )}
                 >
-                  <p className="text-sm leading-6">{message.content}</p>
+                  <p className="whitespace-pre-wrap text-sm leading-6">{message.content}</p>
                   <p className="mt-2 text-[11px] font-semibold opacity-55">{formatMessageTime(message.createdAt)}</p>
                 </div>
                 {message.role === "user" ? (

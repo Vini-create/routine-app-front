@@ -2,6 +2,7 @@
 
 import { FormEvent, useMemo, useState } from "react";
 import { AppShell } from "@/components/app/AppShell";
+import { DevelopmentNotice } from "@/components/app/DevelopmentNotice";
 import { useTranslations } from "@/components/app/LanguageProvider";
 import { SectionTitle } from "@/components/app/SectionTitle";
 import { useAppData } from "@/components/app/useAppData";
@@ -69,6 +70,12 @@ export default function FeedbackPage() {
       <Card className="bg-zinc-950 text-white dark:bg-white dark:text-zinc-950">
         <SectionTitle title={feedbackLabels.title} description={feedbackLabels.subtitle} />
       </Card>
+
+      <DevelopmentNotice
+        label={feedbackLabels.developmentLabel}
+        description={feedbackLabels.developmentDescription}
+        footnote={feedbackLabels.developmentFootnote}
+      />
 
       <Card>
         <form onSubmit={onSubmit} className="grid gap-4">

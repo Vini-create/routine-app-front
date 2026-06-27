@@ -147,6 +147,9 @@ export const en = {
   feedback: {
     title: "Routine feedback",
     subtitle: "Define a goal and receive an analysis of your weekly routine.",
+    developmentLabel: "In Development...",
+    developmentDescription: "Here you will receive a personalized analysis of your routine, habits, and goals, with improvement points and practical suggestions for the following week.",
+    developmentFootnote: "This feature is still being prepared and will be available in a future beta update.",
     goalLabel: "What is your main goal right now?",
     goalPlaceholder: "Ex: gain muscle mass, study programming every day, sleep better and reduce procrastination...",
     goalRequired: "Write your goal before generating feedback.",
@@ -390,6 +393,9 @@ export const en = {
   assistant: {
     title: "Alfred",
     status: "online",
+    developmentLabel: "In Development...",
+    developmentDescription: "Here you will be able to talk to Alfred to organize your day, adjust your habits, overcome difficulties, and make decisions aligned with your goals.",
+    developmentFootnote: "Alfred is still in development and will arrive in a future beta update.",
     chatTitle: "AI coach",
     quickActions: ["Organize my day", "I have low energy", "Rebuild my routine", "Help me focus", "Plan my week"],
     response: "I will consider your current context and suggest a lighter adjustment for today.",
