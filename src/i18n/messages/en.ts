@@ -119,7 +119,6 @@ export const en = {
     greeting: "Good morning",
     aligned: "Your day starts here.",
     recalculate: "Recalculate routine",
-    quickCheckin: "Quick check-in",
     suggestion: "Connect your routine data to receive personalized AI suggestions.",
     now: "What to do now",
     next: "Next blocks",

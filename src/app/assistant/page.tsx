@@ -132,7 +132,7 @@ export default function AssistantPage() {
   return (
     <AppShell title={assistant.title} showTitle={false} mainClassName="assistantMain">
       <section className="assistantShell flex h-full min-h-0 flex-col overflow-hidden lg:h-[calc(100dvh-5rem)]">
-        <header className="flex shrink-0 items-center justify-between gap-3 pb-3">
+        <header className="relative flex shrink-0 items-center justify-between gap-3 pb-3">
           <div className="flex min-w-0 items-center gap-3">
             <Image
               src={alfredAvatar}
@@ -146,7 +146,7 @@ export default function AssistantPage() {
               <h2 className="display-title metallicPageTitle truncate text-[2.35rem] leading-none sm:text-5xl">{assistant.title}</h2>
             </div>
           </div>
-          <span className="assistantBetaBadge max-w-[9rem] shrink-0 truncate rounded-full border px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[0.07em]">
+          <span className="developmentBadge max-w-[9rem] shrink-0 truncate rounded-full border px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[0.07em] lg:absolute lg:left-1/2 lg:-translate-x-1/2">
             {assistant.developmentLabel}
           </span>
         </header>

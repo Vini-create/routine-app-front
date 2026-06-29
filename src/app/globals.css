@@ -259,12 +259,6 @@ h3,
   color: var(--status-online);
 }
 
-.assistantBetaBadge {
-  color: var(--text-tertiary);
-  border-color: var(--border-medium);
-  background: var(--surface-ambient);
-}
-
 .developmentNotice {
   border-color: color-mix(in srgb, #3b82f6 22%, var(--border-medium));
   background:

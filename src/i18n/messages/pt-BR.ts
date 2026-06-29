@@ -109,7 +109,6 @@ export const ptBR = {
     greeting: "Bom dia",
     aligned: "Seu dia começa aqui.",
     recalculate: "Recalcular rotina",
-    quickCheckin: "Check-in rápido",
     suggestion: "Conecte seus dados de rotina para receber sugestões personalizadas da IA.",
     now: "O que fazer agora",
     next: "Próximos blocos",

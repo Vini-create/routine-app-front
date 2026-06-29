@@ -76,9 +76,8 @@ export default function DashboardPage() {
         </Card>
       </section>
 
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <Button href="/feedback">{dashboard.openFeedback}</Button>
-        <Button href="/checkin" variant="secondary">{dashboard.quickCheckin}</Button>
         <Button href="/assistant" variant="secondary">{dashboard.assistantShortcut}</Button>
         <Button href="/habits" variant="secondary">{dashboard.habitsShortcut}</Button>
       </section>
