@@ -2,7 +2,7 @@ import { en } from "./en";
 
 export const ptBR = {
   ...en,
-  nav: { home: "Início", routine: "Rotina", goals: "Metas", habits: "Hábitos", feedback: "Feedback", ai: "IA", profile: "Perfil" },
+  nav: { home: "Início", routine: "Rotina", goals: "Metas", habits: "Hábitos", feedback: "Feedback", ai: "Alfred", profile: "Perfil" },
   auth: {
     createAccount: "Criar conta",
     buildRoutine: "Monte sua primeira rotina adaptativa.",

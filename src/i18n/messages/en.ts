@@ -5,7 +5,7 @@ export const en = {
     goals: "Goals",
     habits: "Habits",
     feedback: "Feedback",
-    ai: "AI",
+    ai: "Alfred",
     profile: "Profile",
   },
   auth: {

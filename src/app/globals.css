@@ -259,6 +259,25 @@ h3,
   color: var(--status-online);
 }
 
+.navIcon {
+  opacity: 0.58;
+  filter: brightness(0) invert(1);
+  transition: filter 180ms ease, opacity 180ms ease, transform 180ms ease;
+}
+
+.navIconActive {
+  opacity: 1;
+  filter: brightness(0);
+}
+
+[data-theme="light"] .navIcon {
+  filter: brightness(0);
+}
+
+[data-theme="light"] .navIconActive {
+  filter: brightness(0) invert(1);
+}
+
 .developmentNotice {
   border-color: color-mix(in srgb, #3b82f6 22%, var(--border-medium));
   background:

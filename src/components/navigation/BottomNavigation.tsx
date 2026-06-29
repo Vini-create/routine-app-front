@@ -1,20 +1,47 @@
 "use client";
 
+import Image, { type StaticImageData } from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import alfredIcon from "../../../new_nav_icons/alfred.svg";
+import feedbackIcon from "../../../new_nav_icons/feedback.svg";
+import goalsIcon from "../../../new_nav_icons/goals.svg";
+import habitsIcon from "../../../new_nav_icons/habits.svg";
+import homeIcon from "../../../new_nav_icons/home.svg";
+import profileIcon from "../../../new_nav_icons/profile.svg";
+import routineIcon from "../../../new_nav_icons/routine.svg";
 import { BrandMark } from "@/components/app/BrandMark";
 import { useTranslations } from "@/components/app/LanguageProvider";
 import { cn } from "@/lib/utils";
 
 const items = [
-  { href: "/dashboard", labelKey: "home", icon: "⌂" },
-  { href: "/routine", labelKey: "routine", icon: "◷" },
-  { href: "/goals", labelKey: "goals", icon: "◇" },
-  { href: "/habits", labelKey: "habits", icon: "✓" },
-  { href: "/feedback", labelKey: "feedback", icon: "◈" },
-  { href: "/assistant", labelKey: "ai", icon: "✦" },
+  { href: "/dashboard", labelKey: "home", icon: homeIcon },
+  { href: "/routine", labelKey: "routine", icon: routineIcon },
+  { href: "/goals", labelKey: "goals", icon: goalsIcon },
+  { href: "/habits", labelKey: "habits", icon: habitsIcon },
+  { href: "/feedback", labelKey: "feedback", icon: feedbackIcon },
+  { href: "/assistant", labelKey: "ai", icon: alfredIcon },
 ] as const;
+
+function NavigationIcon({
+  icon,
+  active = false,
+  className,
+}: {
+  icon: StaticImageData;
+  active?: boolean;
+  className?: string;
+}) {
+  return (
+    <Image
+      src={icon}
+      alt=""
+      aria-hidden="true"
+      className={cn("navIcon size-[1.15rem] object-contain", active && "navIconActive", className)}
+    />
+  );
+}
 
 export function BottomNavigation() {
   const pathname = usePathname();
@@ -43,7 +70,7 @@ export function BottomNavigation() {
                 active && "bg-[var(--text-primary)] text-[var(--background-primary)] shadow-[0_7px_18px_rgba(0,0,0,.12),inset_0_1px_0_rgba(255,255,255,.28)]",
               )}
             >
-              <span className="text-base leading-none">{item.icon}</span>
+              <NavigationIcon icon={item.icon} active={active} />
               <span
                 className={cn(
                   "glass-ambient pointer-events-none absolute left-[3.45rem] top-1/2 z-50 -translate-y-1/2 whitespace-nowrap rounded-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--text-secondary)] opacity-0 transition",
@@ -65,7 +92,7 @@ export function BottomNavigation() {
             pathname === "/settings" && "bg-[var(--text-primary)] text-[var(--background-primary)]",
           )}
         >
-          ◐
+          <NavigationIcon icon={profileIcon} active={pathname === "/settings"} />
           <span
             className={cn(
               "glass-ambient pointer-events-none absolute left-[3.45rem] top-1/2 z-50 -translate-y-1/2 whitespace-nowrap rounded-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--text-secondary)] opacity-0 transition",
@@ -115,7 +142,9 @@ export function BottomNavigation() {
                     active && "bg-[var(--text-primary)] text-[var(--background-primary)]",
                   )}
                 >
-                  <span className="grid size-9 place-items-center rounded-full">{item.icon}</span>
+                  <span className="grid size-9 place-items-center rounded-full">
+                    <NavigationIcon icon={item.icon} active={active} />
+                  </span>
                   <span>{nav[item.labelKey]}</span>
                 </Link>
               );
@@ -128,7 +157,9 @@ export function BottomNavigation() {
                 pathname === "/settings" && "bg-[var(--text-primary)] text-[var(--background-primary)]",
               )}
             >
-              <span className="grid size-9 place-items-center rounded-full">◎</span>
+              <span className="grid size-9 place-items-center rounded-full">
+                <NavigationIcon icon={profileIcon} active={pathname === "/settings"} />
+              </span>
               <span>{nav.profile}</span>
             </Link>
           </nav>
@@ -149,7 +180,7 @@ export function BottomNavigation() {
                 active && "bg-[var(--text-primary)] text-[var(--background-primary)] shadow-[inset_0_1px_0_rgba(255,255,255,.22)]",
               )}
             >
-              <span className="leading-none">{item.icon}</span>
+              <NavigationIcon icon={item.icon} active={active} />
             </Link>
           );
         })}
