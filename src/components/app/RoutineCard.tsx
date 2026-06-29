@@ -7,14 +7,6 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { useTranslations } from "./LanguageProvider";
 
-const statusTone = {
-  pending: "neutral",
-  active: "blue",
-  done: "green",
-  skipped: "amber",
-  missed: "amber",
-} as const;
-
 export function RoutineCard({
   block,
   isCurrent = false,
@@ -32,12 +24,7 @@ export function RoutineCard({
 }) {
   const labels = useTranslations("routineCard");
   const common = useTranslations("common");
-  const displayedStatus =
-    isCurrent && block.status !== "done" && block.status !== "skipped" && block.status !== "missed"
-      ? "active"
-      : block.status === "active"
-        ? "pending"
-        : block.status;
+  const isCompleted = block.status === "done";
 
   return (
     <Card className={cn("grid gap-4", isCurrent && "glass-focus border-[var(--border-strong)]")}>
@@ -45,7 +32,7 @@ export function RoutineCard({
         <div>
           {block.habitId ? (
             <div className="mb-3 flex flex-wrap gap-2">
-              <Badge tone="neutral">{common.habit}</Badge>
+              <Badge tone="neutral" className="routineHabitBadge">{common.habit}</Badge>
               <Badge tone="blue">{block.goalTitle ?? common.unlinkedGoal}</Badge>
             </div>
           ) : null}
@@ -53,8 +40,12 @@ export function RoutineCard({
           <h3 className="subtitle-display mt-1 text-xl text-[var(--text-primary)]">{block.title}</h3>
           <p className="mt-1 text-sm leading-6 text-[var(--text-secondary)]">{block.description}</p>
         </div>
-        <Badge tone={statusTone[displayedStatus]}>
-          {displayedStatus === "active" ? labels.now : labels[displayedStatus]}
+        <Badge
+          key={isCompleted ? "completed" : "not-completed"}
+          tone="neutral"
+          className={cn("routineStatusBadge", isCompleted ? "routineStatusBadgeCompleted" : "routineStatusBadgeIncomplete")}
+        >
+          {isCompleted ? labels.done : labels.missed}
         </Badge>
       </div>
       <div className="grid grid-cols-3 gap-2">

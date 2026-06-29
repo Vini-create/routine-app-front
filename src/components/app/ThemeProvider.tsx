@@ -1,11 +1,13 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
-
-export type ThemeMode = "dark" | "light";
-
-const themeStorageKey = "winperium-theme";
-const legacyThemeStorageKey = "alfred-theme";
+import {
+  getStoredTheme,
+  legacyThemeStorageKey,
+  persistTheme,
+  themeStorageKey,
+  type ThemeMode,
+} from "@/lib/theme";
 
 type ThemeContextValue = {
   theme: ThemeMode;
@@ -15,19 +17,31 @@ type ThemeContextValue = {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-function resolveInitialTheme(): ThemeMode {
-  if (typeof window === "undefined") return "dark";
-  const stored = window.localStorage.getItem(themeStorageKey) ?? window.localStorage.getItem(legacyThemeStorageKey);
-  return stored === "light" ? "light" : "dark";
-}
-
 function applyTheme(theme: ThemeMode) {
   document.documentElement.dataset.theme = theme;
   document.documentElement.style.colorScheme = theme;
 }
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<ThemeMode>(resolveInitialTheme);
+export function ThemeProvider({
+  children,
+  initialTheme,
+}: {
+  children: React.ReactNode;
+  initialTheme: ThemeMode;
+}) {
+  const [theme, setThemeState] = useState<ThemeMode>(initialTheme);
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      const storedTheme = getStoredTheme();
+      if (storedTheme !== initialTheme) {
+        setThemeState(storedTheme);
+        persistTheme(storedTheme);
+      }
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [initialTheme]);
 
   useEffect(() => {
     applyTheme(theme);
@@ -36,7 +50,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     function handleStorage(event: StorageEvent) {
       if (event.key !== themeStorageKey && event.key !== legacyThemeStorageKey) return;
-      const nextTheme = resolveInitialTheme();
+      const nextTheme = getStoredTheme();
       setThemeState(nextTheme);
       applyTheme(nextTheme);
     }
@@ -47,7 +61,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   function setTheme(nextTheme: ThemeMode) {
     setThemeState(nextTheme);
-    window.localStorage.setItem(themeStorageKey, nextTheme);
+    persistTheme(nextTheme);
     applyTheme(nextTheme);
   }
 

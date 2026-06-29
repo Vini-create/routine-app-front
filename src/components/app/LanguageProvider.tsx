@@ -17,8 +17,26 @@ type LanguageContextValue = {
 
 const LanguageContext = createContext<LanguageContextValue | null>(null);
 
-export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [language, setLanguageState] = useState<SupportedLanguage>(resolveInitialLanguage);
+export function LanguageProvider({
+  children,
+  initialLanguage,
+}: {
+  children: React.ReactNode;
+  initialLanguage: SupportedLanguage;
+}) {
+  const [language, setLanguageState] = useState<SupportedLanguage>(initialLanguage);
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      const preferredLanguage = resolveInitialLanguage();
+      if (preferredLanguage !== initialLanguage) {
+        setLanguageState(preferredLanguage);
+        persistLanguage(preferredLanguage);
+      }
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [initialLanguage]);
 
   useEffect(() => {
     document.documentElement.lang = language;

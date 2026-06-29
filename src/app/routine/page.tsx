@@ -734,7 +734,7 @@ export default function RoutinePage() {
                       <div className="flex min-w-0 flex-1 flex-wrap items-center justify-end gap-2">
                         {block.habitId ? (
                           <>
-                            <Badge tone="neutral">{common.habit}</Badge>
+                            <Badge tone="neutral" className="routineHabitBadge">{common.habit}</Badge>
                             <Badge tone="blue">{block.goalTitle ?? common.unlinkedGoal}</Badge>
                           </>
                         ) : null}

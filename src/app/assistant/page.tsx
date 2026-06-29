@@ -4,7 +4,6 @@ import Image from "next/image";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import alfredAvatar from "../../../alfred.png";
 import { AppShell } from "@/components/app/AppShell";
-import { DevelopmentNotice } from "@/components/app/DevelopmentNotice";
 import { useTranslations } from "@/components/app/LanguageProvider";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Form";
@@ -131,38 +130,34 @@ export default function AssistantPage() {
   }
 
   return (
-    <AppShell title={assistant.title} showTitle={false} mainClassName="pt-3">
-      <section className="assistantShell flex h-[calc(100dvh-8rem)] min-h-0 flex-col gap-4 overflow-hidden">
-        <div className="shrink-0">
-          <div className="flex items-center gap-3">
+    <AppShell title={assistant.title} showTitle={false} mainClassName="assistantMain">
+      <section className="assistantShell flex h-full min-h-0 flex-col overflow-hidden lg:h-[calc(100dvh-5rem)]">
+        <header className="flex shrink-0 items-center justify-between gap-3 pb-3">
+          <div className="flex min-w-0 items-center gap-3">
             <Image
               src={alfredAvatar}
               alt=""
               priority
-              className="size-12 shrink-0 rounded-3xl border border-[var(--border-medium)] object-cover shadow-[0_18px_42px_-22px_rgba(24,24,27,0.9)]"
-              sizes="48px"
+              className="size-11 shrink-0 rounded-2xl border border-[var(--border-medium)] object-cover shadow-[0_14px_34px_-22px_rgba(24,24,27,0.9)] sm:size-12"
+              sizes="(max-width: 640px) 44px, 48px"
             />
-            <div>
+            <div className="min-w-0">
               <p className="label-micro assistantOnlineStatus">{assistant.status}</p>
-              <h2 className="display-title metallicPageTitle text-[2.65rem] sm:text-5xl">{assistant.title}</h2>
+              <h2 className="display-title metallicPageTitle truncate text-[2.35rem] leading-none sm:text-5xl">{assistant.title}</h2>
             </div>
           </div>
-        </div>
+          <span className="assistantBetaBadge max-w-[9rem] shrink-0 truncate rounded-full border px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[0.07em]">
+            {assistant.developmentLabel}
+          </span>
+        </header>
 
-        <DevelopmentNotice
-          label={assistant.developmentLabel}
-          description={assistant.developmentDescription}
-          footnote={assistant.developmentFootnote}
-          className="shrink-0 p-4"
-        />
-
-        <div className="assistantQuickScroll -mx-5 shrink-0 overflow-x-auto px-5 pb-5 pt-1 [scrollbar-gutter:stable]">
-          <div className="mx-auto flex w-max gap-2">
+        <div className="assistantQuickScroll -mx-5 shrink-0 overflow-x-auto px-5 pb-3 pt-1 sm:-mx-6 sm:px-6 lg:mx-0 lg:px-0">
+          <div className="flex w-max gap-2 lg:flex-wrap">
             {assistant.quickActions.map((action) => (
               <Button
                 key={action}
                 variant="secondary"
-                className="assistantSuggestion shrink-0 rounded-full border-[var(--border-medium)] bg-[var(--surface-standard)] px-5 text-[var(--text-primary)] shadow-[0_10px_26px_-20px_rgba(0,0,0,0.72),inset_0_1px_0_rgba(255,255,255,0.055)] backdrop-blur-xl hover:bg-[var(--surface-focus)]"
+                className="assistantSuggestion min-h-9 shrink-0 rounded-full border-[var(--border-medium)] bg-[var(--surface-standard)] px-4 text-xs text-[var(--text-secondary)] shadow-none backdrop-blur-xl hover:bg-[var(--surface-focus)] hover:text-[var(--text-primary)]"
                 onClick={() => setText(action)}
               >
                 {action}
@@ -171,8 +166,8 @@ export default function AssistantPage() {
           </div>
         </div>
 
-        <div ref={conversationRef} className="assistantConversation min-h-0 flex-1 overflow-y-auto px-1 pb-40 pr-3 [scrollbar-gutter:stable]">
-          <div className="grid gap-4 pb-24">
+        <div ref={conversationRef} className="assistantConversation min-h-0 flex-1 overflow-y-auto overscroll-contain px-0.5 py-2 pr-1 sm:pr-2">
+          <div className="grid gap-3 pb-3 sm:gap-4">
             {isLoadingHistory ? (
               <div className="assistantBubble assistantBubbleBot mx-auto max-w-sm rounded-[1.4rem] px-4 py-3 text-center">
                 <p className="text-sm font-semibold">{assistant.loadingHistory}</p>
@@ -199,7 +194,7 @@ export default function AssistantPage() {
                 key={message.id}
                 className={cn(
                   "assistantMessageRow relative z-10 flex items-end gap-2",
-                  message.role === "user" ? "justify-end pl-8" : "justify-start pr-8",
+                  message.role === "user" ? "justify-end pl-10" : "justify-start pr-5 sm:pr-8",
                 )}
                 style={{ animationDelay: `${index * 55}ms` }}
               >
@@ -210,18 +205,13 @@ export default function AssistantPage() {
                 ) : null}
                 <div
                   className={cn(
-                    "assistantBubble max-w-[82%] rounded-[1.4rem] px-4 py-3",
+                    "assistantBubble max-w-[88%] rounded-[1.35rem] px-4 py-3 sm:max-w-[78%]",
                     message.role === "user" ? "assistantBubbleUser rounded-br-md" : "assistantBubbleBot rounded-bl-md",
                   )}
                 >
                   <p className="whitespace-pre-wrap text-sm leading-6">{message.content}</p>
                   <p className="mt-2 text-[11px] font-semibold opacity-55">{formatMessageTime(message.createdAt)}</p>
                 </div>
-                {message.role === "user" ? (
-                  <div className="mb-1 grid size-8 shrink-0 place-items-center rounded-2xl bg-white/65 text-[11px] font-black text-zinc-800 shadow-[0_12px_30px_-22px_rgba(15,23,42,0.9)] ring-1 ring-white/60 backdrop-blur-xl dark:bg-white/[0.08] dark:text-white dark:ring-white/10">
-                    ME
-                  </div>
-                ) : null}
               </div>
             ))}
 
@@ -241,16 +231,16 @@ export default function AssistantPage() {
 
         <form
           onSubmit={sendMessage}
-          className="assistantComposer fixed inset-x-5 bottom-[calc(6.35rem+env(safe-area-inset-bottom))] z-40 mx-auto grid max-w-3xl shrink-0 grid-cols-[1fr_auto] gap-2 rounded-[1.6rem] border border-white/18 bg-zinc-900/70 p-2 shadow-[0_22px_70px_-32px_rgba(0,0,0,0.95),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-2xl"
+          className="assistantComposer mt-2 grid shrink-0 grid-cols-[minmax(0,1fr)_auto] gap-2 rounded-[1.45rem] border border-[var(--border-medium)] bg-[var(--surface-focus)] p-2 shadow-[0_18px_48px_-28px_rgba(0,0,0,0.85),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-2xl"
         >
           <Input
             ref={inputRef}
             value={text}
             onChange={(event) => setText(event.target.value)}
             placeholder={assistant.placeholder}
-            className="border-white/10 bg-white/[0.045] text-zinc-100 shadow-none placeholder:text-zinc-500 focus:border-white/20 focus:ring-4 focus:ring-white/5 dark:border-white/10 dark:bg-white/[0.045] dark:focus:ring-white/5"
+            className="min-w-0 border-transparent bg-transparent px-3 text-[var(--text-primary)] shadow-none placeholder:text-[var(--text-tertiary)] focus:border-transparent focus:ring-0 dark:border-transparent dark:bg-transparent dark:focus:ring-0"
           />
-          <Button type="submit" disabled={isSending} className="rounded-[1.2rem] px-4">
+          <Button type="submit" disabled={isSending || !text.trim()} className="min-h-11 rounded-[1.1rem] px-4">
             {isSending ? assistant.sending : assistant.send}
           </Button>
         </form>

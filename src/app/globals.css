@@ -259,6 +259,12 @@ h3,
   color: var(--status-online);
 }
 
+.assistantBetaBadge {
+  color: var(--text-tertiary);
+  border-color: var(--border-medium);
+  background: var(--surface-ambient);
+}
+
 .developmentNotice {
   border-color: color-mix(in srgb, #3b82f6 22%, var(--border-medium));
   background:
@@ -439,6 +445,53 @@ h3,
   opacity: 0.18;
 }
 
+.routineHabitBadge {
+  color: #050507;
+  border-color: rgba(127, 130, 136, 0.42);
+  background:
+    linear-gradient(112deg, #888b91 0%, var(--silver-02) 24%, var(--silver-03) 45%, var(--silver-04) 70%, var(--silver-05) 100%);
+  box-shadow:
+    0 5px 14px rgba(0, 0, 0, 0.14),
+    inset 0 1px 1px rgba(255, 255, 255, 0.64),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.1);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.routineStatusBadge {
+  animation: routine-status-change 240ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition:
+    color 180ms ease,
+    background-color 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.routineStatusBadgeCompleted {
+  color: #16803c;
+  border-color: rgba(22, 128, 60, 0.3);
+  background: rgba(22, 128, 60, 0.1);
+  box-shadow: 0 6px 18px rgba(22, 128, 60, 0.1);
+}
+
+.routineStatusBadgeIncomplete {
+  color: #dc2626;
+  border-color: rgba(220, 38, 38, 0.38);
+  background: rgba(220, 38, 38, 0.11);
+  box-shadow: 0 6px 18px rgba(220, 38, 38, 0.12);
+}
+
+[data-theme="dark"] .routineStatusBadgeCompleted {
+  color: #4ade80;
+  border-color: rgba(74, 222, 128, 0.34);
+  background: rgba(74, 222, 128, 0.1);
+}
+
+[data-theme="dark"] .routineStatusBadgeIncomplete {
+  color: #ff4d5e;
+  border-color: rgba(255, 77, 94, 0.42);
+  background: rgba(255, 77, 94, 0.12);
+}
+
 .metallicLine,
 .winperiumProgressFill {
   background: linear-gradient(90deg, transparent, var(--silver-02), var(--silver-03), var(--silver-04), transparent);
@@ -616,6 +669,11 @@ h3,
   animation: assistant-rise 320ms ease both;
 }
 
+.assistantMain {
+  gap: 0;
+  padding-top: 0.75rem;
+}
+
 .assistantOrb {
   position: relative;
   overflow: hidden;
@@ -638,7 +696,11 @@ h3,
 }
 
 .assistantQuickScroll::-webkit-scrollbar {
-  height: 8px;
+  display: none;
+}
+
+.assistantQuickScroll {
+  scrollbar-width: none;
 }
 
 .assistantConversation::-webkit-scrollbar {
@@ -678,6 +740,28 @@ h3,
 .assistantBubbleBot {
   background: var(--surface-focus);
   box-shadow: var(--shadow-card);
+}
+
+.assistantBubbleUser {
+  background: color-mix(in srgb, var(--surface-focus) 82%, var(--silver-01));
+  border-color: var(--border-strong);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 1023px) {
+  .assistantMain {
+    height: calc(100dvh - 4.5rem);
+    overflow: hidden;
+    padding-bottom: calc(5.75rem + env(safe-area-inset-bottom));
+  }
+
+  .assistantConversation {
+    scrollbar-width: none;
+  }
+
+  .assistantConversation::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 .assistantTyping span {
@@ -789,6 +873,17 @@ h3,
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes routine-status-change {
+  from {
+    opacity: 0.55;
+    transform: translateY(3px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 
