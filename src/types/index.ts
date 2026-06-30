@@ -1,4 +1,4 @@
-export type RoutineStatus = "pending" | "active" | "done" | "skipped" | "missed";
+export type RoutineStatus = "pending" | "active" | "done" | "skipped" | "missed" | "vacation";
 
 export type User = {
   id: string;
@@ -44,7 +44,6 @@ export type Habit = {
   monthlyDays?: number[];
   difficulty: "baixa" | "media" | "alta";
   reason: string;
-  streak: number;
   weeklyProgress: number;
   completedToday: boolean;
 };

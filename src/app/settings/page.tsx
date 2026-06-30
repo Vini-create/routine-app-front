@@ -10,7 +10,7 @@ import { useAppData } from "@/components/app/useAppData";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { FieldLabel, Input, Textarea } from "@/components/ui/Form";
+import { FieldLabel, Input, Textarea, TimeSelect } from "@/components/ui/Form";
 import { deleteAccount, logout, updateProfile } from "@/lib/profileApi";
 
 export default function SettingsPage() {
@@ -62,8 +62,8 @@ export default function SettingsPage() {
           <FieldLabel label={settings.occupation}><Input name="occupation" defaultValue={user.occupation} /></FieldLabel>
           <FieldLabel label={settings.bio}><Textarea name="bio" placeholder={settings.bioPlaceholder} /></FieldLabel>
           <div className="grid grid-cols-2 gap-3">
-            <FieldLabel label={settings.wakeTime}><Input name="wakeTime" type="time" defaultValue={user.wakeTime} /></FieldLabel>
-            <FieldLabel label={settings.sleepTime}><Input name="sleepTime" type="time" defaultValue={user.sleepTime} /></FieldLabel>
+            <FieldLabel label={settings.wakeTime}><TimeSelect name="wakeTime" defaultValue={user.wakeTime} /></FieldLabel>
+            <FieldLabel label={settings.sleepTime}><TimeSelect name="sleepTime" defaultValue={user.sleepTime} /></FieldLabel>
           </div>
           <Button type="submit">{settings.saveChanges}</Button>
           {saved ? <p className="text-sm font-semibold text-[var(--text-primary)]">{settings.saved}</p> : null}

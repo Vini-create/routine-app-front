@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { FieldLabel, Input, Select, Textarea } from "@/components/ui/Form";
+import { FieldLabel, Input, Select, Textarea, TimeSelect } from "@/components/ui/Form";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { cn } from "@/lib/utils";
 import { getCurrentMonthRange, getHabitPeriodStats } from "@/lib/routineHabitRecords";
@@ -114,7 +114,6 @@ export default function GoalsPage() {
       monthlyDays: recurrenceType === "monthly" ? (monthlyDays.length ? monthlyDays : [1]) : [],
       difficulty: (formData.get("difficulty") as Habit["difficulty"]) || "media",
       reason: String(formData.get("reason") || ""),
-      streak: 0,
       weeklyProgress: 0,
       completedToday: false,
     });
@@ -134,7 +133,13 @@ export default function GoalsPage() {
               <Input name="title" placeholder={labels.goalPlaceholder} required />
             </FieldLabel>
             <FieldLabel label={labels.targetDate}>
-              <Input name="targetDate" type="date" defaultValue={dateInputValue(addDays(new Date(), 90))} required />
+              <Input
+                name="targetDate"
+                type="date"
+                min={dateInputValue(new Date())}
+                defaultValue={dateInputValue(addDays(new Date(), 90))}
+                required
+              />
             </FieldLabel>
           </div>
           <FieldLabel label={labels.category}>
@@ -228,7 +233,7 @@ export default function GoalsPage() {
                     <Input name="name" placeholder={habitsLabels.habitPlaceholder} required />
                   </FieldLabel>
                   <FieldLabel label={habitsLabels.preferredTime}>
-                    <Input name="preferredTime" type="time" defaultValue="08:00" />
+                    <TimeSelect name="preferredTime" defaultValue="08:00" />
                   </FieldLabel>
                   <FieldLabel label={labels.recurrence}>
                     <Select

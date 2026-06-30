@@ -69,7 +69,6 @@ export function HabitCard({
           <h3 className="subtitle-display text-xl text-[var(--text-primary)]">{habit.name}</h3>
           <p className="text-sm text-[var(--text-secondary)]">{habit.frequency} · {habit.preferredTime}</p>
         </div>
-        <Badge tone={stats.completedToday ? "green" : "purple"}>{stats.streak} {common.days}</Badge>
       </div>
 
       <div>

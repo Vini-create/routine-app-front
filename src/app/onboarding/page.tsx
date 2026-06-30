@@ -4,7 +4,7 @@ import { useTranslations } from "@/components/app/LanguageProvider";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { FieldLabel, Input, Select, Textarea } from "@/components/ui/Form";
+import { DurationSelect, FieldLabel, Input, Select, Textarea, TimeSelect } from "@/components/ui/Form";
 
 export default function OnboardingPage() {
   const onboarding = useTranslations("onboarding");
@@ -24,8 +24,8 @@ export default function OnboardingPage() {
             <FieldLabel label={onboarding.occupation}><Input placeholder={onboarding.occupationPlaceholder} /></FieldLabel>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <FieldLabel label={onboarding.wake}><Input type="time" /></FieldLabel>
-            <FieldLabel label={onboarding.sleep}><Input type="time" /></FieldLabel>
+            <FieldLabel label={onboarding.wake}><TimeSelect /></FieldLabel>
+            <FieldLabel label={onboarding.sleep}><TimeSelect /></FieldLabel>
           </div>
         </Card>
         <Card>
@@ -42,7 +42,7 @@ export default function OnboardingPage() {
           <h2 className="text-xl font-bold">{onboarding.currentRoutine}</h2>
           <FieldLabel label={onboarding.fixedHours}><Textarea placeholder={onboarding.fixedHoursPlaceholder} /></FieldLabel>
           <FieldLabel label={onboarding.recurring}><Textarea placeholder={onboarding.recurringPlaceholder} /></FieldLabel>
-          <FieldLabel label={onboarding.freeTime}><Input placeholder={onboarding.freeTimePlaceholder} /></FieldLabel>
+          <FieldLabel label={onboarding.freeTime}><DurationSelect defaultValue="2 h" /></FieldLabel>
           <FieldLabel label={onboarding.difficulty}><Textarea /></FieldLabel>
           <FieldLabel label={onboarding.distraction}><Input placeholder={onboarding.distractionPlaceholder} /></FieldLabel>
         </Card>

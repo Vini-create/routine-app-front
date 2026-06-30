@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { FieldLabel, Input, Select, Textarea } from "@/components/ui/Form";
+import { DurationSelect, FieldLabel, Input, Select, Textarea, TimeSelect } from "@/components/ui/Form";
 import {
   readDefaultRoutineSettings,
   writeDefaultRoutineSettings,
@@ -30,6 +30,7 @@ type ViewMode = "today" | "tomorrow" | "week";
 type DefaultRoutineRecurrenceType = "weekly" | "monthly";
 type EditableRoutineBlock = RoutineBlock & { previousStatus?: RoutineStatus };
 type RoutineByDate = Record<string, EditableRoutineBlock[]>;
+type VacationDraft = { start: string; end: string };
 
 const filters: ViewMode[] = ["today", "tomorrow", "week"];
 const editableHistoryDays = 7;
@@ -239,6 +240,9 @@ export default function RoutinePage() {
   const [editingBlock, setEditingBlock] = useState<RoutineBlock | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [defaultRoutineRecurrenceType, setDefaultRoutineRecurrenceType] = useState<DefaultRoutineRecurrenceType>("weekly");
+  const [vacationDraft, setVacationDraft] = useState<VacationDraft | null>(null);
+  const [selectedVacationItemIds, setSelectedVacationItemIds] = useState<string[]>([]);
+  const [vacationStart, setVacationStart] = useState("");
 
   const selectedKey = dateKey(selectedDate);
   const earliestEditableDate = addDays(today, -editableHistoryDays);
@@ -373,6 +377,7 @@ export default function RoutinePage() {
 
   function isCurrentBlock(block: RoutineBlock, index: number) {
     if (selectedKey !== dateKey(today)) return false;
+    if (block.status === "vacation") return false;
     const start = getBlockMinute(block);
     const nextBlock = blocks[index + 1];
     const end = nextBlock ? getBlockMinute(nextBlock) : 24 * 60;
@@ -577,17 +582,41 @@ export default function RoutinePage() {
     });
   }
 
-  function saveVacationPeriod(event: FormEvent<HTMLFormElement>) {
+  function reviewVacationPeriod(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     const start = String(formData.get("vacationStart") || "");
     const end = String(formData.get("vacationEnd") || "");
-    const itemIds = formData.getAll("vacationItemIds").map(String);
+
+    if (!start || !end || !defaultRoutineSettings.items.length) return;
+
+    setVacationDraft({ start, end });
+    setSelectedVacationItemIds([]);
+  }
+
+  function toggleVacationItem(itemId: string) {
+    setSelectedVacationItemIds((current) => (
+      current.includes(itemId)
+        ? current.filter((id) => id !== itemId)
+        : [...current, itemId]
+    ));
+  }
+
+  function confirmVacationPeriod() {
+    if (!vacationDraft || !selectedVacationItemIds.length) return;
 
     persistDefaultRoutineSettings({
       ...defaultRoutineSettings,
-      vacation: start && end ? { start, end, itemIds } : undefined,
+      vacation: {
+        start: vacationDraft.start,
+        end: vacationDraft.end,
+        itemIds: selectedVacationItemIds,
+      },
     });
+
+    setVacationDraft(null);
+    setSelectedVacationItemIds([]);
+    setVacationStart("");
   }
 
   return (
@@ -794,12 +823,12 @@ export default function RoutinePage() {
               <Input name="defaultTitle" placeholder={routine.defaultRoutinePlaceholder} required />
             </FieldLabel>
             <FieldLabel label={routine.time}>
-              <Input name="defaultTime" type="time" defaultValue="08:00" />
+              <TimeSelect name="defaultTime" defaultValue="08:00" />
             </FieldLabel>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <FieldLabel label={routine.duration}>
-              <Input name="defaultDuration" defaultValue="1 h" />
+              <DurationSelect name="defaultDuration" defaultValue="1 h" />
             </FieldLabel>
             <FieldLabel label={routine.category}>
               <Select name="defaultCategory" defaultValue="trabalho">
@@ -860,39 +889,121 @@ export default function RoutinePage() {
           </FieldLabel>
           <Button type="submit">{routine.addDefaultRoutineItem}</Button>
         </form>
+      </Card>
 
-        <form onSubmit={saveVacationPeriod} className="grid gap-3 rounded-3xl border border-zinc-100 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900">
-          <h3 className="text-sm font-black">{routine.vacationPeriod}</h3>
-          <p className="text-xs leading-5 text-zinc-500">{routine.vacationDescription}</p>
-          {defaultRoutineSettings.items.length ? (
-            <FieldLabel label={routine.vacationItems}>
-              <div className="grid gap-2">
-                {defaultRoutineSettings.items.map((item) => (
-                  <label key={item.id} className="flex items-center justify-between gap-3 rounded-2xl bg-white/70 px-4 py-3 text-sm font-bold dark:bg-zinc-950/70">
-                    <span>{item.time} · {item.title}</span>
+      <Card className="grid gap-4">
+        <SectionTitle title={routine.vacationPeriod} description={routine.vacationDescription} />
+        {defaultRoutineSettings.vacation ? (
+          <div className="grid gap-4 rounded-3xl border border-blue-500/25 bg-blue-500/8 p-5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <Badge tone="blue">{routine.vacationSaved}</Badge>
+              <span className="text-sm font-bold text-[var(--text-secondary)]">
+                {defaultRoutineSettings.vacation.start} · {defaultRoutineSettings.vacation.end}
+              </span>
+            </div>
+            <p className="text-sm leading-6 text-[var(--text-secondary)]">{routine.vacationSavedDescription}</p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {defaultRoutineSettings.items
+                .filter((item) => defaultRoutineSettings.vacation?.itemIds?.includes(item.id))
+                .map((item) => (
+                  <div key={item.id} className="rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-ambient)] px-4 py-3 text-sm font-bold">
+                    {item.time} · {item.title}
+                  </div>
+                ))}
+            </div>
+          </div>
+        ) : defaultRoutineSettings.items.length ? (
+          <form onSubmit={reviewVacationPeriod} className="grid gap-4">
+            <div className="grid grid-cols-2 gap-3">
+              <FieldLabel label={routine.startDate}>
+                <Input
+                  name="vacationStart"
+                  type="date"
+                  min={dateKey(today)}
+                  value={vacationStart}
+                  onChange={(event) => setVacationStart(event.target.value)}
+                  required
+                />
+              </FieldLabel>
+              <FieldLabel label={routine.endDate}>
+                <Input name="vacationEnd" type="date" min={vacationStart || dateKey(today)} required />
+              </FieldLabel>
+            </div>
+            <Button type="submit" variant="secondary">{routine.saveVacation}</Button>
+          </form>
+        ) : (
+          <p className="rounded-2xl border border-dashed border-[var(--border-medium)] bg-[var(--surface-ambient)] p-4 text-sm font-semibold text-[var(--text-secondary)]">
+            {routine.noVacationItems}
+          </p>
+        )}
+      </Card>
+
+      {vacationDraft ? (
+        <div className="fixed inset-0 z-[60] grid place-items-end bg-black/55 p-4 sm:place-items-center" role="presentation">
+          <Card
+            className="max-h-[calc(100dvh-2rem)] w-full max-w-2xl overflow-y-auto"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="vacation-confirmation-title"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <Badge tone="blue">{vacationDraft.start} · {vacationDraft.end}</Badge>
+                <h2 id="vacation-confirmation-title" className="subtitle-display mt-3 text-2xl text-[var(--text-primary)]">
+                  {routine.vacationItems}
+                </h2>
+              </div>
+              <Button variant="ghost" className="shrink-0" onClick={() => setVacationDraft(null)}>
+                {routine.close}
+              </Button>
+            </div>
+
+            <div className="mt-5 rounded-2xl border border-red-500/35 bg-red-500/10 p-4 text-sm font-semibold leading-6 text-red-700 dark:text-red-300">
+              {routine.vacationWarning}
+            </div>
+
+            <div className="mt-5 grid gap-2">
+              {defaultRoutineSettings.items.map((item) => {
+                const isSelected = selectedVacationItemIds.includes(item.id);
+
+                return (
+                  <label
+                    key={item.id}
+                    className={cn(
+                      "flex min-h-14 cursor-pointer items-center justify-between gap-4 rounded-2xl border px-4 py-3 transition",
+                      isSelected
+                        ? "border-[var(--border-strong)] bg-[var(--surface-focus)]"
+                        : "border-[var(--border-soft)] bg-[var(--surface-ambient)]",
+                    )}
+                  >
+                    <span>
+                      <span className="block text-sm font-bold text-[var(--text-primary)]">{item.title}</span>
+                      <span className="mt-1 block text-xs font-semibold text-[var(--text-tertiary)]">{item.time} · {item.duration}</span>
+                    </span>
                     <input
-                      className="size-4 accent-[var(--silver-02)]"
+                      className="size-5 shrink-0 accent-[var(--text-primary)]"
                       type="checkbox"
-                      name="vacationItemIds"
-                      value={item.id}
-                      defaultChecked={defaultRoutineSettings.vacation?.itemIds?.includes(item.id) ?? false}
+                      checked={isSelected}
+                      onChange={() => toggleVacationItem(item.id)}
                     />
                   </label>
-                ))}
-              </div>
-            </FieldLabel>
-          ) : null}
-          <div className="grid grid-cols-2 gap-3">
-            <FieldLabel label={routine.startDate}>
-              <Input name="vacationStart" type="date" defaultValue={defaultRoutineSettings.vacation?.start ?? ""} />
-            </FieldLabel>
-            <FieldLabel label={routine.endDate}>
-              <Input name="vacationEnd" type="date" defaultValue={defaultRoutineSettings.vacation?.end ?? ""} />
-            </FieldLabel>
-          </div>
-          <Button type="submit" variant="secondary">{routine.saveVacation}</Button>
-        </form>
-      </Card>
+                );
+              })}
+            </div>
+
+            {!selectedVacationItemIds.length ? (
+              <p className="mt-4 text-sm font-semibold text-[var(--text-secondary)]">{routine.vacationSelectionHint}</p>
+            ) : null}
+
+            <div className="mt-6 grid grid-cols-2 gap-3">
+              <Button variant="secondary" onClick={() => setVacationDraft(null)}>{routine.cancelVacation}</Button>
+              <Button variant="danger" disabled={!selectedVacationItemIds.length} onClick={confirmVacationPeriod}>
+                {routine.confirmVacation}
+              </Button>
+            </div>
+          </Card>
+        </div>
+      ) : null}
 
       {modalOpen ? (
         <div className="fixed inset-0 z-50 grid place-items-end bg-black/40 p-4">
@@ -906,10 +1017,10 @@ export default function RoutinePage() {
             <form onSubmit={saveBlock} className="grid gap-3">
               <div className="grid grid-cols-2 gap-3">
                 <FieldLabel label={routine.time}>
-                  <Input name="time" type="time" defaultValue={editingBlock?.time ?? "09:00"} />
+                  <TimeSelect name="time" defaultValue={editingBlock?.time ?? "09:00"} />
                 </FieldLabel>
                 <FieldLabel label={routine.duration}>
-                  <Input name="duration" defaultValue={editingBlock?.duration ?? "45 min"} />
+                  <DurationSelect name="duration" defaultValue={editingBlock?.duration ?? "45 min"} />
                 </FieldLabel>
               </div>
               <FieldLabel label={routine.titleField}>

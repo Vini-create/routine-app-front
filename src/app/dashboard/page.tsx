@@ -2,7 +2,7 @@
 
 import { AppShell } from "@/components/app/AppShell";
 import { HabitCard } from "@/components/app/HabitCard";
-import { useTranslations } from "@/components/app/LanguageProvider";
+import { useLanguage, useTranslations } from "@/components/app/LanguageProvider";
 import { RoutineCard } from "@/components/app/RoutineCard";
 import { SectionTitle } from "@/components/app/SectionTitle";
 import { useAppData } from "@/components/app/useAppData";
@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ProgressBar } from "@/components/ui/ProgressBar";
-import { motivationalQuotes } from "@/data/motivationalQuotes";
+import { getMotivationalQuoteForDay } from "@/data/motivationalQuotes";
 
 function getYearProgress(date = new Date()) {
   const start = new Date(date.getFullYear(), 0, 1);
@@ -35,9 +35,10 @@ function formatHomeDate(date = new Date()) {
 
 export default function DashboardPage() {
   const dashboard = useTranslations("dashboard");
+  const { language } = useLanguage();
   const { habits, routineBlocks, user, weeklyPlan } = useAppData();
   const yearProgress = getYearProgress();
-  const quote = motivationalQuotes[(yearProgress.day - 1) % motivationalQuotes.length];
+  const quote = getMotivationalQuoteForDay(yearProgress.day, language);
 
   return (
     <AppShell title={dashboard.title} showTitle={false} mainClassName="lg:gap-10">

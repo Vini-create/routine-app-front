@@ -25,6 +25,7 @@ export function RoutineCard({
   const labels = useTranslations("routineCard");
   const common = useTranslations("common");
   const isCompleted = block.status === "done";
+  const isVacation = block.status === "vacation";
 
   return (
     <Card className={cn("grid gap-4", isCurrent && "glass-focus border-[var(--border-strong)]")}>
@@ -41,25 +42,33 @@ export function RoutineCard({
           <p className="mt-1 text-sm leading-6 text-[var(--text-secondary)]">{block.description}</p>
         </div>
         <Badge
-          key={isCompleted ? "completed" : "not-completed"}
-          tone="neutral"
-          className={cn("routineStatusBadge", isCompleted ? "routineStatusBadgeCompleted" : "routineStatusBadgeIncomplete")}
+          key={isVacation ? "vacation" : isCompleted ? "completed" : "not-completed"}
+          tone={isVacation ? "blue" : "neutral"}
+          className={cn(
+            "routineStatusBadge",
+            isVacation
+              ? "routineStatusBadgeVacation"
+              : isCompleted
+                ? "routineStatusBadgeCompleted"
+                : "routineStatusBadgeIncomplete",
+          )}
         >
-          {isCompleted ? labels.done : labels.missed}
+          {isVacation ? labels.vacation : isCompleted ? labels.done : labels.missed}
         </Badge>
       </div>
       <div className="grid grid-cols-3 gap-2">
         <Button
           variant={block.status === "done" ? "secondary" : "primary"}
           className="px-2 text-xs"
+          disabled={isVacation}
           onClick={() => onDone?.(block.id)}
         >
           {block.status === "done" ? labels.undo : labels.complete}
         </Button>
-        <Button variant="secondary" className="px-2 text-xs" onClick={() => onEdit?.(block)}>
+        <Button variant="secondary" className="px-2 text-xs" disabled={isVacation} onClick={() => onEdit?.(block)}>
           {labels.edit}
         </Button>
-        <Button variant="secondary" className="px-2 text-xs" onClick={() => onSkip?.(block.id)}>
+        <Button variant="secondary" className="px-2 text-xs" disabled={isVacation} onClick={() => onSkip?.(block.id)}>
           {labels.skip}
         </Button>
         <Button variant="danger" className="px-2 text-xs" onClick={() => onDelete?.(block.id)}>

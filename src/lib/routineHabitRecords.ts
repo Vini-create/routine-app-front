@@ -106,7 +106,6 @@ export function getHabitRoutineStats(habit: Habit, records: RoutineHabitRecord[]
     hasEnoughRoutineData,
     weeklyProgress,
     completedToday: todayRecord?.status === "done",
-    streak: calculateStreak(habit, records, normalizedToday),
     weekDays: weekDates.map((date) => {
       const isScheduled = isHabitScheduledForDate(habit, date);
       const isFuture = startOfDay(date) > normalizedToday;
@@ -151,29 +150,6 @@ export function getHabitPeriodStats(habit: Habit, records: RoutineHabitRecord[],
     lowCount: recordedEligibleDates.filter((date) => recordsByDate.get(dateKey(date))?.status === "low").length,
     consistencyPercent: hasEnoughRoutineData ? Math.round((score / recordedEligibleDates.length) * 100) : 0,
   };
-}
-
-function calculateStreak(habit: Habit, records: RoutineHabitRecord[], today: Date) {
-  const recordsByDate = new Map(
-    records
-      .filter((record) => record.habitId === habit.id)
-      .map((record) => [record.date, record]),
-  );
-  let streak = 0;
-  const cursor = startOfDay(today);
-
-  for (let attempts = 0; attempts < 60; attempts += 1) {
-    if (!isHabitScheduledForDate(habit, cursor)) {
-      cursor.setDate(cursor.getDate() - 1);
-      continue;
-    }
-
-    if (recordsByDate.get(dateKey(cursor))?.status !== "done") break;
-    streak += 1;
-    cursor.setDate(cursor.getDate() - 1);
-  }
-
-  return streak;
 }
 
 function isRoutineHabitRecord(value: unknown): value is RoutineHabitRecord {
