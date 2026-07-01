@@ -8,11 +8,13 @@ export function useScrollVideo({
   containerRef,
   videoRef,
   disabled,
+  lowPowerMode,
   onActiveStep,
 }: {
   containerRef: RefObject<HTMLElement | null>;
   videoRef: RefObject<HTMLVideoElement | null>;
   disabled: boolean;
+  lowPowerMode: boolean;
   onActiveStep: (step: StoryStepId | null) => void;
 }) {
   const targetTimeRef = useRef(0);
@@ -26,6 +28,10 @@ export function useScrollVideo({
     let playbackFrame = 0;
     let lastSeek = 0;
     let cancelled = false;
+    let storyVisible = true;
+    const seekInterval = lowPowerMode ? 50 : 32;
+    const seekThreshold = lowPowerMode ? 0.025 : 0.012;
+    const smoothing = lowPowerMode ? 0.18 : 0.14;
 
     function measure() {
       measureFrame = 0;
@@ -33,6 +39,7 @@ export function useScrollVideo({
       if (!container) return;
 
       const rect = container.getBoundingClientRect();
+      storyVisible = rect.bottom > 0 && rect.top < window.innerHeight;
       const distance = Math.max(1, rect.height - window.innerHeight);
       const progress = Math.min(1, Math.max(0, -rect.top / distance));
       targetTimeRef.current = mapScrollToVideoTime(progress);
@@ -54,14 +61,17 @@ export function useScrollVideo({
       const video = videoRef.current;
       const difference = targetTimeRef.current - renderedTimeRef.current;
 
-      renderedTimeRef.current += difference * 0.14;
+      renderedTimeRef.current += difference * smoothing;
       if (Math.abs(difference) < 0.002) renderedTimeRef.current = targetTimeRef.current;
 
       if (
         video
+        && storyVisible
+        && !document.hidden
+        && !video.seeking
         && video.readyState >= HTMLMediaElement.HAVE_METADATA
-        && timestamp - lastSeek >= 32
-        && Math.abs(video.currentTime - renderedTimeRef.current) > 0.012
+        && timestamp - lastSeek >= seekInterval
+        && Math.abs(video.currentTime - renderedTimeRef.current) > seekThreshold
       ) {
         video.currentTime = renderedTimeRef.current;
         lastSeek = timestamp;
@@ -82,5 +92,5 @@ export function useScrollVideo({
       window.cancelAnimationFrame(measureFrame);
       window.cancelAnimationFrame(playbackFrame);
     };
-  }, [containerRef, disabled, onActiveStep, videoRef]);
+  }, [containerRef, disabled, lowPowerMode, onActiveStep, videoRef]);
 }

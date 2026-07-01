@@ -56,6 +56,7 @@ export function ScrollVideoStory() {
     containerRef,
     videoRef,
     disabled: reducedMotion || videoFailed || !videoMode,
+    lowPowerMode: videoMode === "mobile",
     onActiveStep: handleActiveStep,
   });
 
@@ -126,8 +127,17 @@ export function ScrollVideoStory() {
             onLoadedData={() => setVideoReady(true)}
             onError={() => setVideoFailed(true)}
           >
-            <source src={`${sourceBase}.webm`} type="video/webm" />
-            <source src={`${sourceBase}.mp4`} type="video/mp4" />
+            {videoMode === "mobile" ? (
+              <>
+                <source src={`${sourceBase}.mp4`} type="video/mp4" />
+                <source src={`${sourceBase}.webm`} type="video/webm" />
+              </>
+            ) : (
+              <>
+                <source src={`${sourceBase}.webm`} type="video/webm" />
+                <source src={`${sourceBase}.mp4`} type="video/mp4" />
+              </>
+            )}
           </video>
         ) : null}
         <div className="storyVignette" aria-hidden="true" />

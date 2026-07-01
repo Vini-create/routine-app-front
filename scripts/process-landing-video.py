@@ -149,9 +149,9 @@ def make_mp4(master: Path, output: Path, scale: str | None = None) -> None:
             "-c:v",
             "libopenh264",
             "-b:v",
-            "6M" if scale is None else "3200k",
+            "6M" if scale is None else "2200k",
             "-maxrate",
-            "8M" if scale is None else "4500k",
+            "8M" if scale is None else "3200k",
             "-profile:v",
             "high",
             "-coder",
@@ -314,7 +314,7 @@ def main() -> None:
     make_webm(master, preview, preview=True)
     make_webm(master, desktop_webm)
     make_mp4(master, desktop_mp4)
-    mobile_scale = "scale=1280:-2:flags=lanczos"
+    mobile_scale = "scale=960:-2:flags=lanczos"
     make_webm(master, mobile_webm, scale=mobile_scale)
     make_mp4(master, mobile_mp4, scale=mobile_scale)
     make_poster(master, IMAGE_DIR / "landing-scroll-poster.webp")

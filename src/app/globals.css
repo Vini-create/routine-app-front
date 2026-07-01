@@ -2099,7 +2099,7 @@ h3,
 .scrollVideoStory {
   --story-progress: 0;
   position: relative;
-  height: 720svh;
+  height: 860svh;
   background: #09090b;
 }
 
@@ -2956,9 +2956,7 @@ h3,
 }
 
 @media (max-width: 767px) {
-  .scrollVideoStory { height: 650svh; }
-  .storyVideo,
-  .storyPoster { transform: scale(1.08); }
+  .scrollVideoStory { height: 760svh; }
   .storyCopyLayer { width: calc(100% - 2rem); }
   .storyTextStep { width: min(100%, 31rem); }
   .storyTextStep--top-left { top: 13%; left: 0; }
