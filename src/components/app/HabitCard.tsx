@@ -40,11 +40,11 @@ export function HabitCard({
   const resolvedGoalTitle = goalTitle ?? habit.goalTitle;
 
   const statusClass = {
-    done: "bg-[var(--text-primary)]",
-    partial: "bg-[linear-gradient(135deg,var(--text-primary)_0_50%,transparent_50%)] ring-[var(--border-strong)]",
-    low: "border border-dashed border-[var(--border-strong)] bg-transparent",
-    future: "bg-[var(--border-soft)]",
-    off: "bg-transparent text-[var(--text-tertiary)] ring-[var(--border-soft)]",
+    done: "habitDayDone",
+    partial: "habitDayPartial",
+    low: "habitDayLow",
+    future: "habitDayFuture",
+    off: "habitDayOff",
   };
 
   return (
@@ -63,8 +63,8 @@ export function HabitCard({
       <div className="flex items-start justify-between gap-4">
         <div>
           <div className="mb-3 flex flex-wrap gap-2">
-            <Badge tone="neutral">{common.habit}</Badge>
-            <Badge tone="blue">{resolvedGoalTitle ?? common.unlinkedGoal}</Badge>
+            <Badge tone="neutral" className="habitCardBadge">{common.habit}</Badge>
+            <Badge tone="blue" className="habitCardGoalBadge">{resolvedGoalTitle ?? common.unlinkedGoal}</Badge>
           </div>
           <h3 className="subtitle-display text-xl text-[var(--text-primary)]">{habit.name}</h3>
           <p className="text-sm text-[var(--text-secondary)]">{habit.frequency} · {habit.preferredTime}</p>
@@ -73,7 +73,7 @@ export function HabitCard({
 
       <div>
         <div className="mb-2 flex items-end justify-between">
-          <p className="text-3xl font-black tracking-tight">
+          <p className="habitCardPercentage text-3xl font-black tracking-tight">
             {stats.hasEnoughRoutineData ? `${percentage}%` : "—"}
           </p>
           <p className="text-xs font-semibold text-[var(--text-secondary)]">{labels.weekProgress}</p>
@@ -85,19 +85,19 @@ export function HabitCard({
         {days.map((day) => (
           <div key={day.label} className="grid gap-1 text-center">
             <span className="text-[11px] font-bold text-[var(--text-tertiary)]">{day.label}</span>
-            <span className={cn("h-9 rounded-2xl ring-1 ring-black/5 dark:ring-white/10", statusClass[day.status])} />
+            <span className={cn("habitDay h-9 rounded-2xl", statusClass[day.status])} />
           </div>
         ))}
       </div>
 
       <div className="flex flex-wrap gap-3 text-xs font-semibold text-[var(--text-secondary)]">
-        <span className="inline-flex items-center gap-2"><i className="size-2.5 rounded-full bg-[var(--text-primary)]" /> {labels.greenLegend}</span>
-        <span className="inline-flex items-center gap-2"><i className="size-2.5 rounded-full bg-[linear-gradient(135deg,var(--text-primary)_0_50%,transparent_50%)] ring-1 ring-[var(--border-strong)]" /> {labels.yellowLegend}</span>
-        <span className="inline-flex items-center gap-2"><i className="size-2.5 rounded-full border border-dashed border-[var(--border-strong)]" /> {labels.redLegend}</span>
+        <span className="inline-flex items-center gap-2"><i className="habitLegendDone size-2.5 rounded-full" /> {labels.greenLegend}</span>
+        <span className="inline-flex items-center gap-2"><i className="habitLegendPartial size-2.5 rounded-full" /> {labels.yellowLegend}</span>
+        <span className="inline-flex items-center gap-2"><i className="habitLegendLow size-2.5 rounded-full" /> {labels.redLegend}</span>
       </div>
 
       <p className="text-sm leading-6 text-[var(--text-secondary)]">{habit.reason}</p>
-      <p className="rounded-2xl bg-[var(--surface-ambient)] p-3 text-xs font-semibold leading-5 text-[var(--text-secondary)]">
+      <p className="habitCardMessage rounded-2xl p-3 text-xs font-semibold leading-5">
         {habitVariant === "fire"
           ? labels.hotMessage
           : habitVariant === "ice"
@@ -108,13 +108,14 @@ export function HabitCard({
       </p>
       {onToggle ? (
         <Button
+          className="habitCardAction"
           variant={stats.completedToday ? "secondary" : "primary"}
           onClick={() => onToggle(habit.id)}
         >
           {stats.completedToday ? common.doneToday : common.markAsDone}
         </Button>
       ) : (
-        <Button href="/routine" variant="secondary">
+        <Button href="/routine" variant="secondary" className="habitCardAction">
           {labels.trackInRoutine}
         </Button>
       )}
