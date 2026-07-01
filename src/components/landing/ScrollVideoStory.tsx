@@ -69,7 +69,7 @@ export function ScrollVideoStory() {
     },
     path: {
       title: <>{landing.storyPathLead}<br /><SilverHighlight>{landing.storyPathHighlight}</SilverHighlight></>,
-      support: <>{landing.storyPathSupportLead}<br />{landing.storyPathSupportMiddle} <SilverHighlight>{landing.storyPathSupportHighlight}</SilverHighlight>.</>,
+      support: <><span className="storyPathSupportCopy">{landing.storyPathSupportLead}<br />{landing.storyPathSupportMiddle}</span><SilverHighlight>{landing.storyPathSupportHighlight}.</SilverHighlight></>,
     },
     consistency: {
       title: <>{landing.storyConsistencyLead}<br />{landing.storyConsistencyMiddle}<br /><SilverHighlight>{landing.storyConsistencyHighlight}</SilverHighlight>.</>,

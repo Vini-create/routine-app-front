@@ -29,9 +29,9 @@ export function useScrollVideo({
     let lastSeek = 0;
     let cancelled = false;
     let storyVisible = true;
-    const seekInterval = lowPowerMode ? 50 : 32;
-    const seekThreshold = lowPowerMode ? 0.025 : 0.012;
-    const smoothing = lowPowerMode ? 0.18 : 0.14;
+    const seekInterval = lowPowerMode ? 33 : 32;
+    const seekThreshold = lowPowerMode ? 0.014 : 0.012;
+    const smoothing = lowPowerMode ? 0.24 : 0.14;
 
     function measure() {
       measureFrame = 0;

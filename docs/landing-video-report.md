@@ -39,8 +39,8 @@ Depois da correção, amostras de 160×160 no canto superior esquerdo do master 
 | `public/videos/landing-scroll-master.mp4` | H.264 High | 1918×1080 | 30 | OpenH264 quality, alvo 28 Mb/s | 6.913.267 B | 43,89% |
 | `public/videos/landing-scroll-desktop.webm` | VP9 Profile 0 | 1918×1080 | 30 | CRF 30, GOP 15 | 2.849.048 B | 76,88% |
 | `public/videos/landing-scroll-desktop.mp4` | H.264 High | 1918×1080 | 30 | OpenH264 quality, alvo 6 Mb/s, GOP 15 | 5.631.025 B | 54,29% |
-| `public/videos/landing-scroll-mobile.webm` | VP9 Profile 0 | 960×540 | 30 | CRF 31, GOP 15 | 1.092.832 B | 91,13% |
-| `public/videos/landing-scroll-mobile.mp4` | H.264 High | 960×540 | 30 | OpenH264 quality, alvo 2,2 Mb/s, GOP 15 | 2.124.486 B | 82,76% |
+| `public/videos/landing-scroll-mobile.webm` | VP9 Profile 0 | 1080×608 | 30 | CRF 30, GOP 3 | 3.779.749 B | 69,32% |
+| `public/videos/landing-scroll-mobile.mp4` | H.264 High | 1080×608 | 30 | OpenH264 quality, alvo 3 Mb/s, GOP 3 | 4.015.033 B | 67,41% |
 | `public/videos/landing-scroll-preview.webm` | VP9 Profile 0 | 960×540 | 30 | CRF 34, primeiros 4 s | 290.501 B | 97,64% |
 
 Os arquivos de navegador não contêm áudio. No desktop, WebM é oferecido primeiro e MP4 funciona como fallback. No mobile, MP4 é oferecido primeiro para aproveitar a decodificação H.264 por hardware disponível na maioria dos aparelhos. Desktop e mobile são escolhidos antes da criação do elemento de vídeo, evitando baixar as duas variantes.
@@ -49,16 +49,17 @@ O FFmpeg disponível não inclui `libx264`, apenas `libopenh264`. Por isso os MP
 
 ## Keyframes e scrub
 
-- GOP: 15 frames
-- Intervalo: 0,5 s em 30 fps
-- Verificação: keyframes presentes em 0,0; 0,5; 1,0; 1,5 s e assim por diante
-- Sincronização: `requestAnimationFrame`, interpolação de 14% no desktop e 18% no mobile. No mobile, os seeks são limitados a aproximadamente 20 Hz, ignoram variações mínimas e nunca são disparados enquanto o vídeo ainda está buscando o frame anterior
+- GOP desktop: 15 frames; GOP mobile: 3 frames
+- Intervalo: 0,5 s no desktop e 0,1 s no mobile, ambos em 30 fps
+- Verificação mobile: keyframes presentes em 0,0; 0,1; 0,2; 0,3 s e assim por diante
+- Sincronização: `requestAnimationFrame`, interpolação de 14% no desktop e 24% no mobile. No mobile, os seeks são limitados a aproximadamente 30 Hz, ignoram variações mínimas e nunca são disparados enquanto o vídeo ainda está buscando o frame anterior
+- Os pontos de controle separam platôs e movimento. A distância útil da narrativa foi ampliada em aproximadamente 33%, deixando todas as transições 33% mais longas sem alongar os frames parados; apenas o primeiro foguete ganhou cerca de 10% adicionais de leitura. “EM METAS” começa pouco antes do frame 1,12 s, e os textos seguintes coincidem com 2,15 s (blueprint aberto) e 3,20 s (início das peças)
 - O vídeo não possui `autoplay`, `loop` ou controles e nenhuma chamada a `play()` é feita
 
 ## Posters e comparação
 
 - `public/images/landing-scroll-poster.webp`: 1918×1080, 85.420 bytes
-- `public/images/landing-scroll-poster-mobile.webp`: 960×540, 40.270 bytes
+- `public/images/landing-scroll-poster-mobile.webp`: 1080×608, 47.784 bytes
 - Frames estáticos por cena: `public/images/landing-story-*.webp`
 - Comparações: `artifacts/landing-video-comparison/`
 - Folha de contato: `artifacts/landing-video-comparison/comparison-sheet.jpg`
@@ -68,7 +69,7 @@ Frames equivalentes foram comparados em 0,40; 1,40; 2,40; 4,50; 7,50; 10,80 e 12
 ## Responsividade e fallback
 
 - Desktop mantém o quadro 1918×1080 inteiro com `object-fit: contain`.
-- Mobile usa 960×540 sem crop e mantém os objetos centrais visíveis, reduzindo o custo de decodificação durante o gesto de rolagem.
+- Mobile usa 1080×608 e zoom visual de 10%. A pequena redução de resolução financia GOP 3 e buscas a aproximadamente 30 Hz, priorizando fluidez sem perder definição perceptível na viewport móvel.
 - Apenas a variante correspondente ao `matchMedia` é montada.
 - Poster fica visível até `loadeddata` e permanece em falha de mídia.
 - Em `prefers-reduced-motion`, o scrub não é montado; cada cena aparece como quadro estático com texto HTML.

@@ -129,7 +129,7 @@ def make_master(source: Path, master: Path, metadata: dict) -> None:
     )
 
 
-def make_mp4(master: Path, output: Path, scale: str | None = None) -> None:
+def make_mp4(master: Path, output: Path, scale: str | None = None, gop: int = 15) -> None:
     command = ["ffmpeg", "-y", "-hide_banner", "-i", str(master), "-an"]
     if scale:
         command.extend(["-vf", scale])
@@ -149,9 +149,9 @@ def make_mp4(master: Path, output: Path, scale: str | None = None) -> None:
             "-c:v",
             "libopenh264",
             "-b:v",
-            "6M" if scale is None else "2200k",
+            "6M" if scale is None else "3000k",
             "-maxrate",
-            "8M" if scale is None else "3200k",
+            "8M" if scale is None else "4500k",
             "-profile:v",
             "high",
             "-coder",
@@ -166,9 +166,9 @@ def make_mp4(master: Path, output: Path, scale: str | None = None) -> None:
             "-pix_fmt",
             "yuv420p",
             "-g",
-            "15",
+            str(gop),
             "-keyint_min",
-            "15",
+            str(gop),
             "-sc_threshold",
             "0",
             "-movflags",
@@ -179,7 +179,7 @@ def make_mp4(master: Path, output: Path, scale: str | None = None) -> None:
     run(command)
 
 
-def make_webm(master: Path, output: Path, scale: str | None = None, preview: bool = False) -> None:
+def make_webm(master: Path, output: Path, scale: str | None = None, preview: bool = False, gop: int = 15) -> None:
     command = ["ffmpeg", "-y", "-hide_banner", "-i", str(master), "-an"]
     if preview:
         command.extend(["-t", "4", "-vf", "scale=960:-2:flags=lanczos"])
@@ -190,7 +190,7 @@ def make_webm(master: Path, output: Path, scale: str | None = None, preview: boo
             "-c:v",
             "libvpx-vp9",
             "-crf",
-            "34" if preview else ("31" if scale else "30"),
+            "34" if preview else "30",
             "-b:v",
             "0",
             "-row-mt",
@@ -200,7 +200,7 @@ def make_webm(master: Path, output: Path, scale: str | None = None, preview: boo
             "-cpu-used",
             "2",
             "-g",
-            "15",
+            str(gop),
             "-pix_fmt",
             "yuv420p",
             str(output),
@@ -314,9 +314,9 @@ def main() -> None:
     make_webm(master, preview, preview=True)
     make_webm(master, desktop_webm)
     make_mp4(master, desktop_mp4)
-    mobile_scale = "scale=960:-2:flags=lanczos"
-    make_webm(master, mobile_webm, scale=mobile_scale)
-    make_mp4(master, mobile_mp4, scale=mobile_scale)
+    mobile_scale = "scale=1080:-2:flags=lanczos"
+    make_webm(master, mobile_webm, scale=mobile_scale, gop=3)
+    make_mp4(master, mobile_mp4, scale=mobile_scale, gop=3)
     make_poster(master, IMAGE_DIR / "landing-scroll-poster.webp")
     make_poster(master, IMAGE_DIR / "landing-scroll-poster-mobile.webp", scale=mobile_scale)
     make_story_posters(master)
