@@ -1,4 +1,6 @@
-import { apiFetch, useLocalFallbackApi } from "./api";
+import { apiFetch } from "./api";
+
+const useLocalFallbackApi = process.env.NEXT_PUBLIC_USE_MOCK_AI !== "false";
 
 export type WeeklyRoutineSummary = {
   blocks: unknown[];

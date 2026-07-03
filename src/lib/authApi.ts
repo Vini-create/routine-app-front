@@ -1,42 +1,33 @@
-import { apiFetch, useLocalFallbackApi } from "./api";
+import { apiFetch } from "./api";
+import type { ApiLanguage, UserMe } from "./api-contracts";
 
-export type LoginRequest = {
-  email: string;
-  password: string;
+export type LoginRequest = { email: string; password: string };
+export type RegisterRequest = { email: string; password: string; display_name?: string; language?: ApiLanguage };
+export type TokenResponse = { access_token: string; refresh_token: string; token_type: string };
+export type MessageResponse = { message: string };
+
+export const authApi = {
+  login: (request: LoginRequest) => apiFetch<TokenResponse>("/auth/login", {
+    method: "POST", authenticated: false, body: JSON.stringify(request),
+  }),
+  register: (request: RegisterRequest) => apiFetch<MessageResponse & { user_id: string }>("/auth/register", {
+    method: "POST", authenticated: false, body: JSON.stringify(request),
+  }),
+  verifyEmail: (token: string) => apiFetch<MessageResponse>("/auth/verify-email", {
+    method: "POST", authenticated: false, body: JSON.stringify({ token }),
+  }),
+  forgotPassword: (email: string) => apiFetch<MessageResponse>("/auth/forgot-password", {
+    method: "POST", authenticated: false, body: JSON.stringify({ email }),
+  }),
+  resetPassword: (token: string, newPassword: string) => apiFetch<MessageResponse>("/auth/reset-password", {
+    method: "POST", authenticated: false, body: JSON.stringify({ token, new_password: newPassword }),
+  }),
+  me: () => apiFetch<UserMe>("/auth/me"),
+  updateMe: (request: { display_name?: string; language?: ApiLanguage }) => apiFetch<UserMe>("/auth/me", {
+    method: "PATCH", body: JSON.stringify(request),
+  }),
+  logout: (refreshToken: string) => apiFetch<MessageResponse>("/auth/logout", {
+    method: "POST", body: JSON.stringify({ refresh_token: refreshToken }),
+  }),
+  deleteAccount: () => apiFetch<MessageResponse>("/users/me", { method: "DELETE" }),
 };
-
-export type RegisterRequest = {
-  name: string;
-  email: string;
-  password: string;
-  language: string;
-};
-
-export type AuthResponse = {
-  accessToken?: string;
-  refreshToken?: string;
-};
-
-export async function login(request: LoginRequest): Promise<AuthResponse> {
-  // API_CONNECTION_POINT: later call POST /auth/login and store the returned session securely.
-  if (!useLocalFallbackApi) {
-    return apiFetch<AuthResponse>("/auth/login", {
-      method: "POST",
-      body: JSON.stringify(request),
-    });
-  }
-
-  return {};
-}
-
-export async function register(request: RegisterRequest): Promise<AuthResponse> {
-  // API_CONNECTION_POINT: later call POST /auth/register and continue to onboarding.
-  if (!useLocalFallbackApi) {
-    return apiFetch<AuthResponse>("/auth/register", {
-      method: "POST",
-      body: JSON.stringify(request),
-    });
-  }
-
-  return {};
-}

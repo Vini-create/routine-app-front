@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { MobileHeader } from "./MobileHeader";
 import { BottomNavigation } from "@/components/navigation/BottomNavigation";
+import { AuthGuard } from "./AuthGuard";
 
 export function AppShell({
   title,
@@ -14,6 +15,7 @@ export function AppShell({
   mainClassName?: string;
 }) {
   return (
+    <AuthGuard>
     <div className="alfredPage min-h-dvh">
       <MobileHeader />
       <main className={`mx-auto grid w-full max-w-[1420px] gap-7 px-5 pb-[calc(112px+env(safe-area-inset-bottom))] pt-7 sm:px-6 lg:ml-0 lg:gap-8 lg:px-12 lg:pb-14 lg:pl-[150px] lg:pt-10 xl:mx-auto xl:pl-[150px] ${mainClassName}`}>
@@ -26,5 +28,6 @@ export function AppShell({
       </main>
       <BottomNavigation />
     </div>
+    </AuthGuard>
   );
 }

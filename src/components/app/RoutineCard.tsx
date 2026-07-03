@@ -1,80 +1,43 @@
 "use client";
 
-import type { RoutineBlock } from "@/types";
+import type { AgendaEntry } from "@/lib/agenda";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { useTranslations } from "./LanguageProvider";
 
-export function RoutineCard({
-  block,
-  isCurrent = false,
-  onDone,
-  onSkip,
-  onEdit,
-  onDelete,
-}: {
-  block: RoutineBlock;
+export function RoutineCard({ entry, isCurrent = false, onDone, onSkip, onEdit, onDelete }: {
+  entry: AgendaEntry;
   isCurrent?: boolean;
-  onDone?: (id: string) => void;
-  onSkip?: (id: string) => void;
-  onEdit?: (block: RoutineBlock) => void;
-  onDelete?: (id: string) => void;
+  onDone?: (entry: AgendaEntry) => void;
+  onSkip?: (entry: AgendaEntry) => void;
+  onEdit?: (entry: AgendaEntry) => void;
+  onDelete?: (entry: AgendaEntry) => void;
 }) {
   const labels = useTranslations("routineCard");
   const common = useTranslations("common");
-  const isCompleted = block.status === "done";
-  const isVacation = block.status === "vacation";
+  const isCompleted = entry.status === "completed";
+  const isVacation = entry.status === "vacation";
+  const statusLabel = isVacation ? labels.vacation : isCompleted ? labels.done : entry.status === "uncompleted" ? labels.missed : labels.pending;
 
   return (
-    <Card className={cn("grid gap-4", isCurrent && "glass-focus border-[var(--border-strong)]")}>
+    <Card className={cn("grid gap-4", isCurrent && entry.status === "pending" && "glass-focus border-[var(--border-strong)]")}>
       <div className="flex items-start justify-between gap-4">
         <div>
-          {block.habitId ? (
-            <div className="mb-3 flex flex-wrap gap-2">
-              <Badge tone="neutral" className="routineHabitBadge">{common.habit}</Badge>
-              <Badge tone="blue">{block.goalTitle ?? common.unlinkedGoal}</Badge>
-            </div>
-          ) : null}
-          <p className="text-sm font-bold text-[var(--text-secondary)]">{block.time} · {block.duration}</p>
-          <h3 className="subtitle-display mt-1 text-xl text-[var(--text-primary)]">{block.title}</h3>
-          <p className="mt-1 text-sm leading-6 text-[var(--text-secondary)]">{block.description}</p>
+          {entry.source === "habit" ? <div className="mb-3 flex gap-2"><Badge tone="neutral">{common.habit}</Badge><Badge tone="blue">{entry.goalTitle ?? common.unlinkedGoal}</Badge></div> : null}
+          <p className="text-sm font-bold text-[var(--text-secondary)]">{entry.time} · {entry.durationMinutes} min</p>
+          <h3 className="subtitle-display mt-1 text-xl text-[var(--text-primary)]">{entry.title}</h3>
+          {entry.description ? <p className="mt-1 text-sm leading-6 text-[var(--text-secondary)]">{entry.description}</p> : null}
         </div>
-        <Badge
-          key={isVacation ? "vacation" : isCompleted ? "completed" : "not-completed"}
-          tone={isVacation ? "blue" : "neutral"}
-          className={cn(
-            "routineStatusBadge",
-            isVacation
-              ? "routineStatusBadgeVacation"
-              : isCompleted
-                ? "routineStatusBadgeCompleted"
-                : "routineStatusBadgeIncomplete",
-          )}
-        >
-          {isVacation ? labels.vacation : isCompleted ? labels.done : labels.missed}
-        </Badge>
+        <Badge tone={isVacation ? "blue" : isCompleted ? "green" : entry.status === "uncompleted" ? "amber" : "neutral"}>{isCurrent && entry.status === "pending" ? labels.now : statusLabel}</Badge>
       </div>
-      <div className="grid grid-cols-3 gap-2">
-        <Button
-          variant={block.status === "done" ? "secondary" : "primary"}
-          className="px-2 text-xs"
-          disabled={isVacation}
-          onClick={() => onDone?.(block.id)}
-        >
-          {block.status === "done" ? labels.undo : labels.complete}
-        </Button>
-        <Button variant="secondary" className="px-2 text-xs" disabled={isVacation} onClick={() => onEdit?.(block)}>
-          {labels.edit}
-        </Button>
-        <Button variant="secondary" className="px-2 text-xs" disabled={isVacation} onClick={() => onSkip?.(block.id)}>
-          {labels.skip}
-        </Button>
-        <Button variant="danger" className="px-2 text-xs" onClick={() => onDelete?.(block.id)}>
-          {labels.remove}
-        </Button>
-      </div>
+      {!isVacation ? <div className="flex flex-wrap gap-2">
+        {onDone ? <Button className="flex-1" variant={isCompleted ? "secondary" : "primary"} onClick={() => onDone(entry)}>{isCompleted ? labels.undo : labels.complete}</Button> : null}
+        {onSkip ? <Button variant="secondary" onClick={() => onSkip(entry)}>{labels.skip}</Button> : null}
+        {entry.source === "item" && onEdit ? <Button variant="secondary" onClick={() => onEdit(entry)}>{labels.edit}</Button> : null}
+        {entry.source === "item" && onDelete ? <Button variant="danger" onClick={() => onDelete(entry)}>{labels.remove}</Button> : null}
+      </div> : null}
     </Card>
   );
 }

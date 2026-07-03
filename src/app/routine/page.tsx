@@ -1,1065 +1,153 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AppShell } from "@/components/app/AppShell";
 import { useLanguage, useTranslations } from "@/components/app/LanguageProvider";
 import { RoutineCard } from "@/components/app/RoutineCard";
-import { useRoutineBlockRecords } from "@/components/app/useRoutineBlockRecords";
-import { useRoutineHabitRecords } from "@/components/app/useRoutineHabitRecords";
 import { SectionTitle } from "@/components/app/SectionTitle";
-import { useAppData } from "@/components/app/useAppData";
-import { useStoredGoals } from "@/components/app/useStoredGoals";
-import { useStoredHabits } from "@/components/app/useStoredHabits";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { DurationSelect, FieldLabel, Input, Select, Textarea, TimeSelect } from "@/components/ui/Form";
-import {
-  readDefaultRoutineSettings,
-  writeDefaultRoutineSettings,
-  type DefaultRoutineItem,
-  type DefaultRoutineSettings,
-} from "@/lib/defaultRoutine";
-import { getRoutineBlockSourceId, type RoutineBlockRecord } from "@/lib/routineBlockRecords";
-import { isHabitScheduledForDate, type RoutineHabitRecord } from "@/lib/routineHabitRecords";
-import { cn } from "@/lib/utils";
-import type { Habit, RoutineBlock, RoutineStatus } from "@/types";
+import { FieldLabel, Input, Select, Textarea, TimeSelect } from "@/components/ui/Form";
+import { ApiError } from "@/lib/api";
+import type { ItemStatus, ItemType, RoutineItem, ScheduleType } from "@/lib/api-contracts";
+import { agendaEntries, type AgendaEntry } from "@/lib/agenda";
+import { addDays, fromDateKey, toDateKey, toLocalDateTime, weekRange } from "@/lib/date";
+import { buildRRule, parseRRule, type RecurrenceFrequency } from "@/lib/rrule";
+import { routineApi } from "@/lib/routineApi";
 
-type ViewMode = "today" | "tomorrow" | "week";
-type DefaultRoutineRecurrenceType = "weekly" | "monthly";
-type EditableRoutineBlock = RoutineBlock & { previousStatus?: RoutineStatus };
-type RoutineByDate = Record<string, EditableRoutineBlock[]>;
-type VacationDraft = { start: string; end: string };
+type View = "today" | "tomorrow" | "week";
 
-const filters: ViewMode[] = ["today", "tomorrow", "week"];
-const editableHistoryDays = 7;
-
-function startOfDay(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+function localInputParts(iso: string) {
+  const date = new Date(iso);
+  return { date: toDateKey(date), time: `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}` };
 }
 
-function addDays(date: Date, days: number) {
-  const next = new Date(date);
-  next.setDate(next.getDate() + days);
-  return next;
-}
-
-function dateKey(date: Date) {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-}
-
-function formatDisplayDate(date: Date, locale: string) {
-  return date.toLocaleDateString(locale, {
-    weekday: "long",
-    day: "2-digit",
-    month: "long",
-  });
-}
-
-function getBlockMinute(block: RoutineBlock) {
-  const [hours, minutes] = block.time.split(":").map(Number);
-  return hours * 60 + minutes;
-}
-
-function getHabitTime(habit: Habit) {
-  return /^\d{2}:\d{2}$/.test(habit.preferredTime) ? habit.preferredTime : "08:00";
-}
-
-function createBlocksForDate(date: Date, sourceBlocks: RoutineBlock[]): EditableRoutineBlock[] {
-  return sourceBlocks.map((block) => ({
-    ...block,
-    id: `${dateKey(date)}-${block.id}`,
-    status: block.status,
-  }));
-}
-
-function createHabitBlocksForDate(date: Date, habits: Habit[]): RoutineBlock[] {
-  return habits
-    .filter((habit) => {
-      if (!isHabitScheduledForDate(habit, date)) return false;
-      if (!habit.createdAt) return true;
-      return startOfDay(date) >= startOfDay(new Date(habit.createdAt));
-    })
-    .map((habit) => ({
-      id: `habit-${habit.id}`,
-      habitId: habit.id,
-      goalId: habit.goalId,
-      goalTitle: habit.goalTitle,
-      time: getHabitTime(habit),
-      title: habit.name,
-      description: habit.reason || habit.category,
-      category: "saude",
-      duration: "20 min",
-      status: "pending",
-      energy: habit.difficulty === "alta" ? "alta" : habit.difficulty === "baixa" ? "baixa" : "media",
-    }));
-}
-
-function isDateInVacation(date: Date, vacation: DefaultRoutineSettings["vacation"]) {
-  if (!vacation?.start || !vacation.end) return false;
-  const key = dateKey(date);
-  return key >= vacation.start && key <= vacation.end;
-}
-
-function isDefaultRoutineItemArchived(date: Date, item: DefaultRoutineItem, vacation: DefaultRoutineSettings["vacation"]) {
-  if (!isDateInVacation(date, vacation)) return false;
-  if (!vacation?.itemIds?.length) return true;
-  return vacation.itemIds.includes(item.id);
-}
-
-function isDefaultRoutineItemScheduledForDate(item: DefaultRoutineItem, date: Date) {
-  if (item.recurrenceType === "monthly") {
-    const monthlyDays = item.monthlyDays?.length ? item.monthlyDays : [1];
-    return monthlyDays.includes(date.getDate());
-  }
-
-  return item.scheduledDays.includes(date.getDay());
-}
-
-function createDefaultRoutineBlocksForDate(date: Date, settings: DefaultRoutineSettings): RoutineBlock[] {
-  return settings.items
-    .filter((item) => isDefaultRoutineItemScheduledForDate(item, date))
-    .filter((item) => !isDefaultRoutineItemArchived(date, item, settings.vacation))
-    .map((item) => ({
-      id: `default-${item.id}`,
-      time: item.time,
-      title: item.title,
-      description: item.description,
-      category: item.category,
-      duration: item.duration,
-      status: "pending",
-      energy: item.energy,
-    }));
-}
-
-function buildDefaultBlocksForDate(
-  date: Date,
-  sourceRoutineBlocks: RoutineBlock[],
-  settings: DefaultRoutineSettings,
-  habits: Habit[],
-) {
-  const sourceBlocks = [
-    ...sourceRoutineBlocks,
-    ...createDefaultRoutineBlocksForDate(date, settings),
-    ...createHabitBlocksForDate(date, habits),
-  ];
-
-  return createBlocksForDate(date, sourceBlocks).sort((a, b) => a.time.localeCompare(b.time));
-}
-
-function mergeScheduledBlocksForDate(
-  date: Date,
-  sourceBlocks: EditableRoutineBlock[],
-  settings: DefaultRoutineSettings,
-  habits: Habit[],
-) {
-  const key = dateKey(date);
-  const existingSourceIds = new Set(sourceBlocks.map((block) => getRoutineBlockSourceId(block.id, key)));
-  const scheduledBlocks = [
-    ...createDefaultRoutineBlocksForDate(date, settings),
-    ...createHabitBlocksForDate(date, habits),
-  ]
-    .filter((block) => !existingSourceIds.has(block.id))
-    .map((block) => ({ ...block, id: `${key}-${block.id}` }));
-
-  return [...sourceBlocks, ...scheduledBlocks].sort((a, b) => a.time.localeCompare(b.time));
-}
-
-function getWeekDays(date: Date) {
-  const selected = startOfDay(date);
-  const mondayOffset = selected.getDay() === 0 ? -6 : 1 - selected.getDay();
-  const monday = addDays(selected, mondayOffset);
-  return Array.from({ length: 7 }, (_, index) => addDays(monday, index));
-}
-
-function getCalendarDays(date: Date) {
-  const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
-  const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-  const leading = firstDay.getDay();
-  const totalSlots = Math.ceil((leading + lastDay.getDate()) / 7) * 7;
-
-  return Array.from({ length: totalSlots }, (_, index) => {
-    const dayNumber = index - leading + 1;
-    return new Date(date.getFullYear(), date.getMonth(), dayNumber);
-  });
-}
-
-function normalizeForm(formData: FormData, fallback?: RoutineBlock): RoutineBlock {
-  return {
-    id: fallback?.id ?? crypto.randomUUID(),
-    time: String(formData.get("time") || "09:00"),
-    title: String(formData.get("title") || fallback?.title || ""),
-    description: String(formData.get("description") || fallback?.description || ""),
-    category: (formData.get("category") as RoutineBlock["category"]) || "foco",
-    duration: String(formData.get("duration") || "30 min"),
-    status: ((formData.get("status") as RoutineStatus) || fallback?.status || "pending"),
-    energy: (formData.get("energy") as RoutineBlock["energy"]) || "media",
-    habitId: fallback?.habitId,
-    goalId: fallback?.goalId,
-    goalTitle: fallback?.goalTitle,
-  };
+function nextQuarterHour() {
+  const date = new Date();
+  date.setSeconds(0, 0);
+  date.setMinutes(Math.ceil((date.getMinutes() + 1) / 15) * 15);
+  return { date: toDateKey(date), time: `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}` };
 }
 
 export default function RoutinePage() {
-  const [today, setToday] = useState(() => startOfDay(new Date()));
-  const routine = useTranslations("routine");
-  const routineCard = useTranslations("routineCard");
-  const common = useTranslations("common");
+  const labels = useTranslations("routine");
+  const statusLabels = useTranslations("routineCard");
   const { language } = useLanguage();
-  const { habits: initialHabits, routineBlocks } = useAppData();
-  const { storedGoals } = useStoredGoals();
-  const { storedHabits } = useStoredHabits();
-  const {
-    records: habitRecords,
-    upsertRecord,
-    removeRecord,
-    ensureRecords: ensureHabitRecords,
-  } = useRoutineHabitRecords();
-  const {
-    records: blockRecords,
-    upsertRecord: upsertBlockRecord,
-    removeRecord: removeBlockRecord,
-    ensureRecords: ensureBlockRecords,
-  } = useRoutineBlockRecords();
-  const goalTitleById = useMemo(() => new Map(storedGoals.map((goal) => [goal.id, goal.title])), [storedGoals]);
-  const scheduledHabits = useMemo(() => {
-    return [...initialHabits, ...storedHabits].map((habit) => ({
-      ...habit,
-      goalTitle: habit.goalTitle ?? (habit.goalId ? goalTitleById.get(habit.goalId) : undefined),
-    }));
-  }, [goalTitleById, initialHabits, storedHabits]);
-  const [defaultRoutineSettings, setDefaultRoutineSettings] = useState<DefaultRoutineSettings>(readDefaultRoutineSettings);
-  const [activeFilter, setActiveFilter] = useState<ViewMode>("today");
-  const [selectedDate, setSelectedDate] = useState(today);
-  const [visibleMonth, setVisibleMonth] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
-  const [routines, setRoutines] = useState<RoutineByDate>(() => ({
-    [dateKey(today)]: createBlocksForDate(today, routineBlocks),
-    [dateKey(addDays(today, 1))]: createBlocksForDate(addDays(today, 1), routineBlocks),
-  }));
-  const [editingBlock, setEditingBlock] = useState<RoutineBlock | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [defaultRoutineRecurrenceType, setDefaultRoutineRecurrenceType] = useState<DefaultRoutineRecurrenceType>("weekly");
-  const [vacationDraft, setVacationDraft] = useState<VacationDraft | null>(null);
-  const [selectedVacationItemIds, setSelectedVacationItemIds] = useState<string[]>([]);
-  const [vacationStart, setVacationStart] = useState("");
+  const queryClient = useQueryClient();
+  const today = toDateKey(new Date());
+  const [view, setView] = useState<View>("today");
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [editing, setEditing] = useState<RoutineItem | null>(null);
+  const [scheduleType, setScheduleType] = useState<ScheduleType>("single");
+  const [recurrence, setRecurrence] = useState<RecurrenceFrequency>("weekly");
+  const [error, setError] = useState("");
+  const tomorrow = toDateKey(addDays(new Date(), 1));
+  const week = weekRange();
+  const range = view === "today" ? { start: today, end: today } : view === "tomorrow" ? { start: tomorrow, end: tomorrow } : week;
 
-  const selectedKey = dateKey(selectedDate);
-  const earliestEditableDate = addDays(today, -editableHistoryDays);
-  const blockRecordsByKey = useMemo(
-    () => new Map(blockRecords.map((record) => [`${record.date}:${record.blockId}`, record])),
-    [blockRecords],
-  );
+  const agenda = useQuery({ queryKey: ["agenda", range.start, range.end], queryFn: () => routineApi.agenda(range.start, range.end) });
+  const items = useQuery({ queryKey: ["routine-items"], queryFn: routineApi.listItems });
+  const goals = useQuery({ queryKey: ["goals"], queryFn: routineApi.listGoals });
+  const entries = useMemo(() => agendaEntries(agenda.data), [agenda.data]);
 
-  function localizeBlocks(sourceBlocks: EditableRoutineBlock[]) {
-    return sourceBlocks.map((block) => {
-      const baseId = block.id.split("-").at(-1);
-      const translatedBlock = routineBlocks.find((item) => item.id === baseId);
+  function refresh() {
+    return Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["agenda"] }),
+      queryClient.invalidateQueries({ queryKey: ["routine-items"] }),
+      queryClient.invalidateQueries({ queryKey: ["habits-dashboard"] }),
+      queryClient.invalidateQueries({ queryKey: ["goals-dashboard"] }),
+    ]);
+  }
+  const mutation = useMutation({ mutationFn: async (action: () => Promise<unknown>) => action(), onSuccess: refresh, onError: (cause) => setError(cause instanceof ApiError ? cause.detail : "Não foi possível concluir a ação.") });
 
-      if (!translatedBlock) return block;
-
-      return {
-        ...block,
-        title: translatedBlock.title,
-        description: translatedBlock.description,
-      };
-    });
+  function openCreate() {
+    setEditing(null); setScheduleType("single"); setRecurrence("weekly"); setError(""); setEditorOpen(true);
+  }
+  async function openEdit(entry: AgendaEntry) {
+    setError("");
+    try {
+      const item = await routineApi.getItem(entry.sourceId);
+      setEditing(item); setScheduleType(item.schedule_type);
+      setRecurrence(item.recurrence_rule ? parseRRule(item.recurrence_rule).frequency : "weekly");
+      setEditorOpen(true);
+    } catch (cause) { setError(cause instanceof ApiError ? cause.detail : "Não foi possível carregar o item."); }
   }
 
-  function getDefaultBlocksForDate(date: Date) {
-    return buildDefaultBlocksForDate(date, routineBlocks, defaultRoutineSettings, scheduledHabits);
-  }
-
-  function withScheduledBlocks(date: Date, sourceBlocks: EditableRoutineBlock[]) {
-    return mergeScheduledBlocksForDate(date, sourceBlocks, defaultRoutineSettings, scheduledHabits);
-  }
-
-  function applyRecordedStatuses(date: Date, sourceBlocks: EditableRoutineBlock[]) {
-    const key = dateKey(date);
-    return sourceBlocks.map((block) => {
-      const sourceId = getRoutineBlockSourceId(block.id, key);
-      const record = blockRecordsByKey.get(`${key}:${sourceId}`);
-      if (!record) return block;
-
-      return {
-        ...block,
-        status: record.status === "done" ? "done" as const : "missed" as const,
-      };
-    });
-  }
-
-  const blocks = applyRecordedStatuses(
-    selectedDate,
-    localizeBlocks(withScheduledBlocks(selectedDate, routines[selectedKey] ?? getDefaultBlocksForDate(selectedDate))),
-  );
-  const calendarDays = getCalendarDays(visibleMonth);
-  const weekDays = getWeekDays(selectedDate);
-
-  function ensureDay(date: Date) {
-    const key = dateKey(date);
-    setRoutines((current) => (current[key] ? current : { ...current, [key]: getDefaultBlocksForDate(date) }));
-  }
-
-  const [currentMinute, setCurrentMinute] = useState(() => {
-    const now = new Date();
-    return now.getHours() * 60 + now.getMinutes();
-  });
-
-  useEffect(() => {
-    const timer = window.setInterval(() => {
-      const now = new Date();
-      setCurrentMinute(now.getHours() * 60 + now.getMinutes());
-      setToday((current) => dateKey(current) === dateKey(now) ? current : startOfDay(now));
-    }, 30_000);
-
-    return () => window.clearInterval(timer);
-  }, []);
-
-  useEffect(() => {
-    const automaticBlockRecords: RoutineBlockRecord[] = [];
-    const automaticHabitRecords: RoutineHabitRecord[] = [];
-    const updatedAt = new Date().toISOString();
-    const existingHabitKeys = new Set(habitRecords.map((record) => `${record.date}:${record.habitId}`));
-
-    for (let offset = 1; offset <= editableHistoryDays; offset += 1) {
-      const date = addDays(today, -offset);
-      const key = dateKey(date);
-      const storedBlocks = routines[key] ?? buildDefaultBlocksForDate(date, routineBlocks, defaultRoutineSettings, scheduledHabits);
-      const dayBlocks = mergeScheduledBlocksForDate(date, storedBlocks, defaultRoutineSettings, scheduledHabits);
-
-      dayBlocks.forEach((block) => {
-        automaticBlockRecords.push({
-          blockId: getRoutineBlockSourceId(block.id, key),
-          date: key,
-          status: "not_done",
-          automatic: true,
-          updatedAt,
-        });
-
-        if (block.habitId && !existingHabitKeys.has(`${key}:${block.habitId}`)) {
-          existingHabitKeys.add(`${key}:${block.habitId}`);
-          automaticHabitRecords.push({
-            habitId: block.habitId,
-            date: key,
-            status: "low",
-            sourceBlockId: block.id,
-            updatedAt,
-          });
-        }
-      });
-    }
-
-    ensureBlockRecords(automaticBlockRecords);
-    ensureHabitRecords(automaticHabitRecords);
-  }, [
-    defaultRoutineSettings,
-    ensureBlockRecords,
-    ensureHabitRecords,
-    habitRecords,
-    routineBlocks,
-    routines,
-    scheduledHabits,
-    today,
-  ]);
-
-  function openDate(date: Date, mode: ViewMode = "today") {
-    if (startOfDay(date) < earliestEditableDate) return;
-    ensureDay(date);
-    setSelectedDate(startOfDay(date));
-    setActiveFilter(mode);
-  }
-
-  function chooseFilter(filter: ViewMode) {
-    setActiveFilter(filter);
-    if (filter === "today") openDate(today, "today");
-    if (filter === "tomorrow") openDate(addDays(today, 1), "tomorrow");
-  }
-
-  function isCurrentBlock(block: RoutineBlock, index: number) {
-    if (selectedKey !== dateKey(today)) return false;
-    if (block.status === "vacation") return false;
-    const start = getBlockMinute(block);
-    const nextBlock = blocks[index + 1];
-    const end = nextBlock ? getBlockMinute(nextBlock) : 24 * 60;
-    return currentMinute >= start && currentMinute < end;
-  }
-
-  function updateBlock(id: string, patch: Partial<RoutineBlock>) {
-    setRoutines((current) => ({
-      ...current,
-      [selectedKey]: blocks.map((block) => (block.id === id ? { ...block, ...patch } : block)),
-    }));
-  }
-
-  function persistBlockStatus(block: RoutineBlock, status: RoutineBlockRecord["status"]) {
-    upsertBlockRecord({
-      blockId: getRoutineBlockSourceId(block.id, selectedKey),
-      date: selectedKey,
-      status,
-      automatic: false,
-      updatedAt: new Date().toISOString(),
-    });
-  }
-
-  function toggleDone(id: string) {
-    const targetBlock = blocks.find((block) => block.id === id);
-    if (!targetBlock) return;
-
-    const isUndoing = targetBlock.status === "done";
-    const isPastDate = selectedDate < today;
-
-    if (isUndoing) {
-      if (isPastDate) persistBlockStatus(targetBlock, "not_done");
-      else removeBlockRecord(getRoutineBlockSourceId(targetBlock.id, selectedKey), selectedKey);
-    } else {
-      persistBlockStatus(targetBlock, "done");
-    }
-
-    if (targetBlock.habitId) {
-      if (isUndoing) {
-        if (isPastDate) {
-          upsertRecord({
-            habitId: targetBlock.habitId,
-            date: selectedKey,
-            status: "low",
-            sourceBlockId: targetBlock.id,
-            updatedAt: new Date().toISOString(),
-          });
-        } else {
-          removeRecord(targetBlock.habitId, selectedKey);
-        }
-      } else {
-        upsertRecord({
-          habitId: targetBlock.habitId,
-          date: selectedKey,
-          status: "done",
-          sourceBlockId: targetBlock.id,
-          updatedAt: new Date().toISOString(),
-        });
-      }
-    }
-
-    setRoutines((current) => ({
-      ...current,
-      [selectedKey]: blocks.map((block) => {
-        if (block.id !== id) return block;
-
-        if (block.status === "done") {
-          return {
-            ...block,
-            status: block.previousStatus ?? "pending",
-            previousStatus: undefined,
-          };
-        }
-
-        return {
-          ...block,
-          previousStatus: block.status,
-          status: "done",
-        };
-      }),
-    }));
-  }
-
-  function skipBlock(id: string) {
-    const targetBlock = blocks.find((block) => block.id === id);
-    if (!targetBlock) return;
-
-    persistBlockStatus(targetBlock, "not_done");
-
-    if (targetBlock.habitId) {
-      upsertRecord({
-        habitId: targetBlock.habitId,
-        date: selectedKey,
-        status: "low",
-        sourceBlockId: targetBlock.id,
-        updatedAt: new Date().toISOString(),
-      });
-    }
-
-    updateBlock(id, { status: "skipped" });
-  }
-
-  function syncHabitRecordFromBlock(block: RoutineBlock) {
-    if (block.status === "done" || block.status === "skipped" || block.status === "missed") {
-      persistBlockStatus(block, block.status === "done" ? "done" : "not_done");
-    } else {
-      removeBlockRecord(getRoutineBlockSourceId(block.id, selectedKey), selectedKey);
-    }
-
-    if (!block.habitId) return;
-
-    if (block.status === "done" || block.status === "skipped" || block.status === "missed") {
-      upsertRecord({
-        habitId: block.habitId,
-        date: selectedKey,
-        status: block.status === "done" ? "done" : "low",
-        sourceBlockId: block.id,
-        updatedAt: new Date().toISOString(),
-      });
-      return;
-    }
-
-    removeRecord(block.habitId, selectedKey);
-  }
-
-  function deleteBlock(id: string) {
-    const targetBlock = blocks.find((block) => block.id === id);
-    if (targetBlock) {
-      removeBlockRecord(getRoutineBlockSourceId(targetBlock.id, selectedKey), selectedKey);
-      if (targetBlock.habitId) removeRecord(targetBlock.habitId, selectedKey);
-    }
-
-    setRoutines((current) => ({
-      ...current,
-      [selectedKey]: blocks.filter((block) => block.id !== id),
-    }));
-  }
-
-  function openEditor(block?: RoutineBlock) {
-    setEditingBlock(block ?? null);
-    setModalOpen(true);
-  }
-
-  function saveBlock(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    const block = normalizeForm(formData, editingBlock ?? undefined);
-    block.title ||= routine.defaultTitle;
-    block.description ||= routine.defaultDescription;
-    syncHabitRecordFromBlock(block);
-
-    setRoutines((current) => {
-      const currentBlocks = current[selectedKey] ?? getDefaultBlocksForDate(selectedDate);
-      const nextBlocks = editingBlock
-        ? currentBlocks.map((item) => (item.id === editingBlock.id ? block : item))
-        : [...currentBlocks, { ...block, id: `${selectedKey}-${block.id}` }];
-
-      return {
-        ...current,
-        [selectedKey]: nextBlocks.sort((a, b) => a.time.localeCompare(b.time)),
-      };
-    });
-    setModalOpen(false);
-  }
-
-  function persistDefaultRoutineSettings(nextSettings: DefaultRoutineSettings) {
-    setDefaultRoutineSettings(nextSettings);
-    writeDefaultRoutineSettings(nextSettings);
-  }
-
-  function saveDefaultRoutineItem(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    const scheduledDays = formData.getAll("defaultScheduledDays").map(Number);
-    const monthlyDays = formData.getAll("defaultMonthlyDays").map(Number);
-    const recurrenceType = (formData.get("defaultRecurrenceType") as DefaultRoutineRecurrenceType) || "weekly";
-    const item: DefaultRoutineItem = {
-      id: crypto.randomUUID(),
-      title: String(formData.get("defaultTitle") || routine.defaultRoutineFallbackTitle),
-      description: String(formData.get("defaultDescription") || routine.defaultRoutineFallbackDescription),
-      time: String(formData.get("defaultTime") || "08:00"),
-      duration: String(formData.get("defaultDuration") || "1 h"),
-      category: (formData.get("defaultCategory") as RoutineBlock["category"]) || "trabalho",
-      energy: (formData.get("defaultEnergy") as RoutineBlock["energy"]) || "media",
-      recurrenceType,
-      scheduledDays: recurrenceType === "weekly" ? (scheduledDays.length ? scheduledDays : [1, 2, 3, 4, 5]) : [],
-      monthlyDays: recurrenceType === "monthly" ? (monthlyDays.length ? monthlyDays : [1]) : [],
+  function saveItem(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault(); setError("");
+    const data = new FormData(event.currentTarget);
+    const startDate = String(data.get("startDate"));
+    const startTime = String(data.get("startTime"));
+    const endDate = String(data.get("endDate"));
+    const selected = data.getAll(recurrence === "monthly" ? "monthDays" : "weekDays").map(Number);
+    const startAt = toLocalDateTime(startDate, startTime);
+    if (!editing && new Date(startAt) < new Date()) { setError("O início não pode estar no passado."); return; }
+    const payload = {
+      schedule_type: scheduleType,
+      start_at: startAt,
+      end_at: scheduleType === "recurring" ? toLocalDateTime(endDate, startTime) : null,
+      recurrence_rule: scheduleType === "recurring" ? buildRRule(recurrence, selected) : null,
+      duration_minutes: Number(data.get("duration")), item_type: data.get("itemType") as ItemType,
+      description: String(data.get("description")) || null, title: String(data.get("title")),
+      goal_id: String(data.get("goalId")) || null,
     };
-
-    persistDefaultRoutineSettings({
-      ...defaultRoutineSettings,
-      items: [...defaultRoutineSettings.items, item],
-    });
-    event.currentTarget.reset();
-    setDefaultRoutineRecurrenceType("weekly");
+    mutation.mutate(() => editing ? routineApi.updateItem(editing.id, payload) : routineApi.createItem(payload), { onSuccess: () => { setEditorOpen(false); setEditing(null); } });
   }
 
-  function removeDefaultRoutineItem(id: string) {
-    persistDefaultRoutineSettings({
-      ...defaultRoutineSettings,
-      items: defaultRoutineSettings.items.filter((item) => item.id !== id),
-    });
+  function log(entry: AgendaEntry, status: ItemStatus) {
+    mutation.mutate(() => entry.source === "habit" ? routineApi.logHabit(entry.sourceId, entry.date, status) : routineApi.logItem(entry.sourceId, entry.date, status));
   }
-
-  function reviewVacationPeriod(event: FormEvent<HTMLFormElement>) {
+  function isCurrent(entry: AgendaEntry) {
+    if (entry.date !== today || entry.status !== "pending") return false;
+    const [hour, minute] = entry.time.split(":").map(Number);
+    const start = hour * 60 + minute;
+    const now = new Date(); const current = now.getHours() * 60 + now.getMinutes();
+    return current >= start && current < start + entry.durationMinutes;
+  }
+  function applyVacation(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    const start = String(formData.get("vacationStart") || "");
-    const end = String(formData.get("vacationEnd") || "");
-
-    if (!start || !end || !defaultRoutineSettings.items.length) return;
-
-    setVacationDraft({ start, end });
-    setSelectedVacationItemIds([]);
+    const data = new FormData(event.currentTarget);
+    const selected = data.getAll("itemIds").map(String);
+    if (!selected.length) { setError("Selecione pelo menos um item recorrente."); return; }
+    mutation.mutate(() => routineApi.setVacation(selected, String(data.get("vacationStart")), String(data.get("vacationEnd"))), { onSuccess: () => event.currentTarget.reset() });
   }
 
-  function toggleVacationItem(itemId: string) {
-    setSelectedVacationItemIds((current) => (
-      current.includes(itemId)
-        ? current.filter((id) => id !== itemId)
-        : [...current, itemId]
-    ));
-  }
-
-  function confirmVacationPeriod() {
-    if (!vacationDraft || !selectedVacationItemIds.length) return;
-
-    persistDefaultRoutineSettings({
-      ...defaultRoutineSettings,
-      vacation: {
-        start: vacationDraft.start,
-        end: vacationDraft.end,
-        itemIds: selectedVacationItemIds,
-      },
-    });
-
-    setVacationDraft(null);
-    setSelectedVacationItemIds([]);
-    setVacationStart("");
-  }
-
+  const editingParts = editing ? localInputParts(editing.start_at) : null;
+  const editingRecurrence = editing?.recurrence_rule ? parseRRule(editing.recurrence_rule) : null;
+  const suggestedStart = nextQuarterHour();
+  const defaultDate = view === "tomorrow" ? tomorrow : suggestedStart.date;
+  const maxEndDate = toDateKey(addDays(fromDateKey(editingParts?.date ?? defaultDate), 365));
   return (
-    <AppShell title={routine.title}>
-      <Card className="grid gap-4">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <p className="text-sm font-bold text-zinc-500">
-              {routine.months[visibleMonth.getMonth()]} {visibleMonth.getFullYear()}
-            </p>
-            <h2 className="text-xl font-black">{routine.calendar}</h2>
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="secondary"
-              className="min-h-10 px-3"
-              onClick={() => setVisibleMonth(new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() - 1, 1))}
-            >
-              ‹
-            </Button>
-            <Button
-              variant="secondary"
-              className="min-h-10 px-3"
-              onClick={() => setVisibleMonth(new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + 1, 1))}
-            >
-              ›
-            </Button>
-          </div>
-        </div>
-        <div className="grid grid-cols-7 gap-1 text-center text-xs font-bold text-zinc-500">
-          {routine.weekdays.map((day) => <span key={day}>{day}</span>)}
-        </div>
-        <div className="grid grid-cols-7 gap-1">
-          {calendarDays.map((day) => {
-            const inMonth = day.getMonth() === visibleMonth.getMonth();
-            const isPast = startOfDay(day) < today;
-            const isLockedPast = startOfDay(day) < earliestEditableDate;
-            const isEditablePast = isPast && !isLockedPast;
-            const isSelected = dateKey(day) === selectedKey;
-            const isToday = dateKey(day) === dateKey(today);
-            const dayButtonState = isLockedPast
-              ? "cursor-not-allowed border border-[var(--border-soft)] bg-[var(--surface-ambient)] text-[var(--text-tertiary)]"
-              : isToday
-                ? "border border-[var(--silver-02)] bg-[linear-gradient(112deg,var(--silver-01),var(--silver-03)_48%,var(--silver-04))] text-[#050507] shadow-[0_10px_24px_rgba(0,0,0,0.22),inset_0_1px_1px_rgba(255,255,255,0.52)] hover:text-[#050507]"
-                : isSelected
-                  ? "border border-[var(--silver-02)] bg-[var(--text-primary)] text-[var(--background-primary)] hover:text-[var(--background-primary)]"
-                  : isEditablePast
-                    ? "border border-red-500/30 bg-red-500/[0.06] text-[var(--text-secondary)] hover:border-red-500/55 hover:bg-red-500/[0.1] hover:text-[var(--text-primary)]"
-                  : "border border-[var(--border-soft)] bg-[var(--surface-ambient)] text-[var(--text-secondary)] hover:border-[var(--border-strong)] hover:bg-[var(--surface-standard)] hover:text-[var(--text-primary)]";
-            const dayNumberState = isToday
-              ? "text-[#050507]"
-              : isSelected
-                ? "text-[var(--background-primary)]"
-                : isLockedPast
-                  ? "text-[var(--text-tertiary)]"
-                  : "text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]";
+    <AppShell title={labels.title}>
+      <Card><div className="flex flex-wrap items-start justify-between gap-4"><SectionTitle title={labels.timeline} description={labels.description} /><Button onClick={openCreate}>{labels.newBlock}</Button></div><div className="mt-5 grid grid-cols-3 gap-2"><Button variant={view === "today" ? "primary" : "secondary"} onClick={() => setView("today")}>Hoje</Button><Button variant={view === "tomorrow" ? "primary" : "secondary"} onClick={() => setView("tomorrow")}>Amanhã</Button><Button variant={view === "week" ? "primary" : "secondary"} onClick={() => setView("week")}>Semana</Button></div></Card>
+      {error ? <p role="alert" className="text-sm font-semibold text-red-500">{error}</p> : null}
+      {agenda.isLoading ? <Card>Carregando agenda…</Card> : null}
+      {view === "week" ? Array.from({ length: 7 }, (_, index) => addDays(fromDateKey(range.start), index)).map((date) => {
+        const key = toDateKey(date); const dayEntries = entries.filter((entry) => entry.date === key);
+        return <Card key={key}><div className="flex items-center justify-between"><Badge tone={key === today ? "green" : "blue"}>{date.toLocaleDateString(language, { weekday: "long", day: "2-digit", month: "2-digit" })}</Badge><span className="text-xs font-bold text-[var(--text-tertiary)]">{dayEntries.length} itens</span></div><div className="mt-4 grid gap-2">{dayEntries.map((entry) => <div key={entry.key} className="flex justify-between rounded-2xl bg-[var(--surface-ambient)] px-4 py-3"><strong>{entry.time} · {entry.title}</strong><span className="text-xs">{{ completed: statusLabels.done, uncompleted: statusLabels.missed, pending: statusLabels.pending, vacation: statusLabels.vacation }[entry.status]}</span></div>)}</div></Card>;
+      }) : entries.map((entry) => <RoutineCard key={entry.key} entry={entry} isCurrent={isCurrent(entry)} onDone={entry.date <= today ? (current) => log(current, current.status === "completed" ? "pending" : "completed") : undefined} onSkip={entry.date <= today ? (current) => log(current, "uncompleted") : undefined} onEdit={openEdit} onDelete={(current) => { if (window.confirm("Excluir este item permanentemente?")) mutation.mutate(() => routineApi.deleteItem(current.sourceId)); }} />)}
+      {!agenda.isLoading && !entries.length ? <EmptyState title={labels.emptyTitle} description={labels.emptyDescription} /> : null}
 
-            return (
-              <button
-                key={dateKey(day)}
-                type="button"
-                disabled={!inMonth || isLockedPast}
-                onClick={() => openDate(day, "today")}
-                className={cn(
-                  "group relative grid aspect-square place-items-center rounded-2xl text-sm font-bold transition",
-                  !inMonth && "opacity-20",
-                  inMonth && dayButtonState,
-                )}
-              >
-                <span className={cn("relative z-10", dayNumberState)}>
-                  {day.getDate()}
-                </span>
-                {isPast && inMonth ? (
-                  <span className={cn(
-                    "font-calendar-x pointer-events-none absolute inset-0 z-20 flex translate-y-[1px] items-center justify-center text-[3.75rem] leading-none text-red-500 sm:text-[5.25rem]",
-                    isEditablePast ? "opacity-[0.35]" : "opacity-25",
-                  )}>
-                    X
-                  </span>
-                ) : null}
-                {isToday ? <span className="absolute bottom-1 size-1.5 rounded-full bg-[#050507]" /> : null}
-                {isEditablePast && !isSelected ? <span className="absolute bottom-1 size-1.5 rounded-full bg-red-500/70" /> : null}
-              </button>
-            );
-          })}
-        </div>
+      <Card className="grid gap-4"><SectionTitle title={labels.vacationPeriod} description={labels.vacationDescription} />
+        <form onSubmit={applyVacation} className="grid gap-4"><div className="grid grid-cols-2 gap-3"><FieldLabel label={labels.startDate}><Input name="vacationStart" type="date" min={today} required /></FieldLabel><FieldLabel label={labels.endDate}><Input name="vacationEnd" type="date" min={today} required /></FieldLabel></div><div className="grid gap-2 sm:grid-cols-2">{items.data?.filter((item) => item.schedule_type === "recurring").map((item) => <label key={item.id} className="flex items-center gap-3 rounded-2xl border border-[var(--border-soft)] p-4"><input type="checkbox" name="itemIds" value={item.id} className="size-5" /><span><strong className="block">{item.title}</strong><span className="text-xs text-[var(--text-tertiary)]">{item.recurrence_rule}</span></span></label>)}</div>{items.data?.some((item) => item.schedule_type === "recurring") ? <Button type="submit" variant="secondary" disabled={mutation.isPending}>{labels.saveVacation}</Button> : <p className="text-sm text-[var(--text-secondary)]">{labels.noVacationItems}</p>}</form>
       </Card>
 
-      <div className="grid grid-cols-3 gap-2">
-        {filters.map((filter, index) => (
-          <Button
-            key={filter}
-            variant={activeFilter === filter ? "primary" : "secondary"}
-            onClick={() => chooseFilter(filter)}
-            className="px-3"
-          >
-            {routine.filters[index]}
-          </Button>
-        ))}
-      </div>
-
-      <Card>
-        <div className="flex items-start justify-between gap-4">
-          <SectionTitle
-            title={activeFilter === "week" ? routine.weeklyAgenda : `${routine.timeline} · ${formatDisplayDate(selectedDate, language)}`}
-            description={routine.description}
-          />
-          <Button className="shrink-0" onClick={() => openEditor()}>
-            {routine.newBlock}
-          </Button>
-        </div>
-      </Card>
-
-      {activeFilter === "week" ? (
-        <div className="grid gap-4">
-          {weekDays.map((day) => {
-            const key = dateKey(day);
-            const dayBlocks = applyRecordedStatuses(
-              day,
-              localizeBlocks(withScheduledBlocks(day, routines[key] ?? getDefaultBlocksForDate(day))),
-            );
-            const isLockedPast = startOfDay(day) < earliestEditableDate;
-            return (
-              <Card key={key} className={cn(isLockedPast && "opacity-60")}>
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <Badge tone={dateKey(day) === selectedKey ? "green" : "blue"}>
-                      {routine.weekdays[day.getDay()]} · {day.toLocaleDateString(language, { day: "2-digit", month: "2-digit" })}
-                    </Badge>
-                    <h3 className="subtitle-display mt-3 text-xl text-[var(--text-primary)]">
-                      {isLockedPast ? routine.dayClosed : dayBlocks[0]?.title ?? routine.openRoutine}
-                    </h3>
-                  </div>
-                  {!isLockedPast ? (
-                    <Button variant="secondary" className="shrink-0 px-3" onClick={() => openDate(day, "today")}>
-                      {routine.open}
-                    </Button>
-                  ) : null}
-                </div>
-                <div className="mt-4 grid gap-2">
-                  {dayBlocks.slice(0, 4).map((block) => (
-                    <div key={block.id} className="flex items-center justify-between gap-3 rounded-2xl bg-zinc-50 px-4 py-3 text-sm dark:bg-zinc-900">
-                      <span className="font-bold text-zinc-500">{block.time}</span>
-                      <div className="flex min-w-0 flex-1 flex-wrap items-center justify-end gap-2">
-                        {block.habitId ? (
-                          <>
-                            <Badge tone="neutral" className="routineHabitBadge">{common.habit}</Badge>
-                            <Badge tone="blue">{block.goalTitle ?? common.unlinkedGoal}</Badge>
-                          </>
-                        ) : null}
-                        <span className="subtitle-display text-base text-[var(--text-primary)]">{block.title}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            );
-          })}
-        </div>
-      ) : (
-        <div className="grid gap-4">
-          {blocks.map((block, index) => (
-            <RoutineCard
-              key={block.id}
-              block={block}
-              isCurrent={isCurrentBlock(block, index)}
-              onDone={toggleDone}
-              onSkip={skipBlock}
-              onEdit={openEditor}
-              onDelete={deleteBlock}
-            />
-          ))}
-          {!blocks.length ? (
-            <EmptyState title={routine.emptyTitle} description={routine.emptyDescription} />
-          ) : null}
-        </div>
-      )}
-
-      <Card className="grid gap-4">
-        <SectionTitle title={routine.defaultRoutine} description={routine.defaultRoutineDescription} />
-        {defaultRoutineSettings.items.length ? (
-          <div className="grid gap-2">
-            {defaultRoutineSettings.items.map((item) => (
-              <div key={item.id} className="flex items-center justify-between gap-3 rounded-2xl bg-zinc-50 px-4 py-3 text-sm dark:bg-zinc-900">
-                <div>
-                  <p className="subtitle-display text-base text-[var(--text-primary)]">{item.time} · {item.title}</p>
-                  <p className="text-xs text-zinc-500">
-                    {item.recurrenceType === "monthly"
-                      ? `${routine.monthly}: ${(item.monthlyDays?.length ? item.monthlyDays : [1]).join(", ")}`
-                      : item.scheduledDays.map((day) => routine.weekdays[day]).join(", ")}
-                  </p>
-                </div>
-                <Button variant="ghost" className="min-h-10 px-3 text-xs" onClick={() => removeDefaultRoutineItem(item.id)}>
-                  {routine.remove}
-                </Button>
-              </div>
-            ))}
-          </div>
-        ) : null}
-
-        <form onSubmit={saveDefaultRoutineItem} className="grid gap-3">
-          <div className="grid grid-cols-2 gap-3">
-            <FieldLabel label={routine.titleField}>
-              <Input name="defaultTitle" placeholder={routine.defaultRoutinePlaceholder} required />
-            </FieldLabel>
-            <FieldLabel label={routine.time}>
-              <TimeSelect name="defaultTime" defaultValue="08:00" />
-            </FieldLabel>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <FieldLabel label={routine.duration}>
-              <DurationSelect name="defaultDuration" defaultValue="1 h" />
-            </FieldLabel>
-            <FieldLabel label={routine.category}>
-              <Select name="defaultCategory" defaultValue="trabalho">
-                <option value="saude">{routine.health}</option>
-                <option value="foco">{routine.focus}</option>
-                <option value="trabalho">{routine.work}</option>
-                <option value="descanso">{routine.rest}</option>
-                <option value="reflexao">{routine.reflection}</option>
-              </Select>
-            </FieldLabel>
-          </div>
-          <FieldLabel label={routine.descriptionField}>
-            <Textarea name="defaultDescription" placeholder={routine.defaultRoutineDescriptionPlaceholder} />
-          </FieldLabel>
-          <FieldLabel label={routine.recurrence}>
-            <Select
-              name="defaultRecurrenceType"
-              value={defaultRoutineRecurrenceType}
-              onChange={(event) => setDefaultRoutineRecurrenceType(event.target.value as DefaultRoutineRecurrenceType)}
-            >
-              <option value="weekly">{routine.weekly}</option>
-              <option value="monthly">{routine.monthly}</option>
-            </Select>
-          </FieldLabel>
-          {defaultRoutineRecurrenceType === "weekly" ? (
-            <FieldLabel label={routine.repeatOn}>
-              <div className="grid grid-cols-7 gap-1.5">
-                {routine.weekdays.map((day, index) => (
-                  <label key={day} className="grid min-h-11 place-items-center rounded-2xl bg-zinc-50 text-xs font-bold dark:bg-zinc-900">
-                    <input className="peer sr-only" type="checkbox" name="defaultScheduledDays" value={index} defaultChecked={index > 0 && index < 6} />
-                    <span className="grid size-full place-items-center rounded-2xl transition peer-checked:bg-zinc-950 peer-checked:text-white dark:peer-checked:bg-white dark:peer-checked:text-zinc-950">
-                      {day}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </FieldLabel>
-          ) : (
-            <FieldLabel label={routine.monthDays}>
-              <div className="grid grid-cols-7 gap-1.5">
-                {Array.from({ length: 31 }, (_, index) => index + 1).map((day) => (
-                  <label key={day} className="grid min-h-10 place-items-center rounded-2xl bg-zinc-50 text-xs font-bold dark:bg-zinc-900">
-                    <input className="peer sr-only" type="checkbox" name="defaultMonthlyDays" value={day} defaultChecked={day === 1} />
-                    <span className="grid size-full place-items-center rounded-2xl transition peer-checked:bg-zinc-950 peer-checked:text-white dark:peer-checked:bg-white dark:peer-checked:text-zinc-950">
-                      {day}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </FieldLabel>
-          )}
-          <FieldLabel label={routine.energy}>
-            <Select name="defaultEnergy" defaultValue="media">
-              <option value="baixa">{routine.low}</option>
-              <option value="media">{routine.medium}</option>
-              <option value="alta">{routine.high}</option>
-            </Select>
-          </FieldLabel>
-          <Button type="submit">{routine.addDefaultRoutineItem}</Button>
-        </form>
-      </Card>
-
-      <Card className="grid gap-4">
-        <SectionTitle title={routine.vacationPeriod} description={routine.vacationDescription} />
-        {defaultRoutineSettings.vacation ? (
-          <div className="grid gap-4 rounded-3xl border border-blue-500/25 bg-blue-500/8 p-5">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <Badge tone="blue">{routine.vacationSaved}</Badge>
-              <span className="text-sm font-bold text-[var(--text-secondary)]">
-                {defaultRoutineSettings.vacation.start} · {defaultRoutineSettings.vacation.end}
-              </span>
-            </div>
-            <p className="text-sm leading-6 text-[var(--text-secondary)]">{routine.vacationSavedDescription}</p>
-            <div className="grid gap-2 sm:grid-cols-2">
-              {defaultRoutineSettings.items
-                .filter((item) => defaultRoutineSettings.vacation?.itemIds?.includes(item.id))
-                .map((item) => (
-                  <div key={item.id} className="rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-ambient)] px-4 py-3 text-sm font-bold">
-                    {item.time} · {item.title}
-                  </div>
-                ))}
-            </div>
-          </div>
-        ) : defaultRoutineSettings.items.length ? (
-          <form onSubmit={reviewVacationPeriod} className="grid gap-4">
-            <div className="grid grid-cols-2 gap-3">
-              <FieldLabel label={routine.startDate}>
-                <Input
-                  name="vacationStart"
-                  type="date"
-                  min={dateKey(today)}
-                  value={vacationStart}
-                  onChange={(event) => setVacationStart(event.target.value)}
-                  required
-                />
-              </FieldLabel>
-              <FieldLabel label={routine.endDate}>
-                <Input name="vacationEnd" type="date" min={vacationStart || dateKey(today)} required />
-              </FieldLabel>
-            </div>
-            <Button type="submit" variant="secondary">{routine.saveVacation}</Button>
-          </form>
-        ) : (
-          <p className="rounded-2xl border border-dashed border-[var(--border-medium)] bg-[var(--surface-ambient)] p-4 text-sm font-semibold text-[var(--text-secondary)]">
-            {routine.noVacationItems}
-          </p>
-        )}
-      </Card>
-
-      {vacationDraft ? (
-        <div className="fixed inset-0 z-[60] grid place-items-end bg-black/55 p-4 sm:place-items-center" role="presentation">
-          <Card
-            className="max-h-[calc(100dvh-2rem)] w-full max-w-2xl overflow-y-auto"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="vacation-confirmation-title"
-          >
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <Badge tone="blue">{vacationDraft.start} · {vacationDraft.end}</Badge>
-                <h2 id="vacation-confirmation-title" className="subtitle-display mt-3 text-2xl text-[var(--text-primary)]">
-                  {routine.vacationItems}
-                </h2>
-              </div>
-              <Button variant="ghost" className="shrink-0" onClick={() => setVacationDraft(null)}>
-                {routine.close}
-              </Button>
-            </div>
-
-            <div className="mt-5 rounded-2xl border border-red-500/35 bg-red-500/10 p-4 text-sm font-semibold leading-6 text-red-700 dark:text-red-300">
-              {routine.vacationWarning}
-            </div>
-
-            <div className="mt-5 grid gap-2">
-              {defaultRoutineSettings.items.map((item) => {
-                const isSelected = selectedVacationItemIds.includes(item.id);
-
-                return (
-                  <label
-                    key={item.id}
-                    className={cn(
-                      "flex min-h-14 cursor-pointer items-center justify-between gap-4 rounded-2xl border px-4 py-3 transition",
-                      isSelected
-                        ? "border-[var(--border-strong)] bg-[var(--surface-focus)]"
-                        : "border-[var(--border-soft)] bg-[var(--surface-ambient)]",
-                    )}
-                  >
-                    <span>
-                      <span className="block text-sm font-bold text-[var(--text-primary)]">{item.title}</span>
-                      <span className="mt-1 block text-xs font-semibold text-[var(--text-tertiary)]">{item.time} · {item.duration}</span>
-                    </span>
-                    <input
-                      className="size-5 shrink-0 accent-[var(--text-primary)]"
-                      type="checkbox"
-                      checked={isSelected}
-                      onChange={() => toggleVacationItem(item.id)}
-                    />
-                  </label>
-                );
-              })}
-            </div>
-
-            {!selectedVacationItemIds.length ? (
-              <p className="mt-4 text-sm font-semibold text-[var(--text-secondary)]">{routine.vacationSelectionHint}</p>
-            ) : null}
-
-            <div className="mt-6 grid grid-cols-2 gap-3">
-              <Button variant="secondary" onClick={() => setVacationDraft(null)}>{routine.cancelVacation}</Button>
-              <Button variant="danger" disabled={!selectedVacationItemIds.length} onClick={confirmVacationPeriod}>
-                {routine.confirmVacation}
-              </Button>
-            </div>
-          </Card>
-        </div>
-      ) : null}
-
-      {modalOpen ? (
-        <div className="fixed inset-0 z-50 grid place-items-end bg-black/40 p-4">
-          <Card className="w-full max-w-xl">
-            <div className="mb-4 flex items-center justify-between gap-4">
-              <h2 className="text-xl font-bold">{editingBlock ? routine.editBlock : routine.newBlock}</h2>
-              <Button variant="ghost" onClick={() => setModalOpen(false)}>
-                {routine.close}
-              </Button>
-            </div>
-            <form onSubmit={saveBlock} className="grid gap-3">
-              <div className="grid grid-cols-2 gap-3">
-                <FieldLabel label={routine.time}>
-                  <TimeSelect name="time" defaultValue={editingBlock?.time ?? "09:00"} />
-                </FieldLabel>
-                <FieldLabel label={routine.duration}>
-                  <DurationSelect name="duration" defaultValue={editingBlock?.duration ?? "45 min"} />
-                </FieldLabel>
-              </div>
-              <FieldLabel label={routine.titleField}>
-                <Input name="title" defaultValue={editingBlock?.title ?? ""} placeholder={routine.titlePlaceholder} />
-              </FieldLabel>
-              <FieldLabel label={routine.descriptionField}>
-                <Textarea name="description" defaultValue={editingBlock?.description ?? ""} />
-              </FieldLabel>
-              <div className="grid grid-cols-3 gap-3">
-                <FieldLabel label={routine.category}>
-                  <Select name="category" defaultValue={editingBlock?.category ?? "foco"}>
-                    <option value="saude">{routine.health}</option>
-                    <option value="foco">{routine.focus}</option>
-                    <option value="trabalho">{routine.work}</option>
-                    <option value="descanso">{routine.rest}</option>
-                    <option value="reflexao">{routine.reflection}</option>
-                  </Select>
-                </FieldLabel>
-                <FieldLabel label={routine.energy}>
-                  <Select name="energy" defaultValue={editingBlock?.energy ?? "media"}>
-                    <option value="baixa">{routine.low}</option>
-                    <option value="media">{routine.medium}</option>
-                    <option value="alta">{routine.high}</option>
-                  </Select>
-                </FieldLabel>
-                <FieldLabel label={routine.status}>
-                  <Select name="status" defaultValue={editingBlock?.status ?? "pending"}>
-                    <option value="pending">{routineCard.pending}</option>
-                    <option value="done">{routineCard.done}</option>
-                    <option value="skipped">{routineCard.skipped}</option>
-                    <option value="missed">{routineCard.missed}</option>
-                  </Select>
-                </FieldLabel>
-              </div>
-              <Button type="submit">{routine.save}</Button>
-            </form>
-          </Card>
-        </div>
-      ) : null}
+      {editorOpen ? <div className="fixed inset-0 z-50 grid place-items-end bg-black/50 p-4 sm:place-items-center"><Card className="max-h-[calc(100dvh-2rem)] w-full max-w-xl overflow-y-auto"><form onSubmit={saveItem} className="grid gap-3"><div className="flex items-center justify-between"><h2 className="text-xl font-bold">{editing ? labels.editBlock : labels.newBlock}</h2><Button type="button" variant="ghost" onClick={() => setEditorOpen(false)}>{labels.close}</Button></div>
+        <FieldLabel label={labels.titleField}><Input name="title" defaultValue={editing?.title ?? ""} minLength={2} maxLength={150} required /></FieldLabel>
+        <FieldLabel label={labels.descriptionField}><Textarea name="description" defaultValue={editing?.description ?? ""} maxLength={200} /></FieldLabel>
+        <div className="grid grid-cols-2 gap-3"><FieldLabel label="Tipo de agenda"><Select value={scheduleType} onChange={(event) => setScheduleType(event.target.value as ScheduleType)}><option value="single">Único</option><option value="recurring">Recorrente</option></Select></FieldLabel><FieldLabel label="Tipo de item"><Select name="itemType" defaultValue={editing?.item_type ?? "task"}><option value="task">Tarefa</option><option value="event">Evento</option><option value="reminder">Lembrete</option></Select></FieldLabel></div>
+        <div className="grid grid-cols-2 gap-3"><FieldLabel label={labels.startDate}><Input name="startDate" type="date" min={today} defaultValue={editingParts?.date ?? defaultDate} required /></FieldLabel><FieldLabel label={labels.time}><TimeSelect name="startTime" defaultValue={editingParts?.time ?? (view === "tomorrow" ? "09:00" : suggestedStart.time)} required /></FieldLabel></div>
+        <div className="grid grid-cols-2 gap-3"><FieldLabel label="Duração (min)"><Input name="duration" type="number" min={1} max={1440} defaultValue={editing?.duration_minutes ?? 30} required /></FieldLabel><FieldLabel label="Meta opcional"><Select name="goalId" defaultValue={editing?.goal_id ?? ""}><option value="">Sem meta</option>{goals.data?.map((goal) => <option key={goal.id} value={goal.id}>{goal.title}</option>)}</Select></FieldLabel></div>
+        {scheduleType === "recurring" ? <><div className="grid grid-cols-2 gap-3"><FieldLabel label={labels.endDate}><Input name="endDate" type="date" min={editingParts?.date ?? defaultDate} max={maxEndDate} defaultValue={editing?.end_at ? localInputParts(editing.end_at).date : toDateKey(addDays(fromDateKey(defaultDate), 30))} required /></FieldLabel><FieldLabel label={labels.recurrence}><Select value={recurrence} onChange={(event) => setRecurrence(event.target.value as RecurrenceFrequency)}><option value="daily">Diário</option><option value="weekly">Semanal</option><option value="monthly">Mensal</option><option value="yearly">Anual</option></Select></FieldLabel></div>{recurrence === "weekly" ? <DayPicker name="weekDays" count={7} defaults={editingRecurrence?.frequency === "weekly" ? editingRecurrence.selected : [1,2,3,4,5]} /> : recurrence === "monthly" ? <DayPicker name="monthDays" count={31} defaults={editingRecurrence?.frequency === "monthly" ? editingRecurrence.selected : [1]} /> : null}</> : null}
+        <Button type="submit" disabled={mutation.isPending}>{labels.save}</Button>
+      </form></Card></div> : null}
     </AppShell>
   );
+}
+
+function DayPicker({ name, count, defaults }: { name: string; count: number; defaults: number[] }) {
+  return <div className="grid grid-cols-7 gap-1.5">{Array.from({ length: count }, (_, index) => count === 7 ? index : index + 1).map((day) => <label key={day} className="grid min-h-10 place-items-center rounded-2xl bg-[var(--surface-ambient)] text-xs font-bold"><input className="peer sr-only" type="checkbox" name={name} value={day} defaultChecked={defaults.includes(day)} /><span className="grid size-full place-items-center rounded-2xl peer-checked:bg-[var(--text-primary)] peer-checked:text-[var(--background-primary)]">{count === 7 ? ["D","S","T","Q","Q","S","S"][day] : day}</span></label>)}</div>;
 }

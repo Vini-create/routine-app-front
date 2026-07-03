@@ -1,28 +1,40 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/app/AppShell";
+import { useAuth } from "@/components/app/AuthProvider";
 import { DevelopmentNotice } from "@/components/app/DevelopmentNotice";
 import { useTranslations } from "@/components/app/LanguageProvider";
 import { SectionTitle } from "@/components/app/SectionTitle";
-import { useAppData } from "@/components/app/useAppData";
-import { useStoredHabits } from "@/components/app/useStoredHabits";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { FieldLabel, Textarea } from "@/components/ui/Form";
 import { generateRoutineFeedback } from "@/lib/routineFeedbackApi";
+import { agendaEntries } from "@/lib/agenda";
+import { addDays, fromDateKey, toDateKey, weekRange } from "@/lib/date";
+import { routineApi } from "@/lib/routineApi";
 
 export default function FeedbackPage() {
   const feedbackLabels = useTranslations("feedback");
-  const { habits, routineBlocks, user, weeklyPlan } = useAppData();
-  const { storedHabits } = useStoredHabits();
+  const { user } = useAuth();
+  const range = weekRange();
+  const agendaQuery = useQuery({ queryKey: ["agenda", range.start, range.end], queryFn: () => routineApi.agenda(range.start, range.end) });
+  const habitsQuery = useQuery({ queryKey: ["habits-dashboard", range.start, range.end], queryFn: () => routineApi.habitsDashboard(range.start, range.end) });
   const [goal, setGoal] = useState("");
   const [feedback, setFeedback] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [validationMessage, setValidationMessage] = useState("");
 
-  const allHabits = useMemo(() => [...habits, ...storedHabits], [habits, storedHabits]);
+  const routineBlocks = useMemo(() => agendaEntries(agendaQuery.data), [agendaQuery.data]);
+  const allHabits = useMemo(() => habitsQuery.data?.habits.map((item) => item.habit) ?? [], [habitsQuery.data]);
+  const weeklyPlan = useMemo(() => Array.from({ length: 7 }, (_, index) => {
+    const date = addDays(fromDateKey(range.start), index);
+    const key = toDateKey(date);
+    const dayEntries = routineBlocks.filter((entry) => entry.date === key);
+    return { day: date.toLocaleDateString(undefined, { weekday: "long" }), focus: dayEntries[0]?.title ?? "—", blocks: dayEntries.map((entry) => entry.title), habits: dayEntries.filter((entry) => entry.source === "habit").map((entry) => entry.title) };
+  }), [range.start, routineBlocks]);
   const totalWeeklyBlocks = weeklyPlan.reduce((total, day) => total + day.blocks.length, 0);
   const busiestDay = weeklyPlan.reduce<typeof weeklyPlan[number] | null>((current, day) => (!current || day.blocks.length > current.blocks.length ? day : current), null);
   const lightestDay = weeklyPlan.reduce<typeof weeklyPlan[number] | null>((current, day) => (!current || day.blocks.length < current.blocks.length ? day : current), null);
@@ -31,12 +43,11 @@ export default function FeedbackPage() {
     blocks: routineBlocks,
     habits: allHabits,
     profile: {
-      occupation: user.occupation,
-      wakeTime: user.wakeTime,
-      sleepTime: user.sleepTime,
+      displayName: user?.display_name,
+      email: user?.email,
     },
     week: weeklyPlan,
-  }), [allHabits, routineBlocks, user.occupation, user.sleepTime, user.wakeTime, weeklyPlan]);
+  }), [allHabits, routineBlocks, user?.display_name, user?.email, weeklyPlan]);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -132,7 +143,7 @@ export default function FeedbackPage() {
           )}
         </div>
         <p className="text-xs leading-5 text-zinc-500">
-          {feedbackLabels.sleepContext} {user.wakeTime || "—"} / {user.sleepTime || "—"}
+          {user?.display_name || user?.email}
         </p>
       </Card>
 

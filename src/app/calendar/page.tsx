@@ -1,47 +1,21 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/app/AppShell";
-import { useTranslations } from "@/components/app/LanguageProvider";
+import { useLanguage, useTranslations } from "@/components/app/LanguageProvider";
 import { SectionTitle } from "@/components/app/SectionTitle";
-import { useAppData } from "@/components/app/useAppData";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { agendaEntries } from "@/lib/agenda";
+import { addDays, fromDateKey, toDateKey, weekRange } from "@/lib/date";
+import { routineApi } from "@/lib/routineApi";
 
 export default function CalendarPage() {
-  const calendar = useTranslations("calendarPage");
-  const { weeklyPlan } = useAppData();
-
-  return (
-    <AppShell title={calendar.title}>
-      <div className="flex items-center justify-between gap-4">
-        <SectionTitle title={calendar.heading} description={calendar.description} />
-        <Button href="/assistant" className="shrink-0">{calendar.reorganize}</Button>
-      </div>
-      <div className="grid gap-4">
-        {weeklyPlan.length ? weeklyPlan.map((day) => (
-          <Card key={day.day}>
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <Badge tone="blue">{day.day} · {day.date}</Badge>
-                <h3 className="mt-3 text-lg font-bold">{day.focus}</h3>
-              </div>
-              <Badge tone="green">{day.blocks.length} {calendar.blocks}</Badge>
-            </div>
-            <div className="mt-4 grid gap-2">
-              {day.blocks.map((block) => (
-                <div key={block} className="rounded-2xl bg-zinc-50 px-4 py-3 text-sm font-semibold dark:bg-zinc-900">{block}</div>
-              ))}
-            </div>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {day.habits.map((habit) => <Badge key={habit} tone="purple">{habit}</Badge>)}
-            </div>
-          </Card>
-        )) : (
-          <EmptyState title={calendar.emptyTitle} description={calendar.emptyDescription} href="/routine" />
-        )}
-      </div>
-    </AppShell>
-  );
+  const labels = useTranslations("calendarPage"); const { language } = useLanguage(); const range = weekRange();
+  const statusLabels = useTranslations("routineCard");
+  const agenda = useQuery({ queryKey: ["agenda", range.start, range.end], queryFn: () => routineApi.agenda(range.start, range.end) });
+  const entries = agendaEntries(agenda.data);
+  return <AppShell title={labels.title}><div className="flex items-center justify-between gap-4"><SectionTitle title={labels.heading} description={labels.description} /><Button href="/assistant">{labels.reorganize}</Button></div><div className="grid gap-4">{Array.from({length:7},(_,i)=>addDays(fromDateKey(range.start),i)).map((date)=>{const key=toDateKey(date);const day=entries.filter((entry)=>entry.date===key);return <Card key={key}><div className="flex justify-between"><Badge tone={key===toDateKey(new Date())?"green":"blue"}>{date.toLocaleDateString(language,{weekday:"long",day:"2-digit",month:"2-digit"})}</Badge><Badge tone="neutral">{day.length} {labels.blocks}</Badge></div><div className="mt-4 grid gap-2">{day.map((entry)=><div key={entry.key} className="flex items-center justify-between rounded-2xl bg-[var(--surface-ambient)] px-4 py-3"><span><strong>{entry.time} · {entry.title}</strong>{entry.source==="habit"?<small className="ml-2">Hábito</small>:null}</span><span className="text-xs font-bold">{{ completed: statusLabels.done, uncompleted: statusLabels.missed, pending: statusLabels.pending, vacation: statusLabels.vacation }[entry.status]}</span></div>)}{!day.length?<p className="text-sm text-[var(--text-tertiary)]">Sem itens.</p>:null}</div></Card>})}{agenda.isError?<EmptyState title={labels.emptyTitle} description={labels.emptyDescription} href="/routine" />:null}</div></AppShell>;
 }

@@ -63,7 +63,7 @@ export function resolveInitialLanguage(): SupportedLanguage {
 }
 
 export function persistLanguage(language: SupportedLanguage) {
-  // API_CONNECTION_POINT: after auth exists, also persist this preference with PATCH /users/me/preferences.
+  // Authenticated changes are also persisted through PATCH /auth/me by the settings flow.
   window.localStorage.setItem(languageStorageKey, language);
   document.cookie = `${languageCookieName}=${encodeURIComponent(language)}; Path=/; Max-Age=31536000; SameSite=Lax`;
 }

@@ -1,89 +1,86 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/app/AppShell";
+import { useAuth } from "@/components/app/AuthProvider";
 import { LanguageSelect } from "@/components/app/LanguageSelect";
-import { useTranslations } from "@/components/app/LanguageProvider";
-import { SectionTitle } from "@/components/app/SectionTitle";
+import { useLanguage, useTranslations } from "@/components/app/LanguageProvider";
 import { ThemeToggle } from "@/components/app/ThemeToggle";
-import { useAppData } from "@/components/app/useAppData";
-import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { FieldLabel, Input, Textarea, TimeSelect } from "@/components/ui/Form";
-import { deleteAccount, logout, updateProfile } from "@/lib/profileApi";
+import { FieldLabel, Input } from "@/components/ui/Form";
+import { ApiError } from "@/lib/api";
+import { apiToAppLanguage, appToApiLanguage } from "@/lib/api-contracts";
+import { authApi } from "@/lib/authApi";
 
 export default function SettingsPage() {
-  const [saved, setSaved] = useState(false);
   const settings = useTranslations("settings");
-  const { user } = useAppData();
+  const { user, setUser, logout, deleteAccount } = useAuth();
+  const { language, setLanguage } = useLanguage();
+  const router = useRouter();
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-
-    // API_CONNECTION_POINT: this calls the profile client; keep sensitive persistence on the backend only.
-    await updateProfile({
-      name: String(formData.get("name") ?? ""),
-      nickname: String(formData.get("nickname") ?? ""),
-      occupation: String(formData.get("occupation") ?? ""),
-      bio: String(formData.get("bio") ?? ""),
-      wakeTime: String(formData.get("wakeTime") ?? ""),
-      sleepTime: String(formData.get("sleepTime") ?? ""),
-    });
-
-    setSaved(true);
-    window.setTimeout(() => setSaved(false), 2400);
+    setLoading(true); setSaved(false); setError("");
+    try {
+      const updated = await authApi.updateMe({
+        display_name: String(formData.get("displayName")),
+        language: appToApiLanguage[language],
+      });
+      setUser(updated);
+      if (updated.language) setLanguage(apiToAppLanguage[updated.language]);
+      setSaved(true);
+    } catch (cause) {
+      setError(cause instanceof ApiError ? cause.detail : "Não foi possível salvar as alterações.");
+    } finally { setLoading(false); }
   }
 
   async function onLogout() {
+    setLoading(true);
     await logout();
-    window.location.href = "/login";
+    router.replace("/login");
   }
 
   async function onDeleteAccount() {
     if (!window.confirm(settings.deleteConfirm)) return;
-    await deleteAccount();
+    setLoading(true); setError("");
+    try {
+      await deleteAccount();
+      router.replace("/login");
+    } catch (cause) {
+      setError(cause instanceof ApiError ? cause.detail : "Não foi possível excluir a conta.");
+      setLoading(false);
+    }
   }
 
   return (
     <AppShell title={settings.title}>
       <Card>
-        <SectionTitle title={settings.profileOverview} description={settings.profileOverviewDescription} />
-        <div className="mt-4 flex flex-wrap gap-2">
-          {user.goals.map((goal) => <Badge key={goal} tone="green">{goal}</Badge>)}
-        </div>
-      </Card>
-      <Card>
         <form onSubmit={onSubmit} className="grid gap-4">
           <h2 className="text-lg font-bold">{settings.personalDetails}</h2>
-          <FieldLabel label={settings.name}><Input name="name" defaultValue={user.name} /></FieldLabel>
-          <FieldLabel label={settings.nickname}><Input name="nickname" defaultValue={user.name} placeholder={settings.nicknamePlaceholder} /></FieldLabel>
-          <FieldLabel label={settings.occupation}><Input name="occupation" defaultValue={user.occupation} /></FieldLabel>
-          <FieldLabel label={settings.bio}><Textarea name="bio" placeholder={settings.bioPlaceholder} /></FieldLabel>
-          <div className="grid grid-cols-2 gap-3">
-            <FieldLabel label={settings.wakeTime}><TimeSelect name="wakeTime" defaultValue={user.wakeTime} /></FieldLabel>
-            <FieldLabel label={settings.sleepTime}><TimeSelect name="sleepTime" defaultValue={user.sleepTime} /></FieldLabel>
-          </div>
-          <Button type="submit">{settings.saveChanges}</Button>
-          {saved ? <p className="text-sm font-semibold text-[var(--text-primary)]">{settings.saved}</p> : null}
-          <p className="text-xs leading-5 text-[var(--text-secondary)]">{settings.privacyNote}</p>
+          <FieldLabel label={settings.name}>
+            <Input name="displayName" defaultValue={user?.display_name ?? ""} minLength={2} maxLength={100} required />
+          </FieldLabel>
+          <FieldLabel label={settings.language}><LanguageSelect /></FieldLabel>
+          <Button type="submit" disabled={loading}>{settings.saveChanges}</Button>
+          {saved ? <p className="text-sm font-semibold text-emerald-500">{settings.saved}</p> : null}
+          {error ? <p role="alert" className="text-sm font-semibold text-red-500">{error}</p> : null}
         </form>
       </Card>
       <Card className="grid gap-4">
         <h2 className="text-lg font-bold">{settings.preferences}</h2>
-        <ThemeToggle
-          title={settings.appearance}
-          description={settings.appearanceDescription}
-          lightLabel={settings.lightMode}
-          darkLabel={settings.darkMode}
-        />
-        <FieldLabel label={settings.language}><LanguageSelect /></FieldLabel>
+        <ThemeToggle title={settings.appearance} description={settings.appearanceDescription} lightLabel={settings.lightMode} darkLabel={settings.darkMode} />
       </Card>
       <Card className="grid gap-3">
         <h2 className="text-lg font-bold">{settings.account}</h2>
-        <Button variant="secondary" onClick={onLogout}>{settings.logout}</Button>
-        <Button variant="danger" onClick={onDeleteAccount}>{settings.deleteAccount}</Button>
+        <p className="text-sm text-[var(--text-secondary)]">{user?.email}</p>
+        <Button variant="secondary" onClick={onLogout} disabled={loading}>{settings.logout}</Button>
+        <Button variant="danger" onClick={onDeleteAccount} disabled={loading}>{settings.deleteAccount}</Button>
       </Card>
     </AppShell>
   );

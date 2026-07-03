@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { messages } from "@/i18n/messages";
 import {
   persistLanguage,
@@ -54,15 +54,15 @@ export function LanguageProvider({
     return () => window.removeEventListener("storage", handleStorage);
   }, []);
 
-  function setLanguage(nextLanguage: SupportedLanguage) {
+  const setLanguage = useCallback((nextLanguage: SupportedLanguage) => {
     setLanguageState(nextLanguage);
     persistLanguage(nextLanguage);
     document.documentElement.lang = nextLanguage;
-  }
+  }, []);
 
   const value = useMemo(
     () => ({ language, setLanguage, messages: messages[language] }),
-    [language],
+    [language, setLanguage],
   );
 
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;

@@ -25,11 +25,11 @@ npm run start
 O projeto já lê a URL base da API a partir do `.env` existente:
 
 ```bash
-NEXT_PUBLIC_API_URL=
-NEXT_PUBLIC_USE_MOCK_API=true
+NEXT_PUBLIC_API_URL=https://routine-app-back-production.up.railway.app
+NEXT_PUBLIC_USE_MOCK_AI=true
 ```
 
-Enquanto `NEXT_PUBLIC_API_URL` estiver vazio, o app usa fallbacks locais seguros para manter a interface navegável. Quando o backend estiver pronto, preencha `NEXT_PUBLIC_API_URL` e ajuste `NEXT_PUBLIC_USE_MOCK_API=false`.
+`NEXT_PUBLIC_API_URL` é obrigatória para autenticação, metas, hábitos e rotina. `NEXT_PUBLIC_USE_MOCK_AI` mantém somente Alfred e Feedback em modo demonstrativo enquanto essas rotas ainda não existem no backend.
 
 Procure por `API_CONNECTION_POINT` para localizar os pontos preparados para integração com FastAPI, autenticação, IA, rotina, hábitos, perfil e check-ins.
 

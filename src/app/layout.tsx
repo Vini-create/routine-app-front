@@ -8,6 +8,7 @@ import {
 } from "next/font/google";
 import { LanguageProvider } from "@/components/app/LanguageProvider";
 import { ThemeProvider } from "@/components/app/ThemeProvider";
+import { AppProviders } from "@/components/app/AppProviders";
 import { defaultLanguage } from "@/lib/i18n";
 import "./globals.css";
 
@@ -74,7 +75,9 @@ export default function RootLayout({
     >
       <body className={`${robotoCondensed.variable} ${antonio.variable} ${manrope.variable} ${cormorant.variable} ${specialElite.variable} min-h-full flex flex-col`}>
         <ThemeProvider initialTheme="dark">
-          <LanguageProvider initialLanguage={defaultLanguage}>{children}</LanguageProvider>
+          <LanguageProvider initialLanguage={defaultLanguage}>
+            <AppProviders>{children}</AppProviders>
+          </LanguageProvider>
         </ThemeProvider>
       </body>
     </html>
