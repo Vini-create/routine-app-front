@@ -35,10 +35,6 @@ export default function FeedbackPage() {
     const dayEntries = routineBlocks.filter((entry) => entry.date === key);
     return { day: date.toLocaleDateString(undefined, { weekday: "long" }), focus: dayEntries[0]?.title ?? "—", blocks: dayEntries.map((entry) => entry.title), habits: dayEntries.filter((entry) => entry.source === "habit").map((entry) => entry.title) };
   }), [range.start, routineBlocks]);
-  const totalWeeklyBlocks = weeklyPlan.reduce((total, day) => total + day.blocks.length, 0);
-  const busiestDay = weeklyPlan.reduce<typeof weeklyPlan[number] | null>((current, day) => (!current || day.blocks.length > current.blocks.length ? day : current), null);
-  const lightestDay = weeklyPlan.reduce<typeof weeklyPlan[number] | null>((current, day) => (!current || day.blocks.length < current.blocks.length ? day : current), null);
-
   const weeklyRoutine = useMemo(() => ({
     blocks: routineBlocks,
     habits: allHabits,
@@ -108,43 +104,6 @@ export default function FeedbackPage() {
             {isLoading ? feedbackLabels.loading : feedbackLabels.generate}
           </Button>
         </form>
-      </Card>
-
-      <Card className="grid gap-4">
-        <SectionTitle title={feedbackLabels.weekSummaryTitle} description={feedbackLabels.weekSummaryDescription} />
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="rounded-2xl bg-zinc-50 p-4 dark:bg-zinc-900">
-            <p className="text-2xl font-black">{totalWeeklyBlocks}</p>
-            <p className="text-xs font-semibold text-zinc-500">{feedbackLabels.weekBlocks}</p>
-          </div>
-          <div className="rounded-2xl bg-zinc-50 p-4 dark:bg-zinc-900">
-            <p className="text-2xl font-black">{allHabits.length}</p>
-            <p className="text-xs font-semibold text-zinc-500">{feedbackLabels.mainHabits}</p>
-          </div>
-          <div className="rounded-2xl bg-zinc-50 p-4 dark:bg-zinc-900">
-            <p className="text-lg font-black">{busiestDay?.day ?? "—"}</p>
-            <p className="text-xs font-semibold text-zinc-500">{feedbackLabels.busiestDay}</p>
-          </div>
-          <div className="rounded-2xl bg-zinc-50 p-4 dark:bg-zinc-900">
-            <p className="text-lg font-black">{lightestDay?.day ?? "—"}</p>
-            <p className="text-xs font-semibold text-zinc-500">{feedbackLabels.lightestDay}</p>
-          </div>
-        </div>
-        <div className="grid gap-2">
-          {weeklyPlan.length ? weeklyPlan.slice(0, 4).map((day) => (
-            <div key={day.day} className="rounded-2xl border border-zinc-100 bg-white/70 p-4 dark:border-zinc-800 dark:bg-zinc-950/70">
-              <p className="text-sm font-black">{day.day} · {day.focus}</p>
-              <p className="mt-1 text-xs leading-5 text-zinc-500">{day.blocks.join(" · ")}</p>
-            </div>
-          )) : (
-            <p className="rounded-2xl border border-zinc-100 bg-white/70 p-4 text-sm leading-6 text-zinc-500 dark:border-zinc-800 dark:bg-zinc-950/70">
-              {feedbackLabels.emptyRoutineContext}
-            </p>
-          )}
-        </div>
-        <p className="text-xs leading-5 text-zinc-500">
-          {user?.display_name || user?.email}
-        </p>
       </Card>
 
       {error ? (

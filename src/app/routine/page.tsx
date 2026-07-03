@@ -164,6 +164,8 @@ export default function RoutinePage() {
   const suggestedEndDate = toDateKey(addDays(fromDateKey(defaultDate), 30));
   const defaultEndDate = suggestedEndDate > maxEndDate ? maxEndDate : suggestedEndDate;
   const recurringItems = items.data?.filter((item) => item.schedule_type === "recurring") ?? [];
+  const selectedDateLong = fromDateKey(selectedDate).toLocaleDateString(language, { weekday: "long", day: "2-digit", month: "long" });
+  const isReadOnlyHistory = view === "day" && selectedDate < oldestEditableDate;
   return (
     <AppShell title={labels.title}>
       <InteractiveRoutineCalendar
@@ -173,13 +175,15 @@ export default function RoutinePage() {
         months={labels.months}
         weekdays={labels.weekdays}
         title={labels.calendar}
+        correctionWindowStart={oldestEditableDate}
+        correctionWindowHint={labels.correctionWindowHint}
         onSelectDate={openDate}
         onMonthChange={setVisibleMonth}
       />
-      <Card><div className="flex flex-wrap items-start justify-between gap-4"><SectionTitle title={labels.timeline} description={labels.description} /><Button onClick={openCreate}>{labels.newBlock}</Button></div><div className="mt-5 grid grid-cols-3 gap-2"><Button variant={view === "day" && selectedDate === today ? "primary" : "secondary"} onClick={() => openDate(today)}>Hoje</Button><Button variant={view === "day" && selectedDate === tomorrow ? "primary" : "secondary"} onClick={() => openDate(tomorrow)}>Amanhã</Button><Button variant={view === "week" ? "primary" : "secondary"} onClick={() => setView("week")}>Semana</Button></div>{view === "day" ? <p className="mt-4 text-center text-sm font-bold capitalize text-[var(--text-secondary)]">{fromDateKey(selectedDate).toLocaleDateString(language, { weekday: "long", day: "2-digit", month: "long" })}</p> : null}</Card>
+      <Card><div className="flex flex-wrap items-start justify-between gap-4"><div className="grid gap-2"><h2 className="font-display text-4xl font-light uppercase leading-[0.92] text-[var(--text-primary)]"><span>{labels.timeline}</span>{view === "day" ? <><span aria-hidden="true"> · </span><span className="text-[var(--text-secondary)]">{selectedDateLong}</span></> : null}</h2><p className="subtitle-display max-w-3xl text-lg text-[var(--text-secondary)]">{labels.description}</p></div><Button onClick={openCreate}>{labels.newBlock}</Button></div><div className="mt-5 grid grid-cols-3 gap-2"><Button variant={view === "day" && selectedDate === today ? "primary" : "secondary"} onClick={() => openDate(today)}>Hoje</Button><Button variant={view === "day" && selectedDate === tomorrow ? "primary" : "secondary"} onClick={() => openDate(tomorrow)}>Amanhã</Button><Button variant={view === "week" ? "primary" : "secondary"} onClick={() => setView("week")}>Semana</Button></div></Card>
       {error ? <p role="alert" className="text-sm font-semibold text-red-500">{error}</p> : null}
       {agenda.isLoading ? <Card>Carregando agenda…</Card> : null}
-      {view === "day" && selectedDate < oldestEditableDate ? <Card className="border-red-500/25 bg-red-500/5"><p className="text-sm font-semibold text-[var(--text-secondary)]">{labels.historyReadOnly}</p></Card> : null}
+      {isReadOnlyHistory ? <Card role="alert" aria-live="polite" className="border-red-500/35 bg-red-500/[0.07]"><div className="flex items-start gap-3"><span aria-hidden="true" className="grid size-8 shrink-0 place-items-center rounded-full border border-red-400/50 bg-red-500/10 font-black text-red-400">!</span><div><h3 className="font-black text-red-400">{labels.historyReadOnlyTitle}</h3><p className="mt-1 text-sm font-semibold text-[var(--text-secondary)]">{labels.historyReadOnly}</p></div></div></Card> : null}
       {view === "week" ? Array.from({ length: 7 }, (_, index) => addDays(fromDateKey(range.start), index)).map((date) => {
         const key = toDateKey(date); const dayEntries = entries.filter((entry) => entry.date === key);
         return <Card key={key}><div className="flex items-center justify-between"><Badge tone={key === today ? "green" : "blue"}>{date.toLocaleDateString(language, { weekday: "long", day: "2-digit", month: "2-digit" })}</Badge><span className="text-xs font-bold text-[var(--text-tertiary)]">{dayEntries.length} itens</span></div><div className="mt-4 grid gap-2">{dayEntries.map((entry) => <div key={entry.key} className="flex justify-between rounded-2xl bg-[var(--surface-ambient)] px-4 py-3"><strong>{entry.time} · {entry.title}</strong><span className="text-xs">{{ completed: statusLabels.done, uncompleted: statusLabels.missed, pending: statusLabels.pending, vacation: statusLabels.vacation }[entry.status]}</span></div>)}</div></Card>;

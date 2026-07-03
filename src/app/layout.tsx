@@ -3,6 +3,7 @@ import {
   Antonio,
   Cormorant_Garamond,
   Manrope,
+  Permanent_Marker,
   Roboto_Condensed,
   Special_Elite,
 } from "next/font/google";
@@ -44,6 +45,13 @@ const specialElite = Special_Elite({
   display: "swap",
 });
 
+const permanentMarker = Permanent_Marker({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-permanent-marker",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: {
     default: "Winperium — Transforme seus sonhos em metas",
@@ -73,7 +81,7 @@ export default function RootLayout({
       style={{ colorScheme: "dark" }}
       suppressHydrationWarning
     >
-      <body className={`${robotoCondensed.variable} ${antonio.variable} ${manrope.variable} ${cormorant.variable} ${specialElite.variable} min-h-full flex flex-col`}>
+      <body className={`${robotoCondensed.variable} ${antonio.variable} ${manrope.variable} ${cormorant.variable} ${specialElite.variable} ${permanentMarker.variable} min-h-full flex flex-col`}>
         <ThemeProvider initialTheme="dark">
           <LanguageProvider initialLanguage={defaultLanguage}>
             <AppProviders>{children}</AppProviders>

@@ -27,6 +27,8 @@ export function InteractiveRoutineCalendar({
   months,
   weekdays,
   title,
+  correctionWindowStart,
+  correctionWindowHint,
   onSelectDate,
   onMonthChange,
 }: {
@@ -36,6 +38,8 @@ export function InteractiveRoutineCalendar({
   months: readonly string[];
   weekdays: readonly string[];
   title: string;
+  correctionWindowStart?: string;
+  correctionWindowHint?: string;
   onSelectDate: (date: string) => void;
   onMonthChange: (month: Date) => void;
 }) {
@@ -65,6 +69,7 @@ export function InteractiveRoutineCalendar({
           const selected = key === selectedDate;
           const current = key === today;
           const past = key < today;
+          const withinCorrectionWindow = past && Boolean(correctionWindowStart) && key >= correctionWindowStart!;
           const dayEntries = entriesByDate.get(key) ?? [];
           return (
             <button
@@ -84,6 +89,7 @@ export function InteractiveRoutineCalendar({
                     : past
                       ? "border-red-500/25 bg-red-500/[0.04] text-[var(--text-tertiary)] hover:border-red-500/45 hover:bg-red-500/[0.08]"
                       : "border-[var(--border-soft)] bg-[var(--surface-ambient)] text-[var(--text-secondary)] hover:border-[var(--border-strong)] hover:bg-[var(--surface-standard)]"),
+                inMonth && withinCorrectionWindow && "ring-1 ring-inset ring-red-400/70",
               )}
             >
               <span className="relative z-10">{date.getDate()}</span>
@@ -93,6 +99,7 @@ export function InteractiveRoutineCalendar({
           );
         })}
       </div>
+      {correctionWindowHint ? <p className="flex items-center gap-2 text-xs font-bold text-[var(--text-tertiary)]"><span aria-hidden="true" className="size-2.5 rounded-full border border-red-400/80 ring-1 ring-red-400/25" />{correctionWindowHint}</p> : null}
     </Card>
   );
 }
