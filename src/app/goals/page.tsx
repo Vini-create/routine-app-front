@@ -109,7 +109,7 @@ export default function GoalsPage() {
         <Button type="submit" disabled={mutation.isPending}>{labels.createGoal}</Button>
       </form></Card>
       {error ? <p role="alert" className="text-sm font-semibold text-red-500">{error}</p> : null}
-      <div className="flex items-center justify-between gap-3"><SectionTitle title={labels.activeGoals} description={labels.activeGoalsDescription} /><div className="flex gap-2"><Button variant={period === "month" ? "primary" : "secondary"} onClick={() => setPeriod("month")}>{labels.month}</Button><Button variant={period === "since" ? "primary" : "secondary"} onClick={() => setPeriod("since")}>{labels.sinceCreation}</Button></div></div>
+      <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end"><SectionTitle title={labels.activeGoals} description={labels.activeGoalsDescription} /><div className="grid grid-cols-2 gap-2 sm:flex"><Button variant={period === "month" ? "primary" : "secondary"} onClick={() => setPeriod("month")}>{labels.month}</Button><Button variant={period === "since" ? "primary" : "secondary"} onClick={() => setPeriod("since")}>{labels.sinceCreation}</Button></div></div>
       {dashboard.isLoading ? <Card>Carregando metas…</Card> : null}
       {dashboard.isError ? <Card>Não foi possível carregar as metas.</Card> : null}
       {goals.map((item) => {
@@ -122,7 +122,23 @@ export default function GoalsPage() {
             : `${deadline.daysRemaining} ${deadline.daysRemaining === 1 ? labels.dayRemaining : labels.daysRemaining}`;
 
         return <Card key={item.goal.id} className="grid gap-4">
-          <div className="flex items-start justify-between gap-4"><div><Badge tone="green">{labels.categoryLabels[item.goal.category ?? "other"]}</Badge><h2 className="mt-3 font-display text-4xl font-light uppercase">{item.goal.title}</h2><p className="mt-2 text-sm text-[var(--text-secondary)]">{item.goal.description || labels.noDescription}</p></div><div className="shrink-0 text-right"><p className="text-3xl font-black">{deadline.percentage}%</p><p className="mt-1 text-xs font-bold uppercase tracking-wide text-[var(--text-tertiary)]">{labels.deadlineProgress}</p><p className="mt-3 text-sm font-bold text-[var(--text-secondary)]">{remainingText}</p><p className="mt-1 text-xs text-[var(--text-tertiary)]">{labels.targetDateShort}: {targetDate}</p></div></div>
+          <div className="grid min-w-0 gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
+            <div className="min-w-0">
+              <Badge tone="green">{labels.categoryLabels[item.goal.category ?? "other"]}</Badge>
+              <h2 className="mt-3 break-words font-display text-4xl font-light uppercase [overflow-wrap:anywhere]">{item.goal.title}</h2>
+              <p className="mt-2 break-words text-sm text-[var(--text-secondary)]">{item.goal.description || labels.noDescription}</p>
+            </div>
+            <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-end gap-4 rounded-2xl bg-[var(--surface-ambient)] p-4 sm:block sm:max-w-56 sm:shrink-0 sm:bg-transparent sm:p-0 sm:text-right">
+              <div className="min-w-0">
+                <p className="text-3xl font-black">{deadline.percentage}%</p>
+                <p className="mt-1 break-words text-xs font-bold uppercase tracking-wide text-[var(--text-tertiary)]">{labels.deadlineProgress}</p>
+              </div>
+              <div className="min-w-0 text-right sm:mt-3">
+                <p className="break-words text-sm font-bold text-[var(--text-secondary)]">{remainingText}</p>
+                <p className="mt-1 break-words text-xs text-[var(--text-tertiary)]">{labels.targetDateShort}: {targetDate}</p>
+              </div>
+            </div>
+          </div>
           <ProgressBar value={deadline.percentage} />
           <div className="grid grid-cols-3 gap-2 text-center text-xs font-bold text-[var(--text-secondary)]"><span>{item.completed_count} concluídos</span><span>{item.uncompleted_count} não concluídos</span><span>{item.pending_count} pendentes</span></div>
           {detailsGoalId === item.goal.id ? <div className="grid gap-3 rounded-2xl bg-[var(--surface-ambient)] p-4">{details.isLoading ? <p>Carregando hábitos…</p> : details.data?.map((habit) => <HabitCard key={habit.habit.id} item={habit} preferredTime={preferredTimes[habit.habit.id]} />)}</div> : null}
