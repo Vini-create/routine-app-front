@@ -77,8 +77,8 @@ export default function HabitsPage() {
       {items.map((item) => <HabitCard key={item.habit.id} item={item} preferredTime={preferredTimes[item.habit.id]} onLog={logHabit} onEdit={openEdit} onDelete={(id) => { if (window.confirm("Excluir este hábito permanentemente?")) mutation.mutate(() => routineApi.deleteHabit(id)); }} />)}
       {!dashboard.isLoading && !items.length ? <EmptyState title={labels.emptyTitle} description={labels.emptyDescription} href="/goals" /> : null}
       {editing ? (
-        <div className="fixed inset-0 z-50 grid place-items-end bg-black/50 p-4 sm:place-items-center">
-          <Card className="max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto">
+        <div className="fixed inset-0 z-50 grid place-items-end bg-black/55 p-4 backdrop-blur-md sm:place-items-center">
+          <Card className="alfredModalSurface max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto">
             <form onSubmit={saveEdit} className="grid gap-3">
               <h2 className="text-xl font-bold">Editar hábito</h2>
               <FieldLabel label={labels.habitName}><Input name="name" defaultValue={editing.name} minLength={2} maxLength={60} required /></FieldLabel>

@@ -137,8 +137,8 @@ export default function SettingsPage() {
       </Card>
 
       {deleteOpen ? (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/70 px-5" role="dialog" aria-modal="true" aria-labelledby="delete-account-title">
-          <Card className="w-full max-w-md">
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 px-5 backdrop-blur-md" role="dialog" aria-modal="true" aria-labelledby="delete-account-title">
+          <Card className="alfredModalSurface w-full max-w-md">
             <form onSubmit={onDeleteAccount} className="grid gap-4">
               <h2 id="delete-account-title" className="text-xl font-bold text-red-500">{settings.deleteAccount}</h2>
               <p className="text-sm leading-6 text-[var(--text-secondary)]">{settings.deleteInstruction}</p>
