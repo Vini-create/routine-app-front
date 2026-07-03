@@ -14,6 +14,8 @@ export function LandingFooter() {
       <div>
         <Link href="/login">{landing.login}</Link>
         <Link href="/register">{landing.startNow}</Link>
+        <Link href="/terms">{landing.terms}</Link>
+        <Link href="/privacy">{landing.privacy}</Link>
       </div>
     </footer>
   );

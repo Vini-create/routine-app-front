@@ -32,6 +32,10 @@ export const fr = {
     forgotSuccess: "Si l'e-mail existe, un lien de récupération a été envoyé.", resetSuccess: "Mot de passe mis à jour. Vous pouvez vous connecter.", invalidResetToken: "Le lien de récupération est absent ou invalide.",
     resendAction: "Renvoyer l'e-mail de vérification", resendSuccess: "Si le compte doit encore être vérifié, un nouvel e-mail a été envoyé.",
     deliveryFailed: "Le compte a été créé, mais l'e-mail de vérification n'a pas pu être envoyé. Réessayez ci-dessous.",
+    invalidCredentials: "L’e-mail ou le mot de passe est incorrect.", emailUnverified: "Vérifiez votre e-mail avant de vous connecter.", alreadyRegistered: "Cet e-mail est déjà enregistré.",
+    invalidPassword: "Le mot de passe actuel est incorrect.", passwordReuse: "Choisissez un mot de passe différent de l’actuel.", invalidVerificationToken: "Ce lien de vérification est invalide ou a expiré.",
+    tooManyAttempts: "Trop de tentatives. Patientez puis réessayez.", serviceUnavailable: "Le service est temporairement indisponible. Réessayez bientôt.", connectionError: "Impossible de joindre le serveur. Vérifiez votre connexion.", timeoutError: "Le serveur a mis trop de temps à répondre.",
+    passwordHint: "Utilisez au moins 8 caractères.", termsConsent: "J’ai lu et j’accepte :", redirecting: "Redirection vers la connexion…", resendWait: "Renvoyer dans {seconds}s",
   },
   settings: {
     ...en.settings,
@@ -51,6 +55,8 @@ export const fr = {
     logout: "Se déconnecter",
     deleteAccount: "Supprimer le compte",
     deleteConfirm: "Supprimer ce compte ? Cette action ne doit continuer qu'après une confirmation explicite.",
+    security: "Sécurité", changePassword: "Changer le mot de passe", currentPassword: "Mot de passe actuel", newPassword: "Nouveau mot de passe", passwordChanged: "Mot de passe modifié. Reconnectez-vous sur vos appareils.", confirmNewPassword: "Confirmer le nouveau mot de passe",
+    dangerZone: "Zone de danger", deleteExplanation: "Cela désactive votre compte et ferme toutes les sessions actives.", deleteInstruction: "Saisissez SUPPRIMER et votre mot de passe.", deleteKeyword: "SUPPRIMER", cancel: "Annuler", confirmDelete: "Supprimer définitivement le compte", passwordMismatch: "Les mots de passe ne correspondent pas.",
   },
   landing: {
     ...en.landing,

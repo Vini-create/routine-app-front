@@ -3,7 +3,7 @@ export type SessionTokens = {
   refreshToken: string;
 };
 
-const sessionStorageKey = "rotina-ai-auth-session";
+export const sessionStorageKey = "rotina-ai-auth-session";
 const pendingVerificationEmailKey = "rotina-ai-pending-verification-email";
 const legacySessionKey = "winperium-mvp-session";
 const legacyUserDataKeys = [

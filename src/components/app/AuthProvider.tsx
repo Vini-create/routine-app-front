@@ -4,7 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useState } from "rea
 import { useQueryClient } from "@tanstack/react-query";
 import { authApi, type LoginRequest } from "@/lib/authApi";
 import { apiToAppLanguage, type UserMe } from "@/lib/api-contracts";
-import { clearLegacyUserData, clearSession, getRefreshToken, hasSession, saveSession } from "@/lib/session";
+import { clearLegacyUserData, clearSession, getRefreshToken, hasSession, saveSession, sessionStorageKey } from "@/lib/session";
 import { useLanguage } from "./LanguageProvider";
 
 type AuthStatus = "loading" | "authenticated" | "anonymous";
@@ -13,7 +13,7 @@ type AuthContextValue = {
   user: UserMe | null;
   login: (request: LoginRequest) => Promise<UserMe>;
   logout: () => Promise<void>;
-  deleteAccount: () => Promise<void>;
+  deleteAccount: (password: string) => Promise<void>;
   refreshUser: () => Promise<UserMe>;
   setUser: (user: UserMe) => void;
 };
@@ -74,6 +74,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [becomeAnonymous]);
 
+  useEffect(() => {
+    function syncSession(event: StorageEvent) {
+      if (event.key !== sessionStorageKey) return;
+      if (!event.newValue) {
+        becomeAnonymous();
+        return;
+      }
+      void refreshUser().catch(becomeAnonymous);
+    }
+    window.addEventListener("storage", syncSession);
+    return () => window.removeEventListener("storage", syncSession);
+  }, [becomeAnonymous, refreshUser]);
+
   async function login(request: LoginRequest) {
     const tokens = await authApi.login(request);
     saveSession({ accessToken: tokens.access_token, refreshToken: tokens.refresh_token });
@@ -89,8 +102,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  async function deleteAccount() {
-    await authApi.deleteAccount();
+  async function deleteAccount(password: string) {
+    await authApi.deleteAccount(password);
     becomeAnonymous();
   }
 

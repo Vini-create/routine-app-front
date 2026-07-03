@@ -24,6 +24,7 @@ export class ApiError extends Error {
 type ApiFetchOptions = RequestInit & {
   authenticated?: boolean;
   retryAuth?: boolean;
+  timeoutMs?: number;
 };
 
 let refreshPromise: Promise<string> | null = null;
@@ -70,9 +71,9 @@ async function parseResponse(response: Response) {
   return response.json();
 }
 
-async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}) {
+async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}, timeoutMs = requestTimeoutMs) {
   const controller = new AbortController();
-  const timeout = globalThis.setTimeout(() => controller.abort(), requestTimeoutMs);
+  const timeout = globalThis.setTimeout(() => controller.abort(), timeoutMs);
   const abortFromCaller = () => controller.abort();
   init.signal?.addEventListener("abort", abortFromCaller, { once: true });
 
@@ -115,7 +116,7 @@ async function refreshAccessToken() {
 }
 
 export async function apiFetch<TResponse>(path: string, options: ApiFetchOptions = {}): Promise<TResponse> {
-  const { authenticated = true, retryAuth = true, headers, ...init } = options;
+  const { authenticated = true, retryAuth = true, timeoutMs, headers, ...init } = options;
   const accessToken = authenticated ? getAccessToken() : null;
   const response = await fetchWithTimeout(buildApiUrl(path), {
     ...init,
@@ -125,7 +126,7 @@ export async function apiFetch<TResponse>(path: string, options: ApiFetchOptions
       ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       ...headers,
     },
-  });
+  }, timeoutMs);
 
   if (response.status === 401 && authenticated && retryAuth) {
     try {

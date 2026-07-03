@@ -11,26 +11,31 @@ export const authApi = {
     method: "POST", authenticated: false, body: JSON.stringify(request),
   }),
   register: (request: RegisterRequest) => apiFetch<MessageResponse & { user_id: string }>("/auth/register", {
-    method: "POST", authenticated: false, body: JSON.stringify(request),
+    method: "POST", authenticated: false, timeoutMs: 30_000, body: JSON.stringify(request),
   }),
   verifyEmail: (token: string) => apiFetch<MessageResponse>("/auth/verify-email", {
     method: "POST", authenticated: false, body: JSON.stringify({ token }),
   }),
   resendVerification: (email: string) => apiFetch<MessageResponse>("/auth/resend-verification", {
-    method: "POST", authenticated: false, body: JSON.stringify({ email }),
+    method: "POST", authenticated: false, timeoutMs: 30_000, body: JSON.stringify({ email }),
   }),
   forgotPassword: (email: string) => apiFetch<MessageResponse>("/auth/forgot-password", {
-    method: "POST", authenticated: false, body: JSON.stringify({ email }),
+    method: "POST", authenticated: false, timeoutMs: 30_000, body: JSON.stringify({ email }),
   }),
   resetPassword: (token: string, newPassword: string) => apiFetch<MessageResponse>("/auth/reset-password", {
-    method: "POST", authenticated: false, body: JSON.stringify({ token, new_password: newPassword }),
+    method: "POST", authenticated: false, timeoutMs: 30_000, body: JSON.stringify({ token, new_password: newPassword }),
   }),
   me: () => apiFetch<UserMe>("/auth/me"),
   updateMe: (request: { display_name?: string; language?: ApiLanguage }) => apiFetch<UserMe>("/auth/me", {
     method: "PATCH", body: JSON.stringify(request),
   }),
+  changePassword: (currentPassword: string, newPassword: string) => apiFetch<MessageResponse>("/auth/change-password", {
+    method: "POST", body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
+  }),
   logout: (refreshToken: string) => apiFetch<MessageResponse>("/auth/logout", {
     method: "POST", body: JSON.stringify({ refresh_token: refreshToken }),
   }),
-  deleteAccount: () => apiFetch<MessageResponse>("/users/me", { method: "DELETE" }),
+  deleteAccount: (password: string) => apiFetch<MessageResponse>("/users/me", {
+    method: "DELETE", body: JSON.stringify({ password }),
+  }),
 };

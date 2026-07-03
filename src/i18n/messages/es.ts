@@ -32,6 +32,11 @@ export const es = {
     forgotSuccess: "Si el correo existe, enviamos un enlace de recuperación.", resetSuccess: "Contraseña actualizada. Ya puedes iniciar sesión.", invalidResetToken: "El enlace de recuperación no existe o no es válido.",
     resendAction: "Reenviar correo de verificación", resendSuccess: "Si la cuenta aún necesita verificación, enviamos un nuevo correo.",
     deliveryFailed: "La cuenta fue creada, pero no se pudo entregar el correo de verificación. Intenta reenviarlo abajo.",
+    invalidCredentials: "El correo o la contraseña son incorrectos.", emailUnverified: "Verifica tu correo antes de iniciar sesión.", alreadyRegistered: "Este correo ya está registrado.",
+    invalidPassword: "La contraseña actual es incorrecta.", passwordReuse: "Elige una contraseña diferente de la actual.", invalidVerificationToken: "Este enlace de verificación no es válido o ha caducado.",
+    tooManyAttempts: "Demasiados intentos. Espera un momento e inténtalo de nuevo.", serviceUnavailable: "El servicio no está disponible temporalmente. Inténtalo de nuevo pronto.",
+    connectionError: "No pudimos conectar con el servidor. Comprueba tu conexión.", timeoutError: "El servidor tardó demasiado en responder.",
+    passwordHint: "Usa al menos 8 caracteres.", termsConsent: "He leído y acepto:", redirecting: "Redirigiendo al inicio de sesión…", resendWait: "Reenviar en {seconds}s",
   },
   settings: {
     ...en.settings,
@@ -50,6 +55,8 @@ export const es = {
     logout: "Cerrar sesión",
     deleteAccount: "Eliminar cuenta",
     deleteConfirm: "¿Eliminar esta cuenta? Esta acción solo debe continuar con confirmación explícita.",
+    security: "Seguridad", changePassword: "Cambiar contraseña", currentPassword: "Contraseña actual", newPassword: "Nueva contraseña", passwordChanged: "Contraseña cambiada. Inicia sesión de nuevo en tus dispositivos.", confirmNewPassword: "Confirmar nueva contraseña",
+    dangerZone: "Zona de peligro", deleteExplanation: "Esto desactiva tu cuenta y cierra todas las sesiones activas.", deleteInstruction: "Escribe ELIMINAR e introduce tu contraseña.", deleteKeyword: "ELIMINAR", cancel: "Cancelar", confirmDelete: "Eliminar cuenta definitivamente", passwordMismatch: "Las contraseñas no coinciden.",
   },
   landing: {
     ...en.landing,
