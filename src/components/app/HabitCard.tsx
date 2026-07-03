@@ -21,11 +21,13 @@ export function HabitCard({
   onLog,
   onEdit,
   onDelete,
+  preferredTime,
 }: {
   item: HabitDashboardItem;
   onLog?: (habitId: string, status: ItemStatus) => void;
   onEdit?: (habitId: string) => void;
   onDelete?: (habitId: string) => void;
+  preferredTime?: string;
 }) {
   const labels = useTranslations("habitsPage");
   const common = useTranslations("common");
@@ -44,11 +46,11 @@ export function HabitCard({
       <div className="flex items-start justify-between gap-4">
         <div>
           <div className="mb-3 flex flex-wrap gap-2">
-            <Badge tone="neutral">{common.habit}</Badge>
-            <Badge tone="blue">{item.goal?.title ?? common.unlinkedGoal}</Badge>
+            <Badge tone="neutral" className="habitCardBadge">{common.habit}</Badge>
+            <Badge tone="blue" className="habitCardGoalBadge">{item.goal?.title ?? common.unlinkedGoal}</Badge>
           </div>
           <h3 className="subtitle-display text-xl text-[var(--text-primary)]">{item.habit.name}</h3>
-          <p className="mt-1 text-sm text-[var(--text-secondary)]">{item.habit.duration_minutes} min · {item.habit.recurrence_rule}</p>
+          <p className="mt-1 text-sm text-[var(--text-secondary)]">{item.habit.duration_minutes} min · {preferredTime ?? "08:00"} · {item.habit.recurrence_rule}</p>
         </div>
         <p className="habitCardPercentage text-3xl font-black">{item.expected_count ? `${Math.round(item.consistency_percent)}%` : "—"}</p>
       </div>
@@ -64,10 +66,18 @@ export function HabitCard({
       <div className="grid grid-cols-3 gap-2 text-center text-xs font-bold text-[var(--text-secondary)]">
         <span>{item.completed_count} concluídos</span><span>{item.uncompleted_count} não concluídos</span><span>{item.pending_count} pendentes</span>
       </div>
+      <div className="flex flex-wrap gap-3 text-xs font-semibold text-[var(--text-secondary)]">
+        <span className="inline-flex items-center gap-2"><i className="habitLegendDone size-2.5 rounded-full" />{labels.completedLegend}</span>
+        <span className="inline-flex items-center gap-2"><i className="habitLegendLow size-2.5 rounded-full" />{labels.uncompletedLegend}</span>
+        <span className="inline-flex items-center gap-2"><i className="habitDayFuture size-2.5 rounded-full border" />{labels.pendingLegend}</span>
+      </div>
       {item.habit.description ? <p className="text-sm leading-6 text-[var(--text-secondary)]">{item.habit.description}</p> : null}
+      <p className="habitCardMessage rounded-2xl p-3 text-xs font-semibold leading-5">
+        {variant === "fire" ? labels.hotMessage : variant === "ice" ? labels.frozenMessage : variant === "grass" ? labels.neutralMessage : labels.emptyMessage}
+      </p>
       <div className="flex flex-wrap gap-2">
         {onLog && canLog ? (
-          <Button className="flex-1" variant={todayOccurrence.status === "completed" ? "secondary" : "primary"} onClick={() => onLog(item.habit.id, todayOccurrence.status === "completed" ? "pending" : "completed")}>
+          <Button className="habitCardAction flex-1" variant={todayOccurrence.status === "completed" ? "secondary" : "primary"} onClick={() => onLog(item.habit.id, todayOccurrence.status === "completed" ? "pending" : "completed")}>
             {todayOccurrence.status === "completed" ? common.doneToday : common.markAsDone}
           </Button>
         ) : null}

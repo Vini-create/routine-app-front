@@ -14,7 +14,7 @@ export type AgendaEntry = {
   goalTitle?: string;
 };
 
-export function agendaEntries(agenda?: Agenda): AgendaEntry[] {
+export function agendaEntries(agenda?: Agenda, habitPreferredTimes: Record<string, string> = {}): AgendaEntry[] {
   if (!agenda) return [];
   return [
     ...agenda.routine_items.map((occurrence): AgendaEntry => ({
@@ -26,7 +26,7 @@ export function agendaEntries(agenda?: Agenda): AgendaEntry[] {
     ...agenda.habits.map((occurrence): AgendaEntry => ({
       key: `habit-${occurrence.habit.id}-${occurrence.occurrence_date}`,
       source: "habit", sourceId: occurrence.habit.id, title: occurrence.habit.name,
-      description: occurrence.habit.description ?? "", time: "08:00",
+      description: occurrence.habit.description ?? "", time: habitPreferredTimes[occurrence.habit.id] ?? "08:00",
       durationMinutes: occurrence.habit.duration_minutes, date: occurrence.occurrence_date,
       status: occurrence.status, goalTitle: occurrence.goal?.title,
     })),

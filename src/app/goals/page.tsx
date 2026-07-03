@@ -3,18 +3,20 @@
 import { FormEvent, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AppShell } from "@/components/app/AppShell";
+import { HabitCard } from "@/components/app/HabitCard";
 import { useTranslations } from "@/components/app/LanguageProvider";
 import { SectionTitle } from "@/components/app/SectionTitle";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { FieldLabel, Input, Select, Textarea } from "@/components/ui/Form";
+import { FieldLabel, Input, Select, Textarea, TimeSelect } from "@/components/ui/Form";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { ApiError } from "@/lib/api";
-import type { Goal, GoalCategory } from "@/lib/api-contracts";
+import type { Goal, GoalCategory, Habit } from "@/lib/api-contracts";
 import { monthRange, toDateKey } from "@/lib/date";
 import { buildRRule, type RecurrenceFrequency } from "@/lib/rrule";
+import { preferredHabitTimes, readHabitPreferences, writeHabitPreferences } from "@/lib/habitPreferences";
 import { routineApi } from "@/lib/routineApi";
 
 export default function GoalsPage() {
@@ -27,6 +29,7 @@ export default function GoalsPage() {
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
   const [recurrence, setRecurrence] = useState<RecurrenceFrequency>("weekly");
   const [error, setError] = useState("");
+  const [preferences, setPreferences] = useState(readHabitPreferences);
   const range = { ...monthRange(), end: toDateKey(new Date()) };
   const dashboard = useQuery({
     queryKey: ["goals-dashboard", period, range.start, range.end],
@@ -77,14 +80,23 @@ export default function GoalsPage() {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     const selected = data.getAll(recurrence === "monthly" ? "monthDays" : "weekDays").map(Number);
+    const preferredTime = String(data.get("preferredTime") || "08:00");
     mutation.mutate(() => routineApi.createHabit({
       goal_id: goalId, name: String(data.get("name")), description: String(data.get("description")) || null,
       duration_minutes: Number(data.get("duration")), start_date: String(data.get("startDate")),
       recurrence_rule: buildRRule(recurrence, selected),
-    }), { onSuccess: () => { setHabitGoalId(null); setRecurrence("weekly"); } });
+    }), { onSuccess: (created) => {
+      const habit = created as Habit;
+      const next = { ...preferences, [habit.id]: { preferredTime } };
+      setPreferences(next);
+      writeHabitPreferences(next);
+      setHabitGoalId(null);
+      setRecurrence("weekly");
+    } });
   }
 
   const goals = dashboard.data?.goals ?? [];
+  const preferredTimes = preferredHabitTimes(preferences);
   return (
     <AppShell title={labels.title}>
       <SectionTitle title={labels.heading} description={labels.description} />
@@ -103,11 +115,11 @@ export default function GoalsPage() {
           <div className="flex items-start justify-between gap-4"><div><Badge tone="green">{labels.categoryLabels[item.goal.category ?? "other"]}</Badge><h2 className="mt-3 font-display text-4xl font-light uppercase">{item.goal.title}</h2><p className="mt-2 text-sm text-[var(--text-secondary)]">{item.goal.description || labels.noDescription}</p></div><div className="text-right"><p className="text-3xl font-black">{Math.round(item.consistency_percent)}%</p><p className="text-xs text-[var(--text-tertiary)]">{item.goal.target_date}</p></div></div>
           <ProgressBar value={item.consistency_percent} />
           <div className="grid grid-cols-3 gap-2 text-center text-xs font-bold text-[var(--text-secondary)]"><span>{item.completed_count} concluídos</span><span>{item.uncompleted_count} não concluídos</span><span>{item.pending_count} pendentes</span></div>
-          {detailsGoalId === item.goal.id ? <div className="grid gap-2 rounded-2xl bg-[var(--surface-ambient)] p-4">{details.isLoading ? <p>Carregando hábitos…</p> : details.data?.map((habit) => <div key={habit.habit.id} className="flex justify-between gap-3"><strong>{habit.habit.name}</strong><span>{Math.round(habit.consistency_percent)}%</span></div>)}</div> : null}
+          {detailsGoalId === item.goal.id ? <div className="grid gap-3 rounded-2xl bg-[var(--surface-ambient)] p-4">{details.isLoading ? <p>Carregando hábitos…</p> : details.data?.map((habit) => <HabitCard key={habit.habit.id} item={habit} preferredTime={preferredTimes[habit.habit.id]} />)}</div> : null}
           <div className="flex flex-wrap gap-2"><Button variant="secondary" onClick={() => setDetailsGoalId(detailsGoalId === item.goal.id ? null : item.goal.id)}>Detalhes</Button><Button variant="secondary" onClick={() => openEdit(item.goal.id)}>Editar</Button><Button variant="danger" onClick={() => { if (window.confirm("Excluir esta meta permanentemente?")) mutation.mutate(() => routineApi.deleteGoal(item.goal.id)); }}>Excluir</Button><Button onClick={() => setHabitGoalId(item.goal.id)}>{labels.addHabit}</Button></div>
           {habitGoalId === item.goal.id ? <form onSubmit={(event) => createHabit(event, item.goal.id)} className="grid gap-3 rounded-3xl border border-[var(--border-soft)] p-4">
             <FieldLabel label={habitsLabels.habitName}><Input name="name" minLength={2} maxLength={60} required /></FieldLabel>
-            <div className="grid grid-cols-2 gap-3"><FieldLabel label="Duração (min)"><Input name="duration" type="number" min={1} max={1440} defaultValue={20} required /></FieldLabel><FieldLabel label="Data inicial"><Input name="startDate" type="date" min={toDateKey(new Date())} defaultValue={toDateKey(new Date())} required /></FieldLabel></div>
+            <div className="grid grid-cols-3 gap-3"><FieldLabel label="Duração (min)"><Input name="duration" type="number" min={1} max={1440} defaultValue={20} required /></FieldLabel><FieldLabel label="Data inicial"><Input name="startDate" type="date" min={toDateKey(new Date())} defaultValue={toDateKey(new Date())} required /></FieldLabel><FieldLabel label={habitsLabels.preferredTime}><TimeSelect name="preferredTime" defaultValue="08:00" /></FieldLabel></div>
             <FieldLabel label={labels.recurrence}><Select value={recurrence} onChange={(event) => setRecurrence(event.target.value as RecurrenceFrequency)}><option value="daily">Diário</option><option value="weekly">{labels.weekly}</option><option value="monthly">{labels.monthly}</option><option value="yearly">Anual</option></Select></FieldLabel>
             {recurrence === "weekly" ? <DayPicker name="weekDays" count={7} defaults={[1,2,3,4,5]} /> : recurrence === "monthly" ? <DayPicker name="monthDays" count={31} defaults={[1]} /> : null}
             <FieldLabel label={habitsLabels.reason}><Textarea name="description" maxLength={200} /></FieldLabel>

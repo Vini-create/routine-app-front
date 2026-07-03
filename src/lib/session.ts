@@ -12,6 +12,7 @@ const legacyUserDataKeys = [
   "rotina-ai-routine-habit-records",
   "rotina-ai-routine-block-records",
   "rotina-ai-default-routine",
+  "rotina-ai-habit-preferences",
 ];
 
 function readSession(): SessionTokens | null {
