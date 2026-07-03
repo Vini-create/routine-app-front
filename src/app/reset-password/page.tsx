@@ -14,7 +14,10 @@ import { authApi } from "@/lib/authApi";
 function ResetPasswordContent() {
   const labels = useTranslations("authFlow");
   const router = useRouter();
-  const token = useSearchParams().get("token");
+  const tokenFromUrl = useSearchParams().get("token");
+  // Next synchronizes native history changes with useSearchParams. Keep the
+  // one-time token in component state before removing it from the visible URL.
+  const [token] = useState(tokenFromUrl);
   const [message, setMessage] = useState("");
   const [error, setError] = useState(token ? "" : labels.invalidResetToken);
   const [passwordError, setPasswordError] = useState("");
@@ -22,8 +25,8 @@ function ResetPasswordContent() {
   usePublicOnly();
 
   useEffect(() => {
-    if (token) window.history.replaceState({}, "", "/reset-password");
-  }, [token]);
+    if (tokenFromUrl) window.history.replaceState({}, "", "/reset-password");
+  }, [tokenFromUrl]);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
