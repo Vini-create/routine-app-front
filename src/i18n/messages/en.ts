@@ -42,6 +42,8 @@ export const en = {
     checkInbox: "Check your inbox and open the verification link we sent you.",
     verifiedSuccess: "Email verified. You can now log in.", forgotSuccess: "If the email exists, a reset link was sent.",
     resetSuccess: "Password updated. You can now log in.", invalidResetToken: "The password reset link is missing or invalid.",
+    resendAction: "Resend verification email", resendSuccess: "If this account still needs verification, a new email was sent.",
+    deliveryFailed: "Your account was created, but the verification email could not be delivered. Try resending it below.",
   },
   settings: {
     title: "Profile",

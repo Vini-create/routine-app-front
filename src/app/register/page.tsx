@@ -12,6 +12,7 @@ import { FieldLabel, Input, PasswordInput } from "@/components/ui/Form";
 import { ApiError } from "@/lib/api";
 import { appToApiLanguage } from "@/lib/api-contracts";
 import { authApi } from "@/lib/authApi";
+import { savePendingVerificationEmail } from "@/lib/session";
 
 export default function RegisterPage() {
   const labels = useTranslations("authFlow");
@@ -23,6 +24,7 @@ export default function RegisterPage() {
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
+    const email = String(formData.get("email"));
     const password = String(formData.get("password"));
     if (password !== String(formData.get("confirmPassword"))) {
       setError(labels.passwordMismatch);
@@ -32,14 +34,23 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       await authApi.register({
-        email: String(formData.get("email")),
+        email,
         password,
         display_name: String(formData.get("displayName")),
         language: appToApiLanguage[language],
       });
+      savePendingVerificationEmail(email);
       router.push("/verify-email?registered=1");
     } catch (cause) {
-      setError(cause instanceof ApiError ? cause.detail : labels.genericError);
+      if (cause instanceof ApiError && cause.status === 503) {
+        savePendingVerificationEmail(email);
+        router.push("/verify-email?delivery=failed");
+      } else if (cause instanceof ApiError && /already registered|já cadastrado/i.test(cause.detail)) {
+        savePendingVerificationEmail(email);
+        router.push("/verify-email?existing=1");
+      } else {
+        setError(cause instanceof ApiError ? cause.detail : labels.genericError);
+      }
     } finally {
       setLoading(false);
     }

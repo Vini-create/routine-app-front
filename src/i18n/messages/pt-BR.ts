@@ -37,6 +37,8 @@ export const ptBR = {
     checkInbox: "Confira sua caixa de entrada e abra o link de verificação que enviamos.",
     verifiedSuccess: "E-mail verificado. Agora você já pode entrar.", forgotSuccess: "Se o e-mail existir, enviamos um link de recuperação.",
     resetSuccess: "Senha atualizada. Agora você já pode entrar.", invalidResetToken: "O link de recuperação está ausente ou é inválido.",
+    resendAction: "Reenviar e-mail de verificação", resendSuccess: "Se esta conta ainda precisar de verificação, um novo e-mail foi enviado.",
+    deliveryFailed: "Sua conta foi criada, mas o e-mail de verificação não pôde ser entregue. Tente reenviar abaixo.",
   },
   settings: {
     title: "Perfil",

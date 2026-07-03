@@ -30,6 +30,8 @@ export const es = {
     passwordMismatch: "Las contraseñas no coinciden.", genericError: "Algo salió mal. Inténtalo de nuevo.",
     checkInbox: "Revisa tu bandeja de entrada y abre el enlace de verificación.", verifiedSuccess: "Correo verificado. Ya puedes iniciar sesión.",
     forgotSuccess: "Si el correo existe, enviamos un enlace de recuperación.", resetSuccess: "Contraseña actualizada. Ya puedes iniciar sesión.", invalidResetToken: "El enlace de recuperación no existe o no es válido.",
+    resendAction: "Reenviar correo de verificación", resendSuccess: "Si la cuenta aún necesita verificación, enviamos un nuevo correo.",
+    deliveryFailed: "La cuenta fue creada, pero no se pudo entregar el correo de verificación. Intenta reenviarlo abajo.",
   },
   settings: {
     ...en.settings,

@@ -4,6 +4,7 @@ export type SessionTokens = {
 };
 
 const sessionStorageKey = "rotina-ai-auth-session";
+const pendingVerificationEmailKey = "rotina-ai-pending-verification-email";
 const legacySessionKey = "winperium-mvp-session";
 const legacyUserDataKeys = [
   "winperium-user-goals",
@@ -57,4 +58,19 @@ export function clearSession() {
   if (typeof window === "undefined") return;
   window.localStorage.removeItem(sessionStorageKey);
   clearLegacyUserData();
+}
+
+export function savePendingVerificationEmail(email: string) {
+  if (typeof window === "undefined") return;
+  window.sessionStorage.setItem(pendingVerificationEmailKey, email);
+}
+
+export function getPendingVerificationEmail() {
+  if (typeof window === "undefined") return "";
+  return window.sessionStorage.getItem(pendingVerificationEmailKey) ?? "";
+}
+
+export function clearPendingVerificationEmail() {
+  if (typeof window === "undefined") return;
+  window.sessionStorage.removeItem(pendingVerificationEmailKey);
 }

@@ -30,6 +30,8 @@ export const fr = {
     passwordMismatch: "Les mots de passe ne correspondent pas.", genericError: "Une erreur est survenue. Réessayez.",
     checkInbox: "Consultez votre boîte de réception et ouvrez le lien de vérification.", verifiedSuccess: "E-mail vérifié. Vous pouvez vous connecter.",
     forgotSuccess: "Si l'e-mail existe, un lien de récupération a été envoyé.", resetSuccess: "Mot de passe mis à jour. Vous pouvez vous connecter.", invalidResetToken: "Le lien de récupération est absent ou invalide.",
+    resendAction: "Renvoyer l'e-mail de vérification", resendSuccess: "Si le compte doit encore être vérifié, un nouvel e-mail a été envoyé.",
+    deliveryFailed: "Le compte a été créé, mais l'e-mail de vérification n'a pas pu être envoyé. Réessayez ci-dessous.",
   },
   settings: {
     ...en.settings,

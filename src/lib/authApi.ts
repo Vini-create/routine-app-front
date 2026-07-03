@@ -16,6 +16,9 @@ export const authApi = {
   verifyEmail: (token: string) => apiFetch<MessageResponse>("/auth/verify-email", {
     method: "POST", authenticated: false, body: JSON.stringify({ token }),
   }),
+  resendVerification: (email: string) => apiFetch<MessageResponse>("/auth/resend-verification", {
+    method: "POST", authenticated: false, body: JSON.stringify({ email }),
+  }),
   forgotPassword: (email: string) => apiFetch<MessageResponse>("/auth/forgot-password", {
     method: "POST", authenticated: false, body: JSON.stringify({ email }),
   }),

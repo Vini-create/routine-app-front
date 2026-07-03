@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { FieldLabel, Input, PasswordInput } from "@/components/ui/Form";
 import { ApiError } from "@/lib/api";
+import { savePendingVerificationEmail } from "@/lib/session";
 
 export default function LoginPage() {
   const labels = useTranslations("authFlow");
@@ -25,14 +26,16 @@ export default function LoginPage() {
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
+    const email = String(formData.get("email"));
     setError("");
     setLoading(true);
     try {
-      await login({ email: String(formData.get("email")), password: String(formData.get("password")) });
+      await login({ email, password: String(formData.get("password")) });
       router.replace("/dashboard");
     } catch (cause) {
       const message = cause instanceof ApiError ? cause.detail : labels.genericError;
       if (/not verified|não verificado/i.test(message)) {
+        savePendingVerificationEmail(email);
         router.push("/verify-email");
       } else {
         setError(message);
