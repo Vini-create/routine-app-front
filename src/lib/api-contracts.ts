@@ -13,6 +13,7 @@ export type UserMe = {
   language: ApiLanguage | null;
   signature_plan: "free" | "pro" | "max" | null;
   is_verified: boolean;
+  has_password: boolean;
 };
 
 export type Goal = {
@@ -21,6 +22,7 @@ export type Goal = {
   description: string | null;
   category: GoalCategory | null;
   target_date: string | null;
+  created_at?: string;
 };
 
 export type GoalInput = {

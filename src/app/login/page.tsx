@@ -11,7 +11,8 @@ import { Card } from "@/components/ui/Card";
 import { FieldLabel, Input, PasswordInput } from "@/components/ui/Form";
 import { ApiError } from "@/lib/api";
 import { getAuthErrorMessage } from "@/lib/authErrors";
-import { savePendingVerificationEmail } from "@/lib/session";
+import { savePendingLoginChallenge, savePendingVerificationEmail } from "@/lib/session";
+import { GoogleSignInButton } from "@/components/app/GoogleSignInButton";
 
 export default function LoginPage() {
   const labels = useTranslations("authFlow");
@@ -41,8 +42,13 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
     try {
-      await login({ email, password: String(formData.get("password")) });
-      router.replace("/dashboard");
+      const challenge = await login({ email, password: String(formData.get("password")) });
+      savePendingLoginChallenge({
+        challengeId: challenge.challenge_id,
+        maskedEmail: challenge.masked_email,
+        expiresAt: challenge.expires_at,
+      });
+      router.push("/login/verify");
     } catch (cause) {
       const message = getAuthErrorMessage(cause, labels);
       if (cause instanceof ApiError && /not verified|não verificado/i.test(cause.detail)) {
@@ -62,6 +68,8 @@ export default function LoginPage() {
         <BrandMark className="mb-6" />
         <h1 className="font-brand text-4xl font-semibold tracking-normal">{labels.loginTitle}</h1>
         <p className="mt-2 text-sm text-[var(--text-secondary)]">{labels.loginSubtitle}</p>
+        <GoogleSignInButton mode="signin" />
+        <div className="my-5 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-tertiary)]"><span className="h-px flex-1 bg-[var(--border)]" /><span>{labels.orEmail}</span><span className="h-px flex-1 bg-[var(--border)]" /></div>
         <form onSubmit={onSubmit} className="mt-6 grid gap-4">
           <FieldLabel label={labels.email}><Input name="email" type="email" autoComplete="email" required /></FieldLabel>
           <FieldLabel label={labels.password}><PasswordInput name="password" autoComplete="current-password" minLength={8} maxLength={72} showLabel={labels.showPassword} hideLabel={labels.hidePassword} required /></FieldLabel>

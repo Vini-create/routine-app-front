@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { authApi, type LoginRequest } from "@/lib/authApi";
+import { authApi, type LoginChallengeResponse, type LoginRequest, type TokenResponse } from "@/lib/authApi";
 import { apiToAppLanguage, type UserMe } from "@/lib/api-contracts";
 import { clearLegacyUserData, clearSession, getRefreshToken, hasSession, saveSession, sessionStorageKey } from "@/lib/session";
 import { useLanguage } from "./LanguageProvider";
@@ -11,7 +11,8 @@ type AuthStatus = "loading" | "authenticated" | "anonymous";
 type AuthContextValue = {
   status: AuthStatus;
   user: UserMe | null;
-  login: (request: LoginRequest) => Promise<UserMe>;
+  login: (request: LoginRequest) => Promise<LoginChallengeResponse>;
+  completeLogin: (tokens: TokenResponse) => Promise<UserMe>;
   logout: () => Promise<void>;
   deleteAccount: (password: string) => Promise<void>;
   refreshUser: () => Promise<UserMe>;
@@ -87,10 +88,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener("storage", syncSession);
   }, [becomeAnonymous, refreshUser]);
 
-  async function login(request: LoginRequest) {
-    const tokens = await authApi.login(request);
+  async function completeLogin(tokens: TokenResponse) {
     saveSession({ accessToken: tokens.access_token, refreshToken: tokens.refresh_token });
     return refreshUser();
+  }
+
+  async function login(request: LoginRequest) {
+    return authApi.login(request);
   }
 
   async function logout() {
@@ -108,7 +112,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const value: AuthContextValue = {
-    status, user, login, logout, deleteAccount, refreshUser, setUser,
+    status, user, login, completeLogin, logout, deleteAccount, refreshUser, setUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

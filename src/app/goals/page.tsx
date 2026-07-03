@@ -4,7 +4,7 @@ import { FormEvent, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AppShell } from "@/components/app/AppShell";
 import { HabitCard } from "@/components/app/HabitCard";
-import { useTranslations } from "@/components/app/LanguageProvider";
+import { useLanguage, useTranslations } from "@/components/app/LanguageProvider";
 import { SectionTitle } from "@/components/app/SectionTitle";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -14,14 +14,16 @@ import { FieldLabel, Input, Select, Textarea, TimeSelect } from "@/components/ui
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { ApiError } from "@/lib/api";
 import type { Goal, GoalCategory, Habit } from "@/lib/api-contracts";
-import { monthRange, toDateKey } from "@/lib/date";
+import { fromDateKey, monthRange, toDateKey } from "@/lib/date";
 import { buildRRule, type RecurrenceFrequency } from "@/lib/rrule";
 import { preferredHabitTimes, readHabitPreferences, writeHabitPreferences } from "@/lib/habitPreferences";
+import { goalDeadlineProgress } from "@/lib/goalDeadline";
 import { routineApi } from "@/lib/routineApi";
 
 export default function GoalsPage() {
   const labels = useTranslations("goalsPage");
   const habitsLabels = useTranslations("habitsPage");
+  const { language } = useLanguage();
   const queryClient = useQueryClient();
   const [period, setPeriod] = useState<"month" | "since">("month");
   const [habitGoalId, setHabitGoalId] = useState<string | null>(null);
@@ -110,10 +112,18 @@ export default function GoalsPage() {
       <div className="flex items-center justify-between gap-3"><SectionTitle title={labels.activeGoals} description={labels.activeGoalsDescription} /><div className="flex gap-2"><Button variant={period === "month" ? "primary" : "secondary"} onClick={() => setPeriod("month")}>{labels.month}</Button><Button variant={period === "since" ? "primary" : "secondary"} onClick={() => setPeriod("since")}>{labels.sinceCreation}</Button></div></div>
       {dashboard.isLoading ? <Card>Carregando metas…</Card> : null}
       {dashboard.isError ? <Card>Não foi possível carregar as metas.</Card> : null}
-      {goals.map((item) => (
-        <Card key={item.goal.id} className="grid gap-4">
-          <div className="flex items-start justify-between gap-4"><div><Badge tone="green">{labels.categoryLabels[item.goal.category ?? "other"]}</Badge><h2 className="mt-3 font-display text-4xl font-light uppercase">{item.goal.title}</h2><p className="mt-2 text-sm text-[var(--text-secondary)]">{item.goal.description || labels.noDescription}</p></div><div className="text-right"><p className="text-3xl font-black">{Math.round(item.consistency_percent)}%</p><p className="text-xs text-[var(--text-tertiary)]">{item.goal.target_date}</p></div></div>
-          <ProgressBar value={item.consistency_percent} />
+      {goals.map((item) => {
+        const deadline = goalDeadlineProgress(item.goal);
+        const targetDate = item.goal.target_date ? fromDateKey(item.goal.target_date).toLocaleDateString(language, { day: "2-digit", month: "short", year: "numeric" }) : "—";
+        const remainingText = deadline.expired
+          ? labels.deadlineExpired
+          : deadline.daysRemaining === 0
+            ? labels.endsToday
+            : `${deadline.daysRemaining} ${deadline.daysRemaining === 1 ? labels.dayRemaining : labels.daysRemaining}`;
+
+        return <Card key={item.goal.id} className="grid gap-4">
+          <div className="flex items-start justify-between gap-4"><div><Badge tone="green">{labels.categoryLabels[item.goal.category ?? "other"]}</Badge><h2 className="mt-3 font-display text-4xl font-light uppercase">{item.goal.title}</h2><p className="mt-2 text-sm text-[var(--text-secondary)]">{item.goal.description || labels.noDescription}</p></div><div className="shrink-0 text-right"><p className="text-3xl font-black">{deadline.percentage}%</p><p className="mt-1 text-xs font-bold uppercase tracking-wide text-[var(--text-tertiary)]">{labels.deadlineProgress}</p><p className="mt-3 text-sm font-bold text-[var(--text-secondary)]">{remainingText}</p><p className="mt-1 text-xs text-[var(--text-tertiary)]">{labels.targetDateShort}: {targetDate}</p></div></div>
+          <ProgressBar value={deadline.percentage} />
           <div className="grid grid-cols-3 gap-2 text-center text-xs font-bold text-[var(--text-secondary)]"><span>{item.completed_count} concluídos</span><span>{item.uncompleted_count} não concluídos</span><span>{item.pending_count} pendentes</span></div>
           {detailsGoalId === item.goal.id ? <div className="grid gap-3 rounded-2xl bg-[var(--surface-ambient)] p-4">{details.isLoading ? <p>Carregando hábitos…</p> : details.data?.map((habit) => <HabitCard key={habit.habit.id} item={habit} preferredTime={preferredTimes[habit.habit.id]} />)}</div> : null}
           <div className="flex flex-wrap gap-2"><Button variant="secondary" onClick={() => setDetailsGoalId(detailsGoalId === item.goal.id ? null : item.goal.id)}>Detalhes</Button><Button variant="secondary" onClick={() => openEdit(item.goal.id)}>Editar</Button><Button variant="danger" onClick={() => { if (window.confirm("Excluir esta meta permanentemente?")) mutation.mutate(() => routineApi.deleteGoal(item.goal.id)); }}>Excluir</Button><Button onClick={() => setHabitGoalId(item.goal.id)}>{labels.addHabit}</Button></div>
@@ -125,8 +135,8 @@ export default function GoalsPage() {
             <FieldLabel label={habitsLabels.reason}><Textarea name="description" maxLength={200} /></FieldLabel>
             <div className="grid grid-cols-2 gap-2"><Button type="button" variant="secondary" onClick={() => setHabitGoalId(null)}>Cancelar</Button><Button type="submit">{labels.createHabit}</Button></div>
           </form> : null}
-        </Card>
-      ))}
+        </Card>;
+      })}
       {!dashboard.isLoading && !goals.length ? <EmptyState title={labels.emptyTitle} description={labels.emptyDescription} /> : null}
       {editingGoal ? <div className="fixed inset-0 z-50 grid place-items-end bg-black/50 p-4 sm:place-items-center"><Card className="w-full max-w-lg"><form onSubmit={saveGoal} className="grid gap-3"><h2 className="text-xl font-bold">Editar meta</h2><FieldLabel label={labels.goalName}><Input name="title" defaultValue={editingGoal.title} required /></FieldLabel><FieldLabel label={labels.targetDate}><Input name="targetDate" type="date" min={toDateKey(new Date())} defaultValue={editingGoal.target_date ?? ""} required /></FieldLabel><FieldLabel label={labels.category}><Select name="category" defaultValue={editingGoal.category ?? "other"}><option value="health">{labels.health}</option><option value="productivity">{labels.productivity}</option><option value="learning">{labels.learning}</option><option value="fitness">{labels.fitness}</option><option value="mental_wellness">{labels.mentalWellness}</option><option value="other">{labels.other}</option></Select></FieldLabel><FieldLabel label={labels.descriptionLabel}><Textarea name="description" defaultValue={editingGoal.description ?? ""} /></FieldLabel><div className="grid grid-cols-2 gap-2"><Button type="button" variant="secondary" onClick={() => setEditingGoal(null)}>Cancelar</Button><Button type="submit">Salvar</Button></div></form></Card></div> : null}
     </AppShell>

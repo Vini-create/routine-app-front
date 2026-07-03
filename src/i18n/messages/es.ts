@@ -37,6 +37,12 @@ export const es = {
     tooManyAttempts: "Demasiados intentos. Espera un momento e inténtalo de nuevo.", serviceUnavailable: "El servicio no está disponible temporalmente. Inténtalo de nuevo pronto.",
     connectionError: "No pudimos conectar con el servidor. Comprueba tu conexión.", timeoutError: "El servidor tardó demasiado en responder.",
     passwordHint: "Usa al menos 8 caracteres.", termsConsent: "He leído y acepto:", redirecting: "Redirigiendo al inicio de sesión…", resendWait: "Reenviar en {seconds}s",
+    orEmail: "o usa el correo", googleUnavailable: "El acceso con Google no está disponible ahora.", googleFailed: "No pudimos iniciar sesión con Google. Inténtalo de nuevo.",
+    googleTerms: "Al continuar con Google, aceptas nuestros", terms: "Términos", privacy: "Privacidad",
+    loginCodeTitle: "Confirma que eres tú", loginCodeSubtitle: "Enviamos un código de 6 dígitos a {email}.", loginCodeLabel: "Código de confirmación",
+    confirmLoginCode: "Confirmar e iniciar sesión", resendLoginCode: "Enviar un código nuevo", loginCodeResent: "Se envió un código nuevo.",
+    loginChallengeMissing: "Esta confirmación caducó o no se encontró. Inicia sesión de nuevo.", invalidLoginCode: "El código es incorrecto o ha caducado.",
+    passwordLoginDisabled: "Esta cuenta usa el acceso con Google. Continúa con Google o crea una contraseña desde la recuperación.",
   },
   settings: {
     ...en.settings,
@@ -57,6 +63,7 @@ export const es = {
     deleteConfirm: "¿Eliminar esta cuenta? Esta acción solo debe continuar con confirmación explícita.",
     security: "Seguridad", changePassword: "Cambiar contraseña", currentPassword: "Contraseña actual", newPassword: "Nueva contraseña", passwordChanged: "Contraseña cambiada. Inicia sesión de nuevo en tus dispositivos.", confirmNewPassword: "Confirmar nueva contraseña",
     dangerZone: "Zona de peligro", deleteExplanation: "Esto desactiva tu cuenta y cierra todas las sesiones activas.", deleteInstruction: "Escribe ELIMINAR e introduce tu contraseña.", deleteKeyword: "ELIMINAR", cancel: "Cancelar", confirmDelete: "Eliminar cuenta definitivamente", passwordMismatch: "Las contraseñas no coinciden.",
+    googleAccountSecurity: "Esta cuenta usa el acceso con Google. Crea una contraseña solo si también quieres entrar por correo o eliminar la cuenta con confirmación.", createPassword: "Crear contraseña de la cuenta", passwordRequiredForDeletion: "Crea primero una contraseña para habilitar la eliminación confirmada.",
   },
   landing: {
     ...en.landing,

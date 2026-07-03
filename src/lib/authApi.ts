@@ -4,11 +4,25 @@ import type { ApiLanguage, UserMe } from "./api-contracts";
 export type LoginRequest = { email: string; password: string };
 export type RegisterRequest = { email: string; password: string; display_name?: string; language?: ApiLanguage };
 export type TokenResponse = { access_token: string; refresh_token: string; token_type: string };
+export type LoginChallengeResponse = { challenge_id: string; masked_email: string; expires_at: string };
+export type GoogleChallengeResponse = { challenge_id: string; nonce: string; expires_at: string };
 export type MessageResponse = { message: string };
 
 export const authApi = {
-  login: (request: LoginRequest) => apiFetch<TokenResponse>("/auth/login", {
+  login: (request: LoginRequest) => apiFetch<LoginChallengeResponse>("/auth/login", {
     method: "POST", authenticated: false, body: JSON.stringify(request),
+  }),
+  verifyLogin: (challengeId: string, code: string) => apiFetch<TokenResponse>("/auth/login/verify", {
+    method: "POST", authenticated: false, body: JSON.stringify({ challenge_id: challengeId, code }),
+  }),
+  resendLogin: (challengeId: string) => apiFetch<LoginChallengeResponse>("/auth/login/resend", {
+    method: "POST", authenticated: false, timeoutMs: 30_000, body: JSON.stringify({ challenge_id: challengeId }),
+  }),
+  googleChallenge: () => apiFetch<GoogleChallengeResponse>("/auth/google/challenge", {
+    method: "POST", authenticated: false,
+  }),
+  googleLogin: (challengeId: string, credential: string, language: ApiLanguage) => apiFetch<TokenResponse>("/auth/google", {
+    method: "POST", authenticated: false, body: JSON.stringify({ challenge_id: challengeId, credential, language }),
   }),
   register: (request: RegisterRequest) => apiFetch<MessageResponse & { user_id: string }>("/auth/register", {
     method: "POST", authenticated: false, timeoutMs: 30_000, body: JSON.stringify(request),

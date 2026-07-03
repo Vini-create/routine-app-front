@@ -13,6 +13,9 @@ type AuthErrorLabels = {
   serviceUnavailable: string;
   connectionError: string;
   timeoutError: string;
+  invalidLoginCode: string;
+  googleFailed: string;
+  passwordLoginDisabled: string;
 };
 
 export function getAuthErrorMessage(cause: unknown, labels: AuthErrorLabels) {
@@ -30,6 +33,9 @@ export function getAuthErrorMessage(cause: unknown, labels: AuthErrorLabels) {
   if (detail.includes("new password must be different")) return labels.passwordReuse;
   if (detail.includes("verification token")) return labels.invalidVerificationToken;
   if (detail.includes("password reset token")) return labels.invalidResetToken;
+  if (detail.includes("login code") || detail.includes("login challenge")) return labels.invalidLoginCode;
+  if (detail.includes("google")) return labels.googleFailed;
+  if (detail.includes("password login is not enabled")) return labels.passwordLoginDisabled;
   return cause.detail || labels.genericError;
 }
 

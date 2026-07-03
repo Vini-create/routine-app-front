@@ -15,6 +15,7 @@ import { appToApiLanguage } from "@/lib/api-contracts";
 import { authApi } from "@/lib/authApi";
 import { savePendingVerificationEmail } from "@/lib/session";
 import { usePublicOnly } from "@/components/app/usePublicOnly";
+import { GoogleSignInButton } from "@/components/app/GoogleSignInButton";
 
 export default function RegisterPage() {
   const labels = useTranslations("authFlow");
@@ -71,6 +72,9 @@ export default function RegisterPage() {
         <BrandMark className="mb-6" />
         <h1 className="font-brand text-4xl font-semibold">{labels.registerTitle}</h1>
         <p className="mt-2 text-sm text-[var(--text-secondary)]">{labels.registerSubtitle}</p>
+        <GoogleSignInButton mode="signup" />
+        <p className="mt-3 text-center text-xs leading-5 text-[var(--text-tertiary)]">{labels.googleTerms} <Link href="/terms" className="font-bold underline underline-offset-4">{labels.terms}</Link> · <Link href="/privacy" className="font-bold underline underline-offset-4">{labels.privacy}</Link></p>
+        <div className="my-5 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-tertiary)]"><span className="h-px flex-1 bg-[var(--border)]" /><span>{labels.orEmail}</span><span className="h-px flex-1 bg-[var(--border)]" /></div>
         <form onSubmit={onSubmit} className="mt-6 grid gap-4">
           <FieldLabel label={labels.name}><Input name="displayName" autoComplete="name" minLength={2} maxLength={100} aria-invalid={Boolean(fieldErrors.displayName)} required />{fieldErrors.displayName ? <span className="text-xs text-red-500">{fieldErrors.displayName}</span> : null}</FieldLabel>
           <FieldLabel label={labels.email}><Input name="email" type="email" autoComplete="email" aria-invalid={Boolean(fieldErrors.email)} required />{fieldErrors.email ? <span className="text-xs text-red-500">{fieldErrors.email}</span> : null}</FieldLabel>

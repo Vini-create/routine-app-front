@@ -36,6 +36,12 @@ export const fr = {
     invalidPassword: "Le mot de passe actuel est incorrect.", passwordReuse: "Choisissez un mot de passe différent de l’actuel.", invalidVerificationToken: "Ce lien de vérification est invalide ou a expiré.",
     tooManyAttempts: "Trop de tentatives. Patientez puis réessayez.", serviceUnavailable: "Le service est temporairement indisponible. Réessayez bientôt.", connectionError: "Impossible de joindre le serveur. Vérifiez votre connexion.", timeoutError: "Le serveur a mis trop de temps à répondre.",
     passwordHint: "Utilisez au moins 8 caractères.", termsConsent: "J’ai lu et j’accepte :", redirecting: "Redirection vers la connexion…", resendWait: "Renvoyer dans {seconds}s",
+    orEmail: "ou utilisez l’e-mail", googleUnavailable: "La connexion avec Google n’est pas disponible actuellement.", googleFailed: "Connexion avec Google impossible. Réessayez.",
+    googleTerms: "En continuant avec Google, vous acceptez nos", terms: "Conditions", privacy: "Confidentialité",
+    loginCodeTitle: "Confirmez votre identité", loginCodeSubtitle: "Nous avons envoyé un code à 6 chiffres à {email}.", loginCodeLabel: "Code de confirmation",
+    confirmLoginCode: "Confirmer et se connecter", resendLoginCode: "Envoyer un nouveau code", loginCodeResent: "Un nouveau code a été envoyé.",
+    loginChallengeMissing: "Cette confirmation a expiré ou est introuvable. Recommencez la connexion.", invalidLoginCode: "Le code est incorrect ou a expiré.",
+    passwordLoginDisabled: "Ce compte utilise Google. Continuez avec Google ou créez un mot de passe via la récupération.",
   },
   settings: {
     ...en.settings,
@@ -57,6 +63,7 @@ export const fr = {
     deleteConfirm: "Supprimer ce compte ? Cette action ne doit continuer qu'après une confirmation explicite.",
     security: "Sécurité", changePassword: "Changer le mot de passe", currentPassword: "Mot de passe actuel", newPassword: "Nouveau mot de passe", passwordChanged: "Mot de passe modifié. Reconnectez-vous sur vos appareils.", confirmNewPassword: "Confirmer le nouveau mot de passe",
     dangerZone: "Zone de danger", deleteExplanation: "Cela désactive votre compte et ferme toutes les sessions actives.", deleteInstruction: "Saisissez SUPPRIMER et votre mot de passe.", deleteKeyword: "SUPPRIMER", cancel: "Annuler", confirmDelete: "Supprimer définitivement le compte", passwordMismatch: "Les mots de passe ne correspondent pas.",
+    googleAccountSecurity: "Ce compte utilise Google. Créez un mot de passe uniquement pour vous connecter aussi par e-mail ou confirmer la suppression du compte.", createPassword: "Créer un mot de passe", passwordRequiredForDeletion: "Créez d’abord un mot de passe pour activer la suppression confirmée.",
   },
   landing: {
     ...en.landing,

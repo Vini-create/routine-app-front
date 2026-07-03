@@ -26,10 +26,13 @@ O projeto já lê a URL base da API a partir do `.env` existente:
 
 ```bash
 NEXT_PUBLIC_API_URL=https://routine-app-back-production.up.railway.app
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=seu-client-id-web.apps.googleusercontent.com
 NEXT_PUBLIC_USE_MOCK_AI=true
 ```
 
 `NEXT_PUBLIC_API_URL` é obrigatória para autenticação, metas, hábitos e rotina. `NEXT_PUBLIC_USE_MOCK_AI` mantém somente Alfred e Feedback em modo demonstrativo enquanto essas rotas ainda não existem no backend.
+
+Para habilitar “Continuar com Google”, crie um cliente OAuth 2.0 do tipo Aplicativo da Web no Google Cloud e autorize as origens JavaScript `https://winperium.app` e `https://www.winperium.app`. Use o mesmo Client ID em `NEXT_PUBLIC_GOOGLE_CLIENT_ID` no build do frontend e em `GOOGLE_CLIENT_ID` no backend. O fluxo por popup não precisa de client secret no frontend.
 
 Procure por `API_CONNECTION_POINT` para localizar os pontos preparados para integração com FastAPI, autenticação, IA, rotina, hábitos, perfil e check-ins.
 

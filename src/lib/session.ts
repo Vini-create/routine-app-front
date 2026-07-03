@@ -5,6 +5,7 @@ export type SessionTokens = {
 
 export const sessionStorageKey = "rotina-ai-auth-session";
 const pendingVerificationEmailKey = "rotina-ai-pending-verification-email";
+const pendingLoginChallengeKey = "rotina-ai-pending-login-challenge";
 const legacySessionKey = "winperium-mvp-session";
 const legacyUserDataKeys = [
   "winperium-user-goals",
@@ -74,4 +75,31 @@ export function getPendingVerificationEmail() {
 export function clearPendingVerificationEmail() {
   if (typeof window === "undefined") return;
   window.sessionStorage.removeItem(pendingVerificationEmailKey);
+}
+
+export type PendingLoginChallenge = {
+  challengeId: string;
+  maskedEmail: string;
+  expiresAt: string;
+};
+
+export function savePendingLoginChallenge(challenge: PendingLoginChallenge) {
+  if (typeof window === "undefined") return;
+  window.sessionStorage.setItem(pendingLoginChallengeKey, JSON.stringify(challenge));
+}
+
+export function getPendingLoginChallenge(): PendingLoginChallenge | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const value = JSON.parse(window.sessionStorage.getItem(pendingLoginChallengeKey) ?? "null") as PendingLoginChallenge | null;
+    if (!value?.challengeId || !value.maskedEmail || !value.expiresAt) return null;
+    return value;
+  } catch {
+    return null;
+  }
+}
+
+export function clearPendingLoginChallenge() {
+  if (typeof window === "undefined") return;
+  window.sessionStorage.removeItem(pendingLoginChallengeKey);
 }

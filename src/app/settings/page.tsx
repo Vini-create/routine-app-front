@@ -109,7 +109,7 @@ export default function SettingsPage() {
       </Card>
 
       <Card>
-        <form onSubmit={onChangePassword} className="grid gap-4">
+        {user?.has_password ? <form onSubmit={onChangePassword} className="grid gap-4">
           <h2 className="text-lg font-bold">{settings.security}</h2>
           <FieldLabel label={settings.currentPassword}><PasswordInput name="currentPassword" autoComplete="current-password" minLength={8} maxLength={72} showLabel={authLabels.showPassword} hideLabel={authLabels.hidePassword} required /></FieldLabel>
           <FieldLabel label={settings.newPassword}><PasswordInput name="newPassword" autoComplete="new-password" minLength={8} maxLength={72} showLabel={authLabels.showPassword} hideLabel={authLabels.hidePassword} required /></FieldLabel>
@@ -117,7 +117,11 @@ export default function SettingsPage() {
           {securityMessage ? <p role="status" className="text-sm font-semibold text-emerald-500">{securityMessage}</p> : null}
           {securityError ? <p role="alert" className="text-sm font-semibold text-red-500">{securityError}</p> : null}
           <Button type="submit" variant="secondary" disabled={loading}>{settings.changePassword}</Button>
-        </form>
+        </form> : <div className="grid gap-4">
+          <h2 className="text-lg font-bold">{settings.security}</h2>
+          <p className="text-sm leading-6 text-[var(--text-secondary)]">{settings.googleAccountSecurity}</p>
+          <Button href="/forgot-password" variant="secondary">{settings.createPassword}</Button>
+        </div>}
       </Card>
 
       <Card className="grid gap-3">
@@ -127,7 +131,8 @@ export default function SettingsPage() {
         <div className="mt-2 rounded-2xl border border-red-500/25 bg-red-500/5 p-4">
           <h3 className="font-bold text-red-500">{settings.dangerZone}</h3>
           <p className="mt-1 text-sm text-[var(--text-secondary)]">{settings.deleteExplanation}</p>
-          <Button className="mt-4" variant="danger" onClick={() => { setDeleteOpen(true); setError(""); }} disabled={loading}>{settings.deleteAccount}</Button>
+          <Button className="mt-4" variant="danger" onClick={() => { setDeleteOpen(true); setError(""); }} disabled={loading || !user?.has_password}>{settings.deleteAccount}</Button>
+          {!user?.has_password ? <p className="mt-2 text-xs text-[var(--text-tertiary)]">{settings.passwordRequiredForDeletion}</p> : null}
         </div>
       </Card>
 
