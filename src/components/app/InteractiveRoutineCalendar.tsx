@@ -5,6 +5,7 @@ import { toDateKey } from "@/lib/date";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { permanentMarker } from "@/lib/fonts";
 
 function calendarDays(month: Date) {
   const first = new Date(month.getFullYear(), month.getMonth(), 1);
@@ -93,7 +94,7 @@ export function InteractiveRoutineCalendar({
               )}
             >
               <span className="relative z-10">{date.getDate()}</span>
-              {past && inMonth ? <span aria-hidden="true" className="font-calendar-x pointer-events-none absolute inset-0 z-20 flex translate-y-px items-center justify-center text-[3.4rem] leading-none text-red-500 opacity-35 sm:text-[5rem]">X</span> : null}
+              {past && inMonth ? <span aria-hidden="true" className={cn(permanentMarker.className, "pointer-events-none absolute inset-0 z-20 flex -rotate-3 scale-x-110 translate-y-px items-center justify-center text-[3.4rem] font-normal leading-none text-red-500 opacity-35 sm:text-[5rem]")} style={permanentMarker.style}>X</span> : null}
               {current ? <span className="absolute bottom-1.5 z-30 size-1.5 rounded-full bg-[#050507]" /> : dayEntries.length ? <span className="absolute bottom-1.5 z-30 flex max-w-[80%] gap-0.5">{dayEntries.slice(0, 3).map((entry) => <i key={entry.key} className={cn("size-1.5 rounded-full", past ? "bg-red-500/75" : statusDot[entry.status])} />)}</span> : null}
             </button>
           );

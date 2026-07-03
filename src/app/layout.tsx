@@ -3,13 +3,13 @@ import {
   Antonio,
   Cormorant_Garamond,
   Manrope,
-  Permanent_Marker,
   Roboto_Condensed,
   Special_Elite,
 } from "next/font/google";
 import { LanguageProvider } from "@/components/app/LanguageProvider";
 import { ThemeProvider } from "@/components/app/ThemeProvider";
 import { AppProviders } from "@/components/app/AppProviders";
+import { permanentMarker } from "@/lib/fonts";
 import { defaultLanguage } from "@/lib/i18n";
 import "./globals.css";
 
@@ -42,13 +42,6 @@ const specialElite = Special_Elite({
   subsets: ["latin"],
   weight: "400",
   variable: "--font-special-elite",
-  display: "swap",
-});
-
-const permanentMarker = Permanent_Marker({
-  subsets: ["latin"],
-  weight: "400",
-  variable: "--font-permanent-marker",
   display: "swap",
 });
 
