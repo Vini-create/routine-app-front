@@ -29,6 +29,7 @@ export const ptBR = {
     resetSubtitle: "Escolha uma senha segura com pelo menos 8 caracteres.",
     name: "Nome", email: "E-mail", password: "Senha", newPassword: "Nova senha",
     confirmPassword: "Confirmar senha", language: "Idioma",
+    showPassword: "Mostrar senha", hidePassword: "Ocultar senha",
     loginAction: "Entrar", registerAction: "Criar conta", verifyAction: "Verificar e-mail",
     sendLink: "Enviar link", resetAction: "Atualizar senha", backToLogin: "Voltar ao login",
     forgotLink: "Esqueceu sua senha?", noAccount: "Ainda não tem conta?", hasAccount: "Já tem uma conta?",

@@ -24,6 +24,7 @@ export const es = {
     forgotTitle: "Recupera tu contraseña", forgotSubtitle: "Enviaremos instrucciones si el correo está registrado.",
     resetTitle: "Crea una nueva contraseña", resetSubtitle: "Elige una contraseña segura de al menos 8 caracteres.",
     name: "Nombre", email: "Correo", password: "Contraseña", newPassword: "Nueva contraseña", confirmPassword: "Confirmar contraseña", language: "Idioma",
+    showPassword: "Mostrar contraseña", hidePassword: "Ocultar contraseña",
     loginAction: "Iniciar sesión", registerAction: "Crear cuenta", verifyAction: "Verificar correo", sendLink: "Enviar enlace", resetAction: "Actualizar contraseña", backToLogin: "Volver al inicio",
     forgotLink: "¿Olvidaste tu contraseña?", noAccount: "¿No tienes cuenta?", hasAccount: "¿Ya tienes cuenta?", loading: "Espera…",
     passwordMismatch: "Las contraseñas no coinciden.", genericError: "Algo salió mal. Inténtalo de nuevo.",

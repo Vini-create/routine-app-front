@@ -27,6 +27,7 @@ type ApiFetchOptions = RequestInit & {
 };
 
 let refreshPromise: Promise<string> | null = null;
+const requestTimeoutMs = 15_000;
 
 export function buildApiUrl(path: string) {
   if (!apiBaseUrl) throw new Error("NEXT_PUBLIC_API_URL is not configured");
@@ -69,11 +70,30 @@ async function parseResponse(response: Response) {
   return response.json();
 }
 
+async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}) {
+  const controller = new AbortController();
+  const timeout = globalThis.setTimeout(() => controller.abort(), requestTimeoutMs);
+  const abortFromCaller = () => controller.abort();
+  init.signal?.addEventListener("abort", abortFromCaller, { once: true });
+
+  try {
+    return await fetch(input, { ...init, signal: controller.signal });
+  } catch {
+    if (controller.signal.aborted) {
+      throw new ApiError(408, "A conexão com o servidor demorou demais. Tente novamente.");
+    }
+    throw new ApiError(0, "Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.");
+  } finally {
+    globalThis.clearTimeout(timeout);
+    init.signal?.removeEventListener("abort", abortFromCaller);
+  }
+}
+
 async function requestNewAccessToken() {
   const refreshToken = getRefreshToken();
   if (!refreshToken) throw new ApiError(401, "Sessão expirada");
 
-  const response = await fetch(buildApiUrl("/auth/refresh"), {
+  const response = await fetchWithTimeout(buildApiUrl("/auth/refresh"), {
     method: "POST",
     headers: { Accept: "application/json", "Content-Type": "application/json" },
     body: JSON.stringify({ refresh_token: refreshToken }),
@@ -97,7 +117,7 @@ async function refreshAccessToken() {
 export async function apiFetch<TResponse>(path: string, options: ApiFetchOptions = {}): Promise<TResponse> {
   const { authenticated = true, retryAuth = true, headers, ...init } = options;
   const accessToken = authenticated ? getAccessToken() : null;
-  const response = await fetch(buildApiUrl(path), {
+  const response = await fetchWithTimeout(buildApiUrl(path), {
     ...init,
     headers: {
       Accept: "application/json",

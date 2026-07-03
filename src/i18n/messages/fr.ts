@@ -24,6 +24,7 @@ export const fr = {
     forgotTitle: "Récupérez votre mot de passe", forgotSubtitle: "Nous enverrons les instructions si l'e-mail est enregistré.",
     resetTitle: "Créez un nouveau mot de passe", resetSubtitle: "Choisissez un mot de passe sûr d'au moins 8 caractères.",
     name: "Nom", email: "E-mail", password: "Mot de passe", newPassword: "Nouveau mot de passe", confirmPassword: "Confirmer le mot de passe", language: "Langue",
+    showPassword: "Afficher le mot de passe", hidePassword: "Masquer le mot de passe",
     loginAction: "Se connecter", registerAction: "Créer un compte", verifyAction: "Vérifier l'e-mail", sendLink: "Envoyer le lien", resetAction: "Mettre à jour", backToLogin: "Retour à la connexion",
     forgotLink: "Mot de passe oublié ?", noAccount: "Pas encore de compte ?", hasAccount: "Vous avez déjà un compte ?", loading: "Patientez…",
     passwordMismatch: "Les mots de passe ne correspondent pas.", genericError: "Une erreur est survenue. Réessayez.",

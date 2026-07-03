@@ -34,6 +34,7 @@ export const en = {
     resetSubtitle: "Choose a secure password with at least 8 characters.",
     name: "Name", email: "Email", password: "Password", newPassword: "New password",
     confirmPassword: "Confirm password", language: "Language",
+    showPassword: "Show password", hidePassword: "Hide password",
     loginAction: "Log in", registerAction: "Create account", verifyAction: "Verify email",
     sendLink: "Send reset link", resetAction: "Update password", backToLogin: "Back to login",
     forgotLink: "Forgot your password?", noAccount: "Don't have an account?", hasAccount: "Already have an account?",

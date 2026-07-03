@@ -6,7 +6,7 @@ import { BrandMark } from "@/components/app/BrandMark";
 import { useTranslations } from "@/components/app/LanguageProvider";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { FieldLabel, Input } from "@/components/ui/Form";
+import { FieldLabel, PasswordInput } from "@/components/ui/Form";
 import { ApiError } from "@/lib/api";
 import { authApi } from "@/lib/authApi";
 
@@ -27,7 +27,7 @@ function ResetPasswordContent() {
     catch (cause) { setError(cause instanceof ApiError ? cause.detail : labels.genericError); }
     finally { setLoading(false); }
   }
-  return <Card className="w-full max-w-md"><BrandMark className="mb-6" /><h1 className="font-brand text-4xl font-semibold">{labels.resetTitle}</h1><p className="mt-2 text-sm text-[var(--text-secondary)]">{labels.resetSubtitle}</p><form onSubmit={onSubmit} className="mt-6 grid gap-4"><FieldLabel label={labels.newPassword}><Input name="password" type="password" minLength={8} maxLength={72} required /></FieldLabel><FieldLabel label={labels.confirmPassword}><Input name="confirmPassword" type="password" minLength={8} maxLength={72} required /></FieldLabel>{message ? <p className="text-sm font-semibold text-emerald-500">{message}</p> : null}{error ? <p role="alert" className="text-sm font-semibold text-red-500">{error}</p> : null}<Button type="submit" disabled={loading || !token}>{loading ? labels.loading : labels.resetAction}</Button><Button href="/login" variant="secondary">{labels.backToLogin}</Button></form></Card>;
+  return <Card className="w-full max-w-md"><BrandMark className="mb-6" /><h1 className="font-brand text-4xl font-semibold">{labels.resetTitle}</h1><p className="mt-2 text-sm text-[var(--text-secondary)]">{labels.resetSubtitle}</p><form onSubmit={onSubmit} className="mt-6 grid gap-4"><FieldLabel label={labels.newPassword}><PasswordInput name="password" minLength={8} maxLength={72} showLabel={labels.showPassword} hideLabel={labels.hidePassword} required /></FieldLabel><FieldLabel label={labels.confirmPassword}><PasswordInput name="confirmPassword" minLength={8} maxLength={72} showLabel={labels.showPassword} hideLabel={labels.hidePassword} required /></FieldLabel>{message ? <p className="text-sm font-semibold text-emerald-500">{message}</p> : null}{error ? <p role="alert" className="text-sm font-semibold text-red-500">{error}</p> : null}<Button type="submit" disabled={loading || !token}>{loading ? labels.loading : labels.resetAction}</Button><Button href="/login" variant="secondary">{labels.backToLogin}</Button></form></Card>;
 }
 
 export default function ResetPasswordPage() {

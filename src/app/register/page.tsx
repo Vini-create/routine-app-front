@@ -8,7 +8,7 @@ import { LanguageSelect } from "@/components/app/LanguageSelect";
 import { useLanguage, useTranslations } from "@/components/app/LanguageProvider";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { FieldLabel, Input } from "@/components/ui/Form";
+import { FieldLabel, Input, PasswordInput } from "@/components/ui/Form";
 import { ApiError } from "@/lib/api";
 import { appToApiLanguage } from "@/lib/api-contracts";
 import { authApi } from "@/lib/authApi";
@@ -54,8 +54,8 @@ export default function RegisterPage() {
         <form onSubmit={onSubmit} className="mt-6 grid gap-4">
           <FieldLabel label={labels.name}><Input name="displayName" minLength={2} maxLength={100} required /></FieldLabel>
           <FieldLabel label={labels.email}><Input name="email" type="email" autoComplete="email" required /></FieldLabel>
-          <FieldLabel label={labels.password}><Input name="password" type="password" autoComplete="new-password" minLength={8} maxLength={72} required /></FieldLabel>
-          <FieldLabel label={labels.confirmPassword}><Input name="confirmPassword" type="password" autoComplete="new-password" minLength={8} maxLength={72} required /></FieldLabel>
+          <FieldLabel label={labels.password}><PasswordInput name="password" autoComplete="new-password" minLength={8} maxLength={72} showLabel={labels.showPassword} hideLabel={labels.hidePassword} required /></FieldLabel>
+          <FieldLabel label={labels.confirmPassword}><PasswordInput name="confirmPassword" autoComplete="new-password" minLength={8} maxLength={72} showLabel={labels.showPassword} hideLabel={labels.hidePassword} required /></FieldLabel>
           <FieldLabel label={labels.language}><LanguageSelect /></FieldLabel>
           {error ? <p role="alert" className="text-sm font-semibold text-red-500">{error}</p> : null}
           <Button type="submit" disabled={loading}>{loading ? labels.loading : labels.registerAction}</Button>
