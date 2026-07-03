@@ -387,6 +387,7 @@ export const ptBR = {
     endDate: "Data final",
     saveVacation: "Salvar período de férias",
     remove: "Remover",
+    historyReadOnly: "Este dia está fora da janela de correção de 7 dias. Você pode consultá-lo, mas concluir ou alterar ocorrências fica desabilitado.",
   },
   habitsPage: {
     ...en.habitsPage,

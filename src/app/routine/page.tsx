@@ -21,6 +21,7 @@ import { buildRRule, parseRRule, type RecurrenceFrequency } from "@/lib/rrule";
 import { routineApi } from "@/lib/routineApi";
 
 type View = "day" | "week";
+const editableHistoryDays = 7;
 
 function localInputParts(iso: string) {
   const date = new Date(iso);
@@ -41,6 +42,7 @@ export default function RoutinePage() {
   const queryClient = useQueryClient();
   const today = toDateKey(new Date());
   const tomorrow = toDateKey(addDays(new Date(), 1));
+  const oldestEditableDate = toDateKey(addDays(new Date(), -editableHistoryDays));
   const [view, setView] = useState<View>("day");
   const [selectedDate, setSelectedDate] = useState(today);
   const [visibleMonth, setVisibleMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
@@ -177,10 +179,15 @@ export default function RoutinePage() {
       <Card><div className="flex flex-wrap items-start justify-between gap-4"><SectionTitle title={labels.timeline} description={labels.description} /><Button onClick={openCreate}>{labels.newBlock}</Button></div><div className="mt-5 grid grid-cols-3 gap-2"><Button variant={view === "day" && selectedDate === today ? "primary" : "secondary"} onClick={() => openDate(today)}>Hoje</Button><Button variant={view === "day" && selectedDate === tomorrow ? "primary" : "secondary"} onClick={() => openDate(tomorrow)}>Amanhã</Button><Button variant={view === "week" ? "primary" : "secondary"} onClick={() => setView("week")}>Semana</Button></div>{view === "day" ? <p className="mt-4 text-center text-sm font-bold capitalize text-[var(--text-secondary)]">{fromDateKey(selectedDate).toLocaleDateString(language, { weekday: "long", day: "2-digit", month: "long" })}</p> : null}</Card>
       {error ? <p role="alert" className="text-sm font-semibold text-red-500">{error}</p> : null}
       {agenda.isLoading ? <Card>Carregando agenda…</Card> : null}
+      {view === "day" && selectedDate < oldestEditableDate ? <Card className="border-red-500/25 bg-red-500/5"><p className="text-sm font-semibold text-[var(--text-secondary)]">{labels.historyReadOnly}</p></Card> : null}
       {view === "week" ? Array.from({ length: 7 }, (_, index) => addDays(fromDateKey(range.start), index)).map((date) => {
         const key = toDateKey(date); const dayEntries = entries.filter((entry) => entry.date === key);
         return <Card key={key}><div className="flex items-center justify-between"><Badge tone={key === today ? "green" : "blue"}>{date.toLocaleDateString(language, { weekday: "long", day: "2-digit", month: "2-digit" })}</Badge><span className="text-xs font-bold text-[var(--text-tertiary)]">{dayEntries.length} itens</span></div><div className="mt-4 grid gap-2">{dayEntries.map((entry) => <div key={entry.key} className="flex justify-between rounded-2xl bg-[var(--surface-ambient)] px-4 py-3"><strong>{entry.time} · {entry.title}</strong><span className="text-xs">{{ completed: statusLabels.done, uncompleted: statusLabels.missed, pending: statusLabels.pending, vacation: statusLabels.vacation }[entry.status]}</span></div>)}</div></Card>;
-      }) : entries.map((entry) => <RoutineCard key={entry.key} entry={entry} isCurrent={isCurrent(entry)} onDone={entry.date <= today ? (current) => log(current, current.status === "completed" ? "pending" : "completed") : undefined} onSkip={entry.date <= today ? (current) => log(current, "uncompleted") : undefined} onEdit={entry.source === "item" ? openEdit : undefined} onDelete={entry.source === "item" ? (current) => { if (window.confirm("Excluir este item permanentemente?")) mutation.mutate(() => routineApi.deleteItem(current.sourceId)); } : undefined} />)}
+      }) : entries.map((entry) => {
+        const canLog = entry.date >= oldestEditableDate && entry.date <= today;
+        const canChangeItem = entry.source === "item" && entry.date >= oldestEditableDate;
+        return <RoutineCard key={entry.key} entry={entry} isCurrent={isCurrent(entry)} onDone={canLog ? (current) => log(current, current.status === "completed" ? "pending" : "completed") : undefined} onSkip={canLog ? (current) => log(current, "uncompleted") : undefined} onEdit={canChangeItem ? openEdit : undefined} onDelete={canChangeItem ? (current) => { if (window.confirm("Excluir este item permanentemente?")) mutation.mutate(() => routineApi.deleteItem(current.sourceId)); } : undefined} />;
+      })}
       {!agenda.isLoading && !entries.length ? <EmptyState title={labels.emptyTitle} description={labels.emptyDescription} /> : null}
 
       <Card className="grid gap-4">

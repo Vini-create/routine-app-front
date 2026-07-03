@@ -391,6 +391,7 @@ export const en = {
     endDate: "End date",
     saveVacation: "Save vacation period",
     remove: "Remove",
+    historyReadOnly: "This day is outside the 7-day correction window. You can review it, but completing or changing occurrences is disabled.",
   },
   habitsPage: {
     title: "Habits",

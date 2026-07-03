@@ -44,18 +44,18 @@ export function InteractiveRoutineCalendar({
   entries.forEach((entry) => entriesByDate.set(entry.date, [...(entriesByDate.get(entry.date) ?? []), entry]));
 
   return (
-    <Card className="grid gap-4">
-      <div className="flex items-center justify-between gap-3">
+    <Card className="grid gap-6 p-6 sm:p-8">
+      <div className="flex items-center justify-between gap-4">
         <div>
-          <p className="text-sm font-bold capitalize text-[var(--text-tertiary)]">{months[visibleMonth.getMonth()]} {visibleMonth.getFullYear()}</p>
-          <h2 className="text-xl font-black">{title}</h2>
+          <p className="text-sm font-black capitalize text-[var(--text-tertiary)] sm:text-base">{months[visibleMonth.getMonth()]} {visibleMonth.getFullYear()}</p>
+          <h2 className="mt-1 text-2xl font-black tracking-tight sm:text-3xl">{title}</h2>
         </div>
-        <div className="flex gap-2">
-          <Button aria-label="Mês anterior" variant="secondary" className="min-h-10 px-3" onClick={() => onMonthChange(new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() - 1, 1))}>‹</Button>
-          <Button aria-label="Próximo mês" variant="secondary" className="min-h-10 px-3" onClick={() => onMonthChange(new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + 1, 1))}>›</Button>
+        <div className="flex gap-3">
+          <Button aria-label="Mês anterior" variant="secondary" className="size-12 min-h-0 rounded-full p-0 text-xl sm:size-14" onClick={() => onMonthChange(new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() - 1, 1))}>‹</Button>
+          <Button aria-label="Próximo mês" variant="secondary" className="size-12 min-h-0 rounded-full p-0 text-xl sm:size-14" onClick={() => onMonthChange(new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + 1, 1))}>›</Button>
         </div>
       </div>
-      <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-bold text-[var(--text-tertiary)]">
+      <div className="grid grid-cols-7 gap-1 text-center text-xs font-black text-[var(--text-tertiary)] sm:text-sm">
         {weekdays.map((day) => <span key={day}>{day}</span>)}
       </div>
       <div className="grid grid-cols-7 gap-1">
@@ -64,6 +64,7 @@ export function InteractiveRoutineCalendar({
           const inMonth = date.getMonth() === visibleMonth.getMonth();
           const selected = key === selectedDate;
           const current = key === today;
+          const past = key < today;
           const dayEntries = entriesByDate.get(key) ?? [];
           return (
             <button
@@ -71,23 +72,23 @@ export function InteractiveRoutineCalendar({
               type="button"
               aria-label={`${key}, ${dayEntries.length} itens`}
               aria-pressed={selected}
+              disabled={!inMonth}
               onClick={() => onSelectDate(key)}
               className={cn(
-                "relative grid min-h-12 place-items-center rounded-2xl border text-sm font-bold transition sm:min-h-14",
-                !inMonth && "opacity-35",
-                selected
-                  ? "border-[var(--silver-02)] bg-[var(--text-primary)] text-[var(--background-primary)]"
-                  : current
-                    ? "border-[var(--silver-02)] bg-[linear-gradient(112deg,var(--silver-01),var(--silver-03)_48%,var(--silver-04))] text-[#050507] shadow-soft"
-                    : "border-[var(--border-soft)] bg-[var(--surface-ambient)] text-[var(--text-secondary)] hover:border-[var(--border-strong)] hover:bg-[var(--surface-standard)]",
+                "group relative grid aspect-square place-items-center rounded-2xl border text-sm font-black transition sm:text-base",
+                !inMonth && "cursor-default border-transparent bg-transparent opacity-20",
+                inMonth && (current
+                  ? "border-[var(--silver-02)] bg-[linear-gradient(112deg,var(--silver-01),var(--silver-03)_48%,var(--silver-04))] text-[#050507] shadow-[0_10px_24px_rgba(0,0,0,0.22),inset_0_1px_1px_rgba(255,255,255,0.52)]"
+                  : selected
+                    ? "border-[var(--silver-02)] bg-[var(--text-primary)] text-[var(--background-primary)]"
+                    : past
+                      ? "border-red-500/25 bg-red-500/[0.04] text-[var(--text-tertiary)] hover:border-red-500/45 hover:bg-red-500/[0.08]"
+                      : "border-[var(--border-soft)] bg-[var(--surface-ambient)] text-[var(--text-secondary)] hover:border-[var(--border-strong)] hover:bg-[var(--surface-standard)]"),
               )}
             >
-              <span>{date.getDate()}</span>
-              {dayEntries.length ? (
-                <span className="absolute bottom-1.5 flex max-w-[80%] gap-0.5">
-                  {dayEntries.slice(0, 3).map((entry) => <i key={entry.key} className={cn("size-1 rounded-full", statusDot[entry.status])} />)}
-                </span>
-              ) : null}
+              <span className="relative z-10">{date.getDate()}</span>
+              {past && inMonth ? <span aria-hidden="true" className="font-calendar-x pointer-events-none absolute inset-0 z-20 flex translate-y-px items-center justify-center text-[3.4rem] leading-none text-red-500 opacity-35 sm:text-[5rem]">X</span> : null}
+              {current ? <span className="absolute bottom-1.5 z-30 size-1.5 rounded-full bg-[#050507]" /> : dayEntries.length ? <span className="absolute bottom-1.5 z-30 flex max-w-[80%] gap-0.5">{dayEntries.slice(0, 3).map((entry) => <i key={entry.key} className={cn("size-1.5 rounded-full", past ? "bg-red-500/75" : statusDot[entry.status])} />)}</span> : null}
             </button>
           );
         })}
