@@ -44,7 +44,7 @@ export function LandingHeader() {
         </nav>
 
         <div className="winLandingHeaderActions">
-          <Button href="/register" className="hidden min-h-10 px-4 sm:inline-flex">{landing.startNow}</Button>
+          <Button href="/login" className="hidden min-h-10 px-4 sm:inline-flex">{landing.login}</Button>
           <button
             type="button"
             className="winLandingMenuButton"
