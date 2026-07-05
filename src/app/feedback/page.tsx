@@ -73,7 +73,7 @@ export default function FeedbackPage() {
   }
 
   return (
-    <AppShell title={feedbackLabels.title}>
+    <AppShell title={feedbackLabels.title} infoPage="feedback">
       <Card className="bg-zinc-950 text-white dark:bg-white dark:text-zinc-950">
         <SectionTitle title={feedbackLabels.title} description={feedbackLabels.subtitle} />
       </Card>

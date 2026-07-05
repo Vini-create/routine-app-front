@@ -22,15 +22,15 @@ export function RoutineCard({ entry, isCurrent = false, onDone, onSkip, onEdit, 
   const statusLabel = isVacation ? labels.vacation : isCompleted ? labels.done : entry.status === "uncompleted" ? labels.missed : labels.pending;
 
   return (
-    <Card className={cn("grid gap-4", isCurrent && entry.status === "pending" && "glass-focus border-[var(--border-strong)]")}>
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          {entry.source === "habit" ? <div className="mb-3 flex gap-2"><Badge tone="neutral">{common.habit}</Badge><Badge tone="blue">{entry.goalTitle ?? common.unlinkedGoal}</Badge></div> : null}
+    <Card className={cn("grid min-w-0 gap-4 overflow-hidden", isCurrent && entry.status === "pending" && "glass-focus border-[var(--border-strong)]")}>
+      <div className="flex min-w-0 items-start justify-between gap-3 sm:gap-4">
+        <div className="min-w-0 flex-1">
+          {entry.source === "habit" ? <div className="mb-3 flex min-w-0 flex-wrap gap-2"><Badge tone="neutral">{common.habit}</Badge><Badge tone="blue" className="max-w-full whitespace-normal break-words [overflow-wrap:anywhere]">{entry.goalTitle ?? common.unlinkedGoal}</Badge></div> : null}
           <p className="text-sm font-bold text-[var(--text-secondary)]">{entry.time} · {entry.durationMinutes} min</p>
-          <h3 className="subtitle-display mt-1 text-xl text-[var(--text-primary)]">{entry.title}</h3>
-          {entry.description ? <p className="mt-1 text-sm leading-6 text-[var(--text-secondary)]">{entry.description}</p> : null}
+          <h3 className="subtitle-display mt-1 break-words text-xl text-[var(--text-primary)] [overflow-wrap:anywhere]">{entry.title}</h3>
+          {entry.description ? <p className="mt-1 break-words text-sm leading-6 text-[var(--text-secondary)] [overflow-wrap:anywhere]">{entry.description}</p> : null}
         </div>
-        <Badge tone={isVacation ? "blue" : isCompleted ? "green" : entry.status === "uncompleted" ? "amber" : "neutral"}>{isCurrent && entry.status === "pending" ? labels.now : statusLabel}</Badge>
+        <Badge className="shrink-0" tone={isVacation ? "blue" : isCompleted ? "green" : entry.status === "uncompleted" ? "amber" : "neutral"}>{isCurrent && entry.status === "pending" ? labels.now : statusLabel}</Badge>
       </div>
       {!isVacation ? <div className="flex flex-wrap gap-2">
         {onDone ? <Button className="flex-1" variant={isCompleted ? "secondary" : "primary"} onClick={() => onDone(entry)}>{isCompleted ? labels.undo : labels.complete}</Button> : null}

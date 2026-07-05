@@ -49,13 +49,13 @@ export function InteractiveRoutineCalendar({
   entries.forEach((entry) => entriesByDate.set(entry.date, [...(entriesByDate.get(entry.date) ?? []), entry]));
 
   return (
-    <Card className="grid gap-6 p-6 sm:p-8">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <p className="text-sm font-black capitalize text-[var(--text-tertiary)] sm:text-base">{months[visibleMonth.getMonth()]} {visibleMonth.getFullYear()}</p>
-          <h2 className="mt-1 text-2xl font-black tracking-tight sm:text-3xl">{title}</h2>
+    <Card className="grid min-w-0 gap-6 overflow-hidden p-6 sm:p-8">
+      <div className="flex min-w-0 items-center justify-between gap-3 sm:gap-4">
+        <div className="min-w-0">
+          <p className="break-words text-sm font-black capitalize text-[var(--text-tertiary)] sm:text-base">{months[visibleMonth.getMonth()]} {visibleMonth.getFullYear()}</p>
+          <h2 className="mt-1 break-words text-2xl font-black tracking-tight [overflow-wrap:anywhere] sm:text-3xl">{title}</h2>
         </div>
-        <div className="flex gap-3">
+        <div className="flex shrink-0 gap-2 sm:gap-3">
           <Button aria-label="Mês anterior" variant="secondary" className="size-12 min-h-0 rounded-full p-0 text-xl sm:size-14" onClick={() => onMonthChange(new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() - 1, 1))}>‹</Button>
           <Button aria-label="Próximo mês" variant="secondary" className="size-12 min-h-0 rounded-full p-0 text-xl sm:size-14" onClick={() => onMonthChange(new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + 1, 1))}>›</Button>
         </div>
@@ -100,7 +100,7 @@ export function InteractiveRoutineCalendar({
           );
         })}
       </div>
-      {correctionWindowHint ? <p className="flex items-center gap-2 text-xs font-bold text-[var(--text-tertiary)]"><span aria-hidden="true" className="size-2.5 rounded-full border border-red-400/80 ring-1 ring-red-400/25" />{correctionWindowHint}</p> : null}
+      {correctionWindowHint ? <p className="flex min-w-0 items-start gap-2 break-words text-xs font-bold text-[var(--text-tertiary)]"><span aria-hidden="true" className="mt-0.5 size-2.5 shrink-0 rounded-full border border-red-400/80 ring-1 ring-red-400/25" />{correctionWindowHint}</p> : null}
     </Card>
   );
 }

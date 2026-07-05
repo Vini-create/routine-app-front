@@ -89,7 +89,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <AppShell title={settings.title}>
+    <AppShell title={settings.title} infoPage="settings">
       <Card>
         <form onSubmit={onSubmit} className="grid gap-4">
           <h2 className="text-lg font-bold">{settings.personalDetails}</h2>

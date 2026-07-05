@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/app/AppShell";
+import { PageInfoButton } from "@/components/app/PageInfoButton";
 import { useAuth } from "@/components/app/AuthProvider";
 import { HabitCard } from "@/components/app/HabitCard";
 import { useLanguage, useTranslations } from "@/components/app/LanguageProvider";
@@ -80,9 +81,12 @@ export default function DashboardPage() {
   return (
     <AppShell title={labels.title} showTitle={false} mainClassName="lg:gap-10">
       <div className="flex flex-wrap items-end gap-x-5 gap-y-2">
-        <h1 className="display-title metallicPageTitle text-[3.25rem] text-[var(--text-primary)] sm:text-7xl lg:text-[5.35rem]">
-          {labels.title}
-        </h1>
+        <div className="flex items-center gap-3 sm:gap-4">
+          <h1 className="display-title metallicPageTitle text-[3.25rem] text-[var(--text-primary)] sm:text-7xl lg:text-[5.35rem]">
+            {labels.title}
+          </h1>
+          <PageInfoButton page="dashboard" />
+        </div>
         <p className="font-display pb-2 text-2xl font-light uppercase leading-none text-[var(--text-tertiary)] sm:pb-3 sm:text-3xl lg:pb-4 lg:text-[2.45rem]">
           {new Date().toLocaleDateString(language, { day: "2-digit", month: "long", year: "numeric" })}
         </p>

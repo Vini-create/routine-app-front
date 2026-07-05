@@ -100,7 +100,7 @@ export default function GoalsPage() {
   const goals = dashboard.data?.goals ?? [];
   const preferredTimes = preferredHabitTimes(preferences);
   return (
-    <AppShell title={labels.title}>
+    <AppShell title={labels.title} infoPage="goals">
       <SectionTitle title={labels.heading} description={labels.description} />
       <Card><form onSubmit={createGoal} className="grid gap-3">
         <div className="grid gap-3 sm:grid-cols-2"><FieldLabel label={labels.goalName}><Input name="title" minLength={2} maxLength={60} required /></FieldLabel><FieldLabel label={labels.targetDate}><Input name="targetDate" type="date" min={toDateKey(new Date())} required /></FieldLabel></div>
@@ -141,7 +141,7 @@ export default function GoalsPage() {
           </div>
           <ProgressBar value={deadline.percentage} />
           <div className="grid grid-cols-3 gap-2 text-center text-xs font-bold text-[var(--text-secondary)]"><span>{item.completed_count} concluídos</span><span>{item.uncompleted_count} não concluídos</span><span>{item.pending_count} pendentes</span></div>
-          {detailsGoalId === item.goal.id ? <div className="grid gap-3 rounded-2xl bg-[var(--surface-ambient)] p-4">{details.isLoading ? <p>Carregando hábitos…</p> : details.data?.map((habit) => <HabitCard key={habit.habit.id} item={habit} preferredTime={preferredTimes[habit.habit.id]} />)}</div> : null}
+          {detailsGoalId === item.goal.id ? <div className="grid min-w-0 gap-3 overflow-hidden rounded-2xl bg-[var(--surface-ambient)] p-2 sm:p-4">{details.isLoading ? <p>Carregando hábitos…</p> : details.data?.map((habit) => <HabitCard key={habit.habit.id} item={habit} preferredTime={preferredTimes[habit.habit.id]} />)}</div> : null}
           <div className="flex flex-wrap gap-2"><Button variant="secondary" onClick={() => setDetailsGoalId(detailsGoalId === item.goal.id ? null : item.goal.id)}>Detalhes</Button><Button variant="secondary" onClick={() => openEdit(item.goal.id)}>Editar</Button><Button variant="danger" onClick={() => { if (window.confirm("Excluir esta meta permanentemente?")) mutation.mutate(() => routineApi.deleteGoal(item.goal.id)); }}>Excluir</Button><Button onClick={() => setHabitGoalId(item.goal.id)}>{labels.addHabit}</Button></div>
           {habitGoalId === item.goal.id ? <form onSubmit={(event) => createHabit(event, item.goal.id)} className="grid gap-3 rounded-3xl border border-[var(--border-soft)] p-4">
             <FieldLabel label={habitsLabels.habitName}><Input name="name" minLength={2} maxLength={60} required /></FieldLabel>

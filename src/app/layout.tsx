@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import {
   Antonio,
   Cormorant_Garamond,
@@ -51,6 +51,11 @@ export const metadata: Metadata = {
     template: "%s | Winperium",
   },
   description: "Organize sua rotina, estruture hábitos e transforme metas em progresso com o Winperium.",
+  appleWebApp: {
+    capable: true,
+    title: "Winperium",
+    statusBarStyle: "black-translucent",
+  },
   openGraph: {
     title: "Winperium — Transforme seus sonhos em metas",
     description: "Um sistema completo para organizar sua rotina, estruturar hábitos e transformar metas em progresso.",
@@ -58,6 +63,10 @@ export const metadata: Metadata = {
     locale: "pt_BR",
     siteName: "Winperium",
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#111114",
 };
 
 export default function RootLayout({

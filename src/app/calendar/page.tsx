@@ -38,7 +38,7 @@ export default function CalendarPage() {
   }
 
   return (
-    <AppShell title={labels.title}>
+    <AppShell title={labels.title} infoPage="calendar">
       <div className="flex items-center justify-between gap-4"><SectionTitle title={labels.heading} description={labels.description} /><Button href="/assistant">{labels.reorganize}</Button></div>
       <InteractiveRoutineCalendar selectedDate={selectedDate} visibleMonth={visibleMonth} entries={entries} months={routineLabels.months} weekdays={routineLabels.weekdays} title={routineLabels.calendar} onSelectDate={openDate} onMonthChange={setVisibleMonth} />
       <Card>

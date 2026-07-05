@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { BrandMark } from "@/components/app/BrandMark";
+import { InstallAppButton } from "@/components/app/InstallAppButton";
 import { useTranslations } from "@/components/app/LanguageProvider";
 import { Button } from "@/components/ui/Button";
 
@@ -44,6 +45,7 @@ export function LandingHeader() {
         </nav>
 
         <div className="winLandingHeaderActions">
+          <InstallAppButton className="min-h-10" labelClassName="hidden lg:inline" />
           <Button href="/login" className="hidden min-h-10 px-4 sm:inline-flex">{landing.login}</Button>
           <button
             type="button"

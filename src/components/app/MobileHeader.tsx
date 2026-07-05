@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { BrandMark } from "./BrandMark";
+import { InstallAppButton } from "./InstallAppButton";
 
 export function MobileHeader() {
   return (
@@ -11,17 +12,12 @@ export function MobileHeader() {
           className="min-w-0 rounded-xl transition-opacity hover:opacity-80 focus-visible:outline-offset-4"
         >
           <BrandMark
-            className="gap-2 sm:gap-3.5"
-            iconClassName="size-9 text-[var(--text-primary)] sm:size-12 lg:size-9"
-            wordmarkClassName="text-[1.55rem] sm:text-[2.35rem] lg:text-[2rem]"
+            className="gap-1.5 sm:gap-3.5"
+            iconClassName="size-8 text-[var(--text-primary)] sm:size-12 lg:size-9"
+            wordmarkClassName="text-[1.3rem] sm:text-[2.35rem] lg:text-[2rem]"
           />
         </Link>
-        <Link
-          href="/feedback"
-          className="metallicButtonSecondary shrink-0 rounded-xl border px-3 py-2 text-center text-[11px] font-bold shadow-soft backdrop-blur transition sm:px-4 sm:text-xs lg:hidden"
-        >
-          Feedback<span className="hidden sm:inline"> de rotina</span>
-        </Link>
+        <InstallAppButton labelClassName="max-[339px]:hidden" />
       </div>
     </header>
   );

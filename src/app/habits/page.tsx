@@ -69,7 +69,7 @@ export default function HabitsPage() {
   const items = dashboard.data?.habits ?? [];
   const preferredTimes = preferredHabitTimes(preferences);
   return (
-    <AppShell title={labels.title}>
+    <AppShell title={labels.title} infoPage="habits">
       <div className="flex items-center justify-between gap-4"><SectionTitle title={labels.heading} description={labels.description} /><Button href="/goals">{labels.add}</Button></div>
       <Card className="habitGuideCard grid gap-3"><p className="habitGuideText text-sm font-semibold leading-6">{labels.consistencyGuide}</p><div className="flex flex-wrap gap-2 text-xs font-bold text-[var(--text-tertiary)]"><span className="habitGuidePill habitGuidePillFire">{labels.fireGuide}</span><span className="habitGuidePill habitGuidePillGrass">{labels.grassGuide}</span><span className="habitGuidePill habitGuidePillIce">{labels.iceGuide}</span><span className="habitGuidePill habitGuidePillEmpty">{labels.emptyGuide}</span></div><p className="text-xs text-[var(--text-tertiary)]">{habits.data?.length ?? items.length} hábitos ativos · semana de {range.start} a {range.end}</p></Card>
       {error ? <p role="alert" className="text-sm font-semibold text-red-500">{error}</p> : null}

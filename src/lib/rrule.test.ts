@@ -15,6 +15,14 @@ describe("RRULE helpers", () => {
     expect(describeRRule("FREQ=DAILY")).toBe("Todos os dias");
   });
 
+  it("describes recurrence rules in a human-friendly localized format", () => {
+    expect(describeRRule("FREQ=WEEKLY;BYDAY=MO,WE,FR", "pt-BR")).toBe("Toda semana · seg., qua. e sex.");
+    expect(describeRRule("FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR", "es")).toBe("Cada semana · lun., mar., mié., jue. y vie.");
+    expect(describeRRule("FREQ=MONTHLY;BYMONTHDAY=1,15", "en")).toBe("Every month · days 1 and 15");
+    expect(describeRRule("FREQ=YEARLY", "fr")).toBe("Tous les ans");
+    expect(describeRRule("FREQ=WEEKLY;BYDAY=SU,MO,TU,WE,TH,FR,SA", "en")).toBe("Every day");
+  });
+
   it("parses recurrence selections for editing", () => {
     expect(parseRRule("FREQ=WEEKLY;BYDAY=MO,WE,FR")).toEqual({ frequency: "weekly", selected: [1, 3, 5] });
     expect(parseRRule("FREQ=MONTHLY;BYMONTHDAY=1,15")).toEqual({ frequency: "monthly", selected: [1, 15] });

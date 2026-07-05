@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { ProgressBar } from "@/components/ui/ProgressBar";
-import { useTranslations } from "./LanguageProvider";
+import { describeRRule } from "@/lib/rrule";
+import { useLanguage, useTranslations } from "./LanguageProvider";
 
 const statusClass: Record<ItemStatus, string> = {
   completed: "habitDayDone",
@@ -31,6 +32,7 @@ export function HabitCard({
 }) {
   const labels = useTranslations("habitsPage");
   const common = useTranslations("common");
+  const { language } = useLanguage();
   const today = toDateKey(new Date());
   const todayOccurrence = item.occurrences.find((occurrence) => occurrence.date === today);
   const canLog = todayOccurrence && todayOccurrence.status !== "vacation";
@@ -38,21 +40,22 @@ export function HabitCard({
 
   return (
     <Card className={cn(
-      "habitCard relative grid gap-4 overflow-hidden",
+      "habitCard relative min-w-0 max-w-full grid gap-4 overflow-hidden",
       variant === "fire" && "habitCardFire", variant === "ice" && "habitCardIce",
       variant === "grass" && "habitCardGrass", variant === "empty" && "habitCardEmpty",
     )}>
       <span className="habitCardAccent pointer-events-none absolute inset-x-4 top-0 z-[1] h-1 rounded-b-full" />
-      <div className="flex items-start justify-between gap-4">
-        <div>
+      <div className="flex min-w-0 items-start justify-between gap-3 sm:gap-4">
+        <div className="min-w-0 flex-1">
           <div className="mb-3 flex flex-wrap gap-2">
             <Badge tone="neutral" className="habitCardBadge">{common.habit}</Badge>
-            <Badge tone="blue" className="habitCardGoalBadge">{item.goal?.title ?? common.unlinkedGoal}</Badge>
+            <Badge tone="blue" className="habitCardGoalBadge max-w-full whitespace-normal break-words [overflow-wrap:anywhere]">{item.goal?.title ?? common.unlinkedGoal}</Badge>
           </div>
-          <h3 className="subtitle-display text-xl text-[var(--text-primary)]">{item.habit.name}</h3>
-          <p className="mt-1 text-sm text-[var(--text-secondary)]">{item.habit.duration_minutes} min · {preferredTime ?? "08:00"} · {item.habit.recurrence_rule}</p>
+          <h3 className="subtitle-display break-words text-xl text-[var(--text-primary)] [overflow-wrap:anywhere]">{item.habit.name}</h3>
+          <p className="mt-1 text-sm text-[var(--text-secondary)]">{item.habit.duration_minutes} min · {preferredTime ?? "08:00"}</p>
+          <p className="mt-1 break-words text-sm font-semibold text-[var(--text-secondary)] [overflow-wrap:anywhere]">{describeRRule(item.habit.recurrence_rule, language)}</p>
         </div>
-        <p className="habitCardPercentage text-3xl font-black">{item.expected_count ? `${Math.round(item.consistency_percent)}%` : "—"}</p>
+        <p className="habitCardPercentage shrink-0 text-2xl font-black sm:text-3xl">{item.expected_count ? `${Math.round(item.consistency_percent)}%` : "—"}</p>
       </div>
       <ProgressBar value={item.consistency_percent} />
       <div className="grid grid-cols-7 gap-2">
@@ -63,8 +66,8 @@ export function HabitCard({
           </div>
         ))}
       </div>
-      <div className="grid grid-cols-3 gap-2 text-center text-xs font-bold text-[var(--text-secondary)]">
-        <span>{item.completed_count} concluídos</span><span>{item.uncompleted_count} não concluídos</span><span>{item.pending_count} pendentes</span>
+      <div className="grid min-w-0 grid-cols-3 gap-1.5 text-center text-[11px] font-bold text-[var(--text-secondary)] sm:gap-2 sm:text-xs">
+        <span className="min-w-0 break-words">{item.completed_count} concluídos</span><span className="min-w-0 break-words">{item.uncompleted_count} não concluídos</span><span className="min-w-0 break-words">{item.pending_count} pendentes</span>
       </div>
       <div className="flex flex-wrap gap-3 text-xs font-semibold text-[var(--text-secondary)]">
         <span className="inline-flex items-center gap-2"><i className="habitLegendDone size-2.5 rounded-full" />{labels.completedLegend}</span>

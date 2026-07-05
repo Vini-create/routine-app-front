@@ -1,12 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, KeyboardEvent, useEffect, useRef, useState } from "react";
 import alfredAvatar from "../../../alfred.png";
 import { AppShell } from "@/components/app/AppShell";
+import { PageInfoButton } from "@/components/app/PageInfoButton";
 import { useTranslations } from "@/components/app/LanguageProvider";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Form";
 import {
   defaultConversationId,
   fetchChatHistory,
@@ -37,7 +37,8 @@ export default function AssistantPage() {
   const [error, setError] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const conversationRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   const assistant = useTranslations("assistant");
 
   function scrollConversationToBottom(behavior: ScrollBehavior = "smooth") {
@@ -92,6 +93,53 @@ export default function AssistantPage() {
     };
   }, [messages, isSending]);
 
+  useEffect(() => {
+    const viewport = window.visualViewport;
+    if (!viewport) return;
+
+    let restingHeight = viewport.height;
+
+    function syncVisualViewport() {
+      if (!viewport) return;
+      const composerHasFocus = document.activeElement === inputRef.current;
+
+      if (!composerHasFocus) restingHeight = Math.max(restingHeight, viewport.height);
+
+      const keyboardIsVisible = composerHasFocus && restingHeight - viewport.height > 120;
+      document.documentElement.style.setProperty("--assistant-visual-height", `${viewport.height}px`);
+      setIsKeyboardOpen(keyboardIsVisible);
+
+      if (keyboardIsVisible) {
+        window.requestAnimationFrame(() => scrollConversationToBottom("auto"));
+      }
+    }
+
+    syncVisualViewport();
+    viewport.addEventListener("resize", syncVisualViewport);
+    viewport.addEventListener("scroll", syncVisualViewport);
+
+    return () => {
+      viewport.removeEventListener("resize", syncVisualViewport);
+      viewport.removeEventListener("scroll", syncVisualViewport);
+      document.documentElement.style.removeProperty("--assistant-visual-height");
+    };
+  }, []);
+
+  useEffect(() => {
+    const input = inputRef.current;
+    if (!input) return;
+
+    input.style.height = "0px";
+    input.style.height = `${Math.min(input.scrollHeight, 112)}px`;
+  }, [text]);
+
+  function handleComposerKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
+    if (event.key !== "Enter" || event.shiftKey || event.nativeEvent.isComposing) return;
+
+    event.preventDefault();
+    event.currentTarget.form?.requestSubmit();
+  }
+
   async function sendMessage(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const messageText = text.trim();
@@ -131,7 +179,10 @@ export default function AssistantPage() {
 
   return (
     <AppShell title={assistant.title} showTitle={false} mainClassName="assistantMain">
-      <section className="assistantShell flex h-full min-h-0 flex-col overflow-hidden lg:h-[calc(100dvh-5rem)]">
+      <section
+        className="assistantShell flex h-full min-h-0 flex-col overflow-hidden lg:h-[calc(100dvh-5rem)]"
+        data-keyboard-open={isKeyboardOpen}
+      >
         <header className="relative flex shrink-0 items-center justify-between gap-3 pb-3">
           <div className="flex min-w-0 items-center gap-3">
             <Image
@@ -143,7 +194,10 @@ export default function AssistantPage() {
             />
             <div className="min-w-0">
               <p className="label-micro assistantOnlineStatus">{assistant.status}</p>
-              <h2 className="display-title metallicPageTitle truncate text-[2.35rem] leading-none sm:text-5xl">{assistant.title}</h2>
+              <div className="flex min-w-0 items-center gap-2">
+                <h2 className="display-title metallicPageTitle truncate text-[2.35rem] leading-none sm:text-5xl">{assistant.title}</h2>
+                <PageInfoButton page="assistant" className="size-8 sm:size-9" />
+              </div>
             </div>
           </div>
           <span className="developmentBadge max-w-[9rem] shrink-0 truncate rounded-full border px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[0.07em] lg:absolute lg:left-1/2 lg:-translate-x-1/2">
@@ -231,17 +285,41 @@ export default function AssistantPage() {
 
         <form
           onSubmit={sendMessage}
-          className="assistantComposer mt-2 grid shrink-0 grid-cols-[minmax(0,1fr)_auto] gap-2 rounded-[1.45rem] border border-[var(--border-medium)] bg-[var(--surface-focus)] p-2 shadow-[0_18px_48px_-28px_rgba(0,0,0,0.85),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-2xl"
+          autoComplete="off"
+          className="assistantComposer mt-2 flex shrink-0 items-end gap-2 rounded-[1.55rem] border border-[var(--border-medium)] bg-[var(--surface-focus)] p-1.5 pl-4 shadow-[0_18px_48px_-28px_rgba(0,0,0,0.85),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-2xl"
         >
-          <Input
+          <textarea
             ref={inputRef}
+            name="alfred-message"
+            rows={1}
             value={text}
             onChange={(event) => setText(event.target.value)}
+            onKeyDown={handleComposerKeyDown}
+            onFocus={() => window.requestAnimationFrame(() => scrollConversationToBottom("auto"))}
             placeholder={assistant.placeholder}
-            className="min-w-0 border-transparent bg-transparent px-3 text-[var(--text-primary)] shadow-none placeholder:text-[var(--text-tertiary)] focus:border-transparent focus:ring-0 dark:border-transparent dark:bg-transparent dark:focus:ring-0"
+            autoComplete="off"
+            autoCorrect="on"
+            autoCapitalize="sentences"
+            enterKeyHint="send"
+            inputMode="text"
+            spellCheck
+            aria-label={assistant.placeholder}
+            className="assistantComposerInput max-h-28 min-h-11 min-w-0 flex-1 resize-none overflow-y-auto border-0 bg-transparent py-3 text-base leading-5 text-[var(--text-primary)] outline-none placeholder:text-[var(--text-tertiary)]"
           />
-          <Button type="submit" disabled={isSending || !text.trim()} className="min-h-11 rounded-[1.1rem] px-4">
-            {isSending ? assistant.sending : assistant.send}
+          <Button
+            type="submit"
+            disabled={isSending || !text.trim()}
+            aria-label={isSending ? assistant.sending : assistant.send}
+            title={isSending ? assistant.sending : assistant.send}
+            className="assistantSendButton grid size-11 min-h-11 shrink-0 place-items-center rounded-full p-0"
+          >
+            {isSending ? (
+              <span className="size-4 animate-spin rounded-full border-2 border-black/25 border-t-black" aria-hidden="true" />
+            ) : (
+              <svg aria-hidden="true" viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h13m-5-5 5 5-5 5" />
+              </svg>
+            )}
           </Button>
         </form>
       </section>

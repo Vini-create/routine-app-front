@@ -93,6 +93,8 @@
 
 html {
   font-size: 16px;
+  max-width: 100%;
+  overflow-x: clip;
   scroll-behavior: smooth;
 }
 
@@ -104,11 +106,17 @@ html {
 
 body {
   min-height: 100dvh;
+  max-width: 100%;
+  overflow-x: clip;
   background:
     linear-gradient(180deg, var(--background-primary), var(--background-secondary));
   color: var(--foreground);
   font-family: var(--font-ui);
   text-rendering: geometricPrecision;
+}
+
+.routineViewButton {
+  padding-inline: 0.5rem;
 }
 
 button,
@@ -1737,6 +1745,23 @@ h3,
   animation: assistant-rise 320ms ease both;
 }
 
+.assistantComposer {
+  transition: border-color 180ms ease, box-shadow 180ms ease, margin 180ms ease;
+}
+
+.assistantComposer:focus-within {
+  border-color: var(--border-strong);
+  box-shadow: 0 18px 48px -28px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 0 0 3px color-mix(in srgb, var(--text-primary) 8%, transparent);
+}
+
+.assistantComposerInput {
+  scrollbar-width: none;
+}
+
+.assistantComposerInput::-webkit-scrollbar {
+  display: none;
+}
+
 .assistantMain {
   gap: 0;
   padding-top: 0.75rem;
@@ -1818,9 +1843,29 @@ h3,
 
 @media (max-width: 1023px) {
   .assistantMain {
-    height: calc(100dvh - 4.5rem);
+    height: calc(var(--assistant-visual-height, 100dvh) - 4.5rem);
     overflow: hidden;
     padding-bottom: calc(5.75rem + env(safe-area-inset-bottom));
+    transition: height 120ms ease-out, padding-bottom 180ms ease;
+  }
+
+  .assistantMain:has(.assistantShell[data-keyboard-open="true"]) {
+    padding-bottom: max(0.35rem, env(safe-area-inset-bottom));
+  }
+
+  .alfredPage:has(.assistantShell[data-keyboard-open="true"]) .winperiumMobileNav {
+    pointer-events: none;
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(1rem);
+  }
+
+  .assistantShell[data-keyboard-open="true"] .assistantQuickScroll {
+    display: none;
+  }
+
+  .assistantShell[data-keyboard-open="true"] .assistantComposer {
+    margin-top: 0.35rem;
   }
 
   .assistantConversation {
