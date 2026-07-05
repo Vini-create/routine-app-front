@@ -100,7 +100,7 @@ const ptBR: TourCopy = {
       { target: "[data-tour='assistant-conversation']", title: "A conversa fica aqui", description: "Suas mensagens e as respostas de Alfred aparecem nesta área em ordem.", tip: "As mensagens mais recentes ficam próximas ao campo de envio." },
       { target: "[data-tour='assistant-composer']", allowInteraction: true, title: "Escreva e envie", description: "Digite sua pergunta neste campo e use a seta para enviar. O campo cresce se a mensagem ficar maior.", tip: "Fale naturalmente, como falaria com uma pessoa ajudando a planejar." },
     ] },
-    { route: "/insights", area: "Insights", target: "[data-tour='insights-summary']", title: "Veja seu progresso geral", description: "Este indicador resume quanto do planejamento foi concluído no período.", tip: "Use o número como referência, não como cobrança.", components: [
+    { route: "/dashboard", area: "Insights", target: "[data-tour='insights-summary']", title: "Veja seu progresso geral", description: "Este indicador resume quanto do planejamento foi concluído no período.", tip: "Use o número como referência, não como cobrança.", components: [
       { target: "[data-tour='insights-patterns']", title: "Encontre padrões úteis", description: "Os cartões mostram o desempenho de cada meta e ajudam a perceber o que funciona melhor.", tip: "Compare algumas semanas antes de fazer mudanças grandes." },
     ] },
     { route: "/settings", area: "Perfil", target: "[data-tour='settings-personal']", title: "Seus dados básicos", description: "Aqui você altera nome e idioma e salva as mudanças.", tip: "Escolha o idioma em que se sente mais confortável.", components: [
@@ -156,7 +156,7 @@ const en: TourCopy = {
       { target: "[data-tour='assistant-conversation']", title: "Your conversation", description: "Your messages and Alfred's replies appear here in order.", tip: "The newest messages stay close to the composer." },
       { target: "[data-tour='assistant-composer']", allowInteraction: true, title: "Write and send", description: "Write naturally, then select the arrow to send your message.", tip: "The field grows automatically for longer messages." },
     ] },
-    { route: "/insights", area: "Insights", title: "Understand what works", description: "This indicator summarizes overall progress for the period.", tip: "Use it as a reference, not as pressure.", components: [
+    { route: "/dashboard", area: "Insights", target: "[data-tour='insights-summary']", title: "Understand what works", description: "This indicator summarizes overall progress for the period.", tip: "Use it as a reference, not as pressure.", components: [
       { target: "[data-tour='insights-patterns']", title: "Find useful patterns", description: "These cards show how each goal is progressing.", tip: "Compare several weeks before making a large change." },
     ] },
     { route: "/settings", area: "Profile", title: "Make Winperium yours", description: "Manage your basic details and application language.", tip: "Choose the language that feels most comfortable.", components: [
@@ -203,7 +203,7 @@ const es: TourCopy = {
       { target: "[data-tour='assistant-conversation']", title: "Tu conversación", description: "Tus mensajes y las respuestas de Alfred aparecen aquí en orden.", tip: "Las respuestas más recientes quedan cerca del campo de envío." },
       { target: "[data-tour='assistant-composer']", allowInteraction: true, title: "Escribe y envía", description: "Escribe con naturalidad y toca la flecha para enviar el mensaje.", tip: "El campo crece automáticamente cuando escribes más." },
     ] },
-    { route: "/insights", area: "Insights", title: "Descubre qué funciona", description: "Este indicador resume el progreso general del período.", tip: "Úsalo como referencia, no como presión.", components: [
+    { route: "/dashboard", area: "Insights", target: "[data-tour='insights-summary']", title: "Descubre qué funciona", description: "Este indicador resume el progreso general del período.", tip: "Úsalo como referencia, no como presión.", components: [
       { target: "[data-tour='insights-patterns']", title: "Encuentra patrones útiles", description: "Las tarjetas muestran el desempeño de cada meta.", tip: "Compara varias semanas antes de hacer grandes cambios." },
     ] },
     { route: "/settings", area: "Perfil", title: "Haz tuyo Winperium", description: "Gestiona tus datos básicos y el idioma de la aplicación.", tip: "Elige el idioma que te resulte más cómodo.", components: [
@@ -250,7 +250,7 @@ const fr: TourCopy = {
       { target: "[data-tour='assistant-conversation']", title: "Votre conversation", description: "Vos messages et les réponses d’Alfred apparaissent ici dans l’ordre.", tip: "Les messages récents restent près du champ d’envoi." },
       { target: "[data-tour='assistant-composer']", allowInteraction: true, title: "Écrivez et envoyez", description: "Écrivez naturellement puis utilisez la flèche pour envoyer.", tip: "Le champ grandit pour les messages plus longs." },
     ] },
-    { route: "/insights", area: "Analyses", title: "Comprenez ce qui fonctionne", description: "Cet indicateur résume la progression générale de la période.", tip: "Utilisez-le comme repère, pas comme pression.", components: [
+    { route: "/dashboard", area: "Analyses", target: "[data-tour='insights-summary']", title: "Comprenez ce qui fonctionne", description: "Cet indicateur résume la progression générale de la période.", tip: "Utilisez-le comme repère, pas comme pression.", components: [
       { target: "[data-tour='insights-patterns']", title: "Repérez les tendances utiles", description: "Les cartes montrent la progression de chaque objectif.", tip: "Comparez plusieurs semaines avant un grand changement." },
     ] },
     { route: "/settings", area: "Profil", title: "Personnalisez Winperium", description: "Gérez vos informations et la langue de l’application.", tip: "Choisissez la langue la plus confortable.", components: [
@@ -270,7 +270,6 @@ const defaultTargetByRoute: Record<string, string> = {
   "/calendar": "[data-tour='calendar-main']",
   "/feedback": "[data-tour='feedback-form']",
   "/assistant": "[data-tour='assistant-composer']",
-  "/insights": "[data-tour='insights-summary']",
   "/settings": "[data-tour='settings-preferences']",
 };
 
@@ -311,7 +310,7 @@ export function expandedFirstAccessTourSteps(copy: TourCopy): FirstAccessTourSte
   });
 }
 
-const mobileTourTargets = new Set([
+const essentialTourTargets = new Set([
   "dashboard-overview",
   "app-navigation",
   "dashboard-today",
@@ -330,7 +329,7 @@ const mobileTourTargets = new Set([
   "settings-preferences",
 ]);
 
-const mobileTourCopy: Record<SupportedLanguage, Record<string, Pick<FirstAccessTourStep, "title" | "description">>> = {
+const essentialTourCopy: Record<SupportedLanguage, Record<string, Pick<FirstAccessTourStep, "title" | "description">>> = {
   "pt-BR": {
     "dashboard-overview": { title: "Seu dia em um olhar", description: "Veja o que importa agora e como seu dia está avançando." },
     "app-navigation": { title: "Tudo a poucos toques", description: "Use a navegação para circular pelas áreas principais." },
@@ -405,13 +404,13 @@ const mobileTourCopy: Record<SupportedLanguage, Record<string, Pick<FirstAccessT
   },
 };
 
-/** A shorter, flow-oriented tour for small screens. Desktop keeps the full tour. */
-export function mobileFirstAccessTourSteps(steps: FirstAccessTourStep[], language: SupportedLanguage) {
+/** A short, flow-oriented tour shared by mobile and desktop. */
+export function essentialFirstAccessTourSteps(steps: FirstAccessTourStep[], language: SupportedLanguage) {
   const includedTargets = new Set<string>();
   return steps.flatMap((step) => {
     const target = selectorId(step.selector, step.id);
-    if (!mobileTourTargets.has(target) || includedTargets.has(target)) return [];
+    if (!essentialTourTargets.has(target) || includedTargets.has(target)) return [];
     includedTargets.add(target);
-    return [{ ...step, ...mobileTourCopy[language][target] }];
+    return [{ ...step, ...essentialTourCopy[language][target] }];
   });
 }

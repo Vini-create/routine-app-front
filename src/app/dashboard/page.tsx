@@ -6,6 +6,7 @@ import { AppShell } from "@/components/app/AppShell";
 import { PageInfoButton } from "@/components/app/PageInfoButton";
 import { useAuth } from "@/components/app/AuthProvider";
 import { HabitCard } from "@/components/app/HabitCard";
+import { InsightsOverview } from "@/components/app/InsightsOverview";
 import { useLanguage, useTranslations } from "@/components/app/LanguageProvider";
 import { RoutineCard } from "@/components/app/RoutineCard";
 import { SectionTitle } from "@/components/app/SectionTitle";
@@ -171,6 +172,8 @@ export default function DashboardPage() {
           </Card>
         </div>
       </section>
+
+      <InsightsOverview />
 
       <section className="grid gap-5">
         <SectionTitle title={labels.weeklyPlan} />

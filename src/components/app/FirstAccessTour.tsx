@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   expandedFirstAccessTourSteps,
   firstAccessTourCopy,
-  mobileFirstAccessTourSteps,
+  essentialFirstAccessTourSteps,
 } from "@/data/firstAccessTour";
 import {
   clearFirstAccessTourOffer,
@@ -47,8 +47,8 @@ export function FirstAccessTour() {
   const copy = firstAccessTourCopy[language];
   const allSteps = useMemo(() => expandedFirstAccessTourSteps(copy), [copy]);
   const steps = useMemo(
-    () => isMobileTour ? mobileFirstAccessTourSteps(allSteps, language) : allSteps,
-    [allSteps, isMobileTour, language],
+    () => essentialFirstAccessTourSteps(allSteps, language),
+    [allSteps, language],
   );
   const totalSteps = steps.length;
   const step = currentIndex === null ? null : steps[currentIndex];
@@ -298,10 +298,10 @@ export function FirstAccessTour() {
           aria-labelledby="first-access-tour-title"
           aria-describedby="first-access-tour-description"
           style={layout.style}
-          className={`${tooltipClass} alfredModalSurface fixed isolate z-[100] overflow-visible rounded-[1.25rem] border border-[var(--border-medium)] bg-[var(--surface-solid)] shadow-focus transition-[top,left,opacity,transform] duration-200 ${targetReady ? "opacity-100" : "pointer-events-none opacity-0"}`}
+          className={`${tooltipClass} firstAccessTourTooltipSurface alfredModalSurface fixed isolate z-[100] overflow-visible rounded-[1.25rem] border border-[var(--border-medium)] bg-[var(--surface-solid)] shadow-focus transition-[top,left,opacity,transform] duration-200 ${targetReady ? "opacity-100" : "pointer-events-none opacity-0"}`}
         >
           <span aria-hidden="true" className="firstAccessTourArrow absolute size-3 bg-[var(--surface-solid)]" style={layout.arrowStyle} />
-          <div className="relative z-[1] overflow-visible rounded-[1.2rem] bg-[var(--surface-solid)] p-4 sm:overflow-y-auto" style={{ maxHeight: isMobileTour ? undefined : layout.style.maxHeight }}>
+          <div className="firstAccessTourTooltipContent relative z-[1] overflow-visible rounded-[1.2rem] bg-[var(--surface-solid)] p-4 sm:overflow-y-auto" style={{ maxHeight: isMobileTour ? undefined : layout.style.maxHeight }}>
           <div className="flex items-center justify-between gap-3">
             <p className="label-micro">{copy.eyebrow}</p>
             <span className="text-[10px] font-extrabold uppercase tracking-[0.08em] text-[var(--text-tertiary)]">{copy.progress(currentIndex + 1, totalSteps)}</span>

@@ -1,6 +1,7 @@
 "use client";
 
 import type { AgendaEntry } from "@/lib/agenda";
+import type { ItemType } from "@/lib/api-contracts";
 import { toDateKey } from "@/lib/date";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
@@ -14,12 +15,16 @@ function calendarDays(month: Date) {
   return Array.from({ length: slots }, (_, index) => new Date(month.getFullYear(), month.getMonth(), index - first.getDay() + 1));
 }
 
-const statusDot = {
-  completed: "bg-emerald-400",
-  uncompleted: "bg-red-400",
-  pending: "bg-[var(--text-tertiary)]",
-  vacation: "bg-blue-400",
+type CalendarMarkerType = Extract<ItemType, "event" | "reminder">;
+
+const itemTypeDot: Record<CalendarMarkerType, string> = {
+  event: "bg-sky-400",
+  reminder: "bg-amber-400",
 };
+
+function isCalendarMarkerType(type: ItemType): type is CalendarMarkerType {
+  return type === "event" || type === "reminder";
+}
 
 export function InteractiveRoutineCalendar({
   selectedDate,
@@ -28,6 +33,7 @@ export function InteractiveRoutineCalendar({
   months,
   weekdays,
   title,
+  itemTypeLabels,
   correctionWindowStart,
   correctionWindowHint,
   onSelectDate,
@@ -39,6 +45,7 @@ export function InteractiveRoutineCalendar({
   months: readonly string[];
   weekdays: readonly string[];
   title: string;
+  itemTypeLabels: Readonly<Record<CalendarMarkerType, string>>;
   correctionWindowStart?: string;
   correctionWindowHint?: string;
   onSelectDate: (date: string) => void;
@@ -72,6 +79,7 @@ export function InteractiveRoutineCalendar({
           const past = key < today;
           const withinCorrectionWindow = past && Boolean(correctionWindowStart) && key >= correctionWindowStart!;
           const dayEntries = entriesByDate.get(key) ?? [];
+          const dayItemTypes = Array.from(new Set(dayEntries.map((entry) => entry.itemType).filter(isCalendarMarkerType)));
           return (
             <button
               key={key}
@@ -95,10 +103,19 @@ export function InteractiveRoutineCalendar({
             >
               <span className="relative z-10">{date.getDate()}</span>
               {past && inMonth ? <span aria-hidden="true" className={cn(permanentMarker.className, "pointer-events-none absolute inset-0 z-20 flex -rotate-3 scale-x-110 translate-y-px items-center justify-center text-[3.4rem] font-normal leading-none text-red-500 opacity-35 sm:text-[5rem]")} style={permanentMarker.style}>X</span> : null}
-              {current ? <span className="absolute bottom-1.5 z-30 size-1.5 rounded-full bg-[#050507]" /> : dayEntries.length ? <span className="absolute bottom-1.5 z-30 flex max-w-[80%] gap-0.5">{dayEntries.slice(0, 3).map((entry) => <i key={entry.key} className={cn("size-1.5 rounded-full", past ? "bg-red-500/75" : statusDot[entry.status])} />)}</span> : null}
+              {current ? <span aria-label="Hoje" className="absolute right-1.5 top-1.5 z-30 size-1.5 rounded-full bg-[#050507]" /> : null}
+              {dayItemTypes.length ? <span className="absolute bottom-1.5 z-30 flex max-w-[80%] gap-0.5">{dayItemTypes.map((type) => <i key={type} className={cn("size-1.5 rounded-full shadow-[0_0_0_1px_rgba(0,0,0,0.12)]", itemTypeDot[type])} />)}</span> : null}
             </button>
           );
         })}
+      </div>
+      <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs font-bold text-[var(--text-tertiary)]" aria-label="Legenda dos tipos de item">
+        {(Object.keys(itemTypeDot) as CalendarMarkerType[]).map((type) => (
+          <span key={type} className="inline-flex items-center gap-1.5">
+            <i aria-hidden="true" className={cn("size-2 rounded-full", itemTypeDot[type])} />
+            {itemTypeLabels[type]}
+          </span>
+        ))}
       </div>
       {correctionWindowHint ? <p className="flex min-w-0 items-start gap-2 break-words text-xs font-bold text-[var(--text-tertiary)]"><span aria-hidden="true" className="mt-0.5 size-2.5 shrink-0 rounded-full border border-red-400/80 ring-1 ring-red-400/25" />{correctionWindowHint}</p> : null}
     </Card>

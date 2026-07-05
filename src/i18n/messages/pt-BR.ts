@@ -353,6 +353,7 @@ export const ptBR = {
     weekdays: ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"],
     months: ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"],
     calendar: "Calendário da rotina",
+    itemTypes: { event: "Evento", reminder: "Lembrete" },
     weeklyAgenda: "Agenda da semana",
     timeline: "Timeline",
     description: "Blocos organizados por energia, prioridade e compromissos fixos. Tudo pode ser alterado manualmente.",
@@ -529,6 +530,9 @@ export const ptBR = {
     weeklyText: "Seu resumo semanal aparece depois de registros suficientes de rotina e hábitos.",
     emptyTitle: "Ainda não há insights",
     emptyDescription: "Os insights aparecem depois que você cria uma rotina e acompanha hábitos.",
+    completed: "concluídos",
+    uncompleted: "não concluídos",
+    pending: "pendentes",
   },
   calendarPage: {
     ...en.calendarPage,

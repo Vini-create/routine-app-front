@@ -175,6 +175,7 @@ export default function RoutinePage() {
         months={labels.months}
         weekdays={labels.weekdays}
         title={labels.calendar}
+        itemTypeLabels={labels.itemTypes}
         correctionWindowStart={oldestEditableDate}
         correctionWindowHint={labels.correctionWindowHint}
         onSelectDate={openDate}

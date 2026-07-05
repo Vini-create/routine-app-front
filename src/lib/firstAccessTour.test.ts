@@ -10,7 +10,7 @@ import {
   requestFirstAccessTour,
   saveFirstAccessTourProgress,
 } from "./firstAccessTour";
-import { expandedFirstAccessTourSteps, firstAccessTourCopy, mobileFirstAccessTourSteps } from "../data/firstAccessTour";
+import { essentialFirstAccessTourSteps, expandedFirstAccessTourSteps, firstAccessTourCopy } from "../data/firstAccessTour";
 
 function createStorage() {
   const values = new Map<string, string>();
@@ -85,16 +85,16 @@ describe("first access tour", () => {
     });
   });
 
-  it("keeps the mobile walkthrough focused on the main flow", () => {
+  it("keeps the walkthrough focused on the main flow on every viewport", () => {
     Object.entries(firstAccessTourCopy).forEach(([language, copy]) => {
       const fullTour = expandedFirstAccessTourSteps(copy);
-      const mobileTour = mobileFirstAccessTourSteps(fullTour, language as keyof typeof firstAccessTourCopy);
-      expect(mobileTour).toHaveLength(16);
-      expect(mobileTour.length).toBeLessThan(fullTour.length);
-      expect(mobileTour.every((step) => step.description.length <= 80)).toBe(true);
-      expect(mobileTour.some((step) => step.selector.includes("page-info-button"))).toBe(false);
-      expect(mobileTour.some((step) => step.selector.includes("habit-consistency-fire"))).toBe(false);
-      expect(new Set(mobileTour.map((step) => step.route))).toEqual(new Set(fullTour.map((step) => step.route)));
+      const essentialTour = essentialFirstAccessTourSteps(fullTour, language as keyof typeof firstAccessTourCopy);
+      expect(essentialTour).toHaveLength(16);
+      expect(essentialTour.length).toBeLessThan(fullTour.length);
+      expect(essentialTour.every((step) => step.description.length <= 80)).toBe(true);
+      expect(essentialTour.some((step) => step.selector.includes("page-info-button"))).toBe(false);
+      expect(essentialTour.some((step) => step.selector.includes("habit-consistency-fire"))).toBe(false);
+      expect(new Set(essentialTour.map((step) => step.route))).toEqual(new Set(fullTour.map((step) => step.route)));
     });
   });
 });

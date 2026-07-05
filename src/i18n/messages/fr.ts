@@ -166,6 +166,22 @@ export const fr = {
     emptyHabitsTitle: "Aucune habitude pour l'instant",
     emptyHabitsDescription: "Ajoutez une habitude pour commencer à suivre la constance.",
   },
+  routine: {
+    ...en.routine,
+    itemTypes: { event: "Événement", reminder: "Rappel" },
+  },
+  insightsPage: {
+    ...en.insightsPage,
+    title: "Analyses",
+    completion: "Régularité de la semaine",
+    patterns: "Tendances détectées",
+    patternsDescription: "Des repères simples pour améliorer la semaine sans surcharge.",
+    emptyTitle: "Pas encore d’analyse",
+    emptyDescription: "Elles apparaîtront après la création d’une routine et le suivi des habitudes.",
+    completed: "terminés",
+    uncompleted: "non terminés",
+    pending: "en attente",
+  },
   appData: {
     defaultUserName: "Utilisateur",
   },

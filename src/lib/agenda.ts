@@ -1,4 +1,4 @@
-import type { Agenda, ItemStatus } from "./api-contracts";
+import type { Agenda, ItemStatus, ItemType } from "./api-contracts";
 import { formatTime } from "./date";
 
 export type AgendaEntry = {
@@ -11,6 +11,7 @@ export type AgendaEntry = {
   durationMinutes: number;
   date: string;
   status: ItemStatus;
+  itemType: ItemType;
   goalTitle?: string;
 };
 
@@ -22,13 +23,14 @@ export function agendaEntries(agenda?: Agenda, habitPreferredTimes: Record<strin
       source: "item", sourceId: occurrence.item.id, title: occurrence.item.title,
       description: occurrence.item.description ?? "", time: formatTime(occurrence.occurrence_at),
       durationMinutes: occurrence.item.duration_minutes, date: occurrence.occurrence_date, status: occurrence.status,
+      itemType: occurrence.item.item_type,
     })),
     ...agenda.habits.map((occurrence): AgendaEntry => ({
       key: `habit-${occurrence.habit.id}-${occurrence.occurrence_date}`,
       source: "habit", sourceId: occurrence.habit.id, title: occurrence.habit.name,
       description: occurrence.habit.description ?? "", time: habitPreferredTimes[occurrence.habit.id] ?? "08:00",
       durationMinutes: occurrence.habit.duration_minutes, date: occurrence.occurrence_date,
-      status: occurrence.status, goalTitle: occurrence.goal?.title,
+      status: occurrence.status, itemType: "habit", goalTitle: occurrence.goal?.title,
     })),
   ].sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
 }

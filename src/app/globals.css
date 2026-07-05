@@ -1772,6 +1772,22 @@ h3,
   transform-origin: center;
 }
 
+@media (max-width: 639px) {
+  .firstAccessTourTooltipSurface {
+    background: color-mix(in srgb, var(--surface-solid) 88%, transparent) !important;
+    backdrop-filter: blur(3px) saturate(110%);
+    -webkit-backdrop-filter: blur(3px) saturate(110%);
+  }
+
+  .firstAccessTourTooltipContent {
+    background: transparent !important;
+  }
+
+  .firstAccessTourArrow {
+    background: color-mix(in srgb, var(--surface-solid) 88%, transparent) !important;
+  }
+}
+
 .firstAccessTourArrow {
   z-index: 0;
   transform: rotate(45deg);

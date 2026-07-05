@@ -357,6 +357,7 @@ export const en = {
     weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
     months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
     calendar: "Routine calendar",
+    itemTypes: { event: "Event", reminder: "Reminder" },
     weeklyAgenda: "Weekly agenda",
     timeline: "Timeline",
     description: "Blocks organized by energy, priority, and fixed commitments. Everything can be changed manually.",
@@ -530,6 +531,9 @@ export const en = {
     weeklyText: "Your weekly summary will appear after enough routine and habit records.",
     emptyTitle: "No insights yet",
     emptyDescription: "Insights appear after you create a routine and track habits.",
+    completed: "completed",
+    uncompleted: "not completed",
+    pending: "pending",
   },
   calendarPage: {
     title: "Calendar",

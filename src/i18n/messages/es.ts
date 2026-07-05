@@ -166,6 +166,22 @@ export const es = {
     emptyHabitsTitle: "Aún no hay hábitos",
     emptyHabitsDescription: "Agrega un hábito para empezar a medir constancia.",
   },
+  routine: {
+    ...en.routine,
+    itemTypes: { event: "Evento", reminder: "Recordatorio" },
+  },
+  insightsPage: {
+    ...en.insightsPage,
+    title: "Insights",
+    completion: "Constancia semanal",
+    patterns: "Patrones detectados",
+    patternsDescription: "Señales simples para mejorar tu semana sin sobrecarga.",
+    emptyTitle: "Aún no hay insights",
+    emptyDescription: "Aparecerán después de crear una rutina y registrar hábitos.",
+    completed: "completados",
+    uncompleted: "no completados",
+    pending: "pendientes",
+  },
   appData: {
     defaultUserName: "Usuario",
   },
