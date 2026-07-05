@@ -1,18 +1,40 @@
 import type { SupportedLanguage } from "@/lib/i18n";
 
-export type FirstAccessTourStep = {
+export type TourPlacement = "auto" | "top" | "bottom" | "left" | "right";
+
+type TourComponentDefinition = {
+  title: string;
+  description: string;
+  tip: string;
+  target: string;
+  preferredPlacement?: TourPlacement;
+  fallbackSelector?: string;
+  allowInteraction?: boolean;
+};
+
+type TourScreenDefinition = {
   route: string;
   area: string;
   title: string;
   description: string;
   tip: string;
   target?: string;
-  components?: Array<{
-    title: string;
-    description: string;
-    tip: string;
-    target: string;
-  }>;
+  preferredPlacement?: TourPlacement;
+  fallbackSelector?: string;
+  allowInteraction?: boolean;
+  components?: TourComponentDefinition[];
+};
+
+export type FirstAccessTourStep = {
+  id: string;
+  selector: string;
+  route: string;
+  area: string;
+  title: string;
+  description: string;
+  preferredPlacement: TourPlacement;
+  fallbackSelector?: string;
+  allowInteraction: boolean;
 };
 
 type TourCopy = {
@@ -28,7 +50,7 @@ type TourCopy = {
   finish: string;
   skip: string;
   tipLabel: string;
-  steps: FirstAccessTourStep[];
+  steps: TourScreenDefinition[];
 };
 
 const ptBR: TourCopy = {
@@ -41,7 +63,7 @@ const ptBR: TourCopy = {
   progress: (current, total) => `${current} de ${total}`,
   previous: "Voltar",
   next: "Continuar",
-  finish: "Começar a usar",
+  finish: "Concluir",
   skip: "Pular tutorial",
   tipLabel: "Como começar",
   steps: [
@@ -58,8 +80,17 @@ const ptBR: TourCopy = {
     { route: "/goals", area: "Metas", target: "[data-tour='goal-create']", title: "Crie uma meta clara", description: "Preencha nome, prazo e categoria. A descrição é opcional e pode explicar o motivo da meta.", tip: "Uma meta simples e específica é mais fácil de acompanhar.", components: [
       { target: "[data-tour='goal-list']", title: "Acompanhe e ajuste suas metas", description: "Nesta lista você vê o progresso, abre detalhes, edita a meta e adiciona hábitos relacionados.", tip: "Conecte cada meta aos hábitos que ajudam a alcançá-la." },
     ] },
-    { route: "/habits", area: "Hábitos", target: "[data-tour='habit-guide']", title: "Entenda as cores de consistência", description: "As cores mostram, de forma rápida, como a frequência do hábito está evoluindo.", tip: "Elas orientam, não julgam: um resultado baixo é apenas um sinal para ajustar.", components: [
-      { target: "[data-tour='habit-list']", title: "Registre e cuide dos hábitos", description: "Cada cartão mostra frequência, progresso e ações para concluir, editar ou excluir.", tip: "Marque o hábito no mesmo dia para manter os dados corretos." },
+    { route: "/habits", area: "Hábitos", target: "[data-tour='habits-title']", preferredPlacement: "bottom", title: "Crie comportamentos que se repetem", description: "Esta tela reúne os hábitos que apoiam suas metas e mostra sua regularidade.", tip: "Comece com algo pequeno e possível.", components: [
+      { target: "[data-tour='page-info-button']", preferredPlacement: "bottom", title: "Ajuda sobre esta tela", description: "Este botão abre uma explicação completa da área sempre que surgir uma dúvida.", tip: "A ajuda continua disponível após o tutorial." },
+      { target: "[data-tour='habit-add']", preferredPlacement: "left", title: "Adicione um hábito", description: "Use este botão para abrir a criação de hábitos dentro de uma meta.", tip: "Dê um nome simples e escolha uma frequência realista." },
+      { target: "[data-tour='habit-guide']", title: "Resumo de consistência", description: "Este quadro explica as cores e informa quantos hábitos estão ativos no período.", tip: "As cores são sinais para ajustar, não notas." },
+      { target: "[data-tour='habit-consistency-fire']", preferredPlacement: "bottom", title: "Consistência muito forte", description: "Fogo indica que o hábito vem sendo cumprido com bastante regularidade.", tip: "Continue sem aumentar a dificuldade rápido demais." },
+      { target: "[data-tour='habit-consistency-grass']", preferredPlacement: "bottom", title: "Consistência saudável", description: "Grama indica uma frequência estável, com espaço natural para alguns dias diferentes.", tip: "Mantenha o ritmo sustentável." },
+      { target: "[data-tour='habit-consistency-ice']", preferredPlacement: "bottom", title: "Consistência esfriando", description: "Gelo mostra que o hábito está acontecendo menos e talvez precise ser simplificado.", tip: "Reduza duração ou frequência antes de desistir." },
+      { target: "[data-tour='habit-consistency-empty']", preferredPlacement: "bottom", title: "Ainda sem histórico", description: "Esta cor aparece quando ainda não existem registros suficientes para avaliar o hábito.", tip: "Registre alguns dias para formar o primeiro padrão." },
+      { target: "[data-tour='habit-card']", fallbackSelector: "[data-tour='habit-list']", title: "O cartão do hábito", description: "O cartão reúne frequência, duração, progresso, histórico e vínculo com uma meta.", tip: "Quando não houver hábitos, esta área mostrará como criar o primeiro." },
+      { target: "[data-tour='habit-controls']", fallbackSelector: "[data-tour='habit-list']", preferredPlacement: "top", title: "Registre e ajuste", description: "Use as ações do cartão para concluir o hábito, editar seus dados ou removê-lo.", tip: "Férias e outros estados da agenda também aparecem no histórico." },
+      { target: "[data-tour='app-navigation']", preferredPlacement: "top", title: "Continue navegando", description: "A navegação leva às demais áreas e mantém Hábitos destacado enquanto você está aqui.", tip: "No desktop ela fica na lateral; no celular, na parte inferior." },
     ] },
     { route: "/calendar", area: "Calendário", target: "[data-tour='calendar-main']", title: "Veja como sua semana se encaixa", description: "Mude o mês pelas setas e toque em um dia para ver seus itens.", tip: "Use esta visão para encontrar conflitos e espaços livres.", components: [
       { target: "[data-tour='calendar-day']", title: "Detalhes do dia escolhido", description: "A lista abaixo reúne atividades e hábitos da data selecionada.", tip: "Se o dia estiver pesado, use o botão de reorganizar com Alfred." },
@@ -67,7 +98,7 @@ const ptBR: TourCopy = {
     { route: "/feedback", area: "Feedback", target: "[data-tour='feedback-form']", title: "Peça uma análise da sua semana", description: "Digite a prioridade que deseja melhorar e toque em gerar feedback.", tip: "Você pode escrever com suas próprias palavras; não existe resposta certa." },
     { route: "/assistant", area: "Alfred", target: "[data-tour='assistant-suggestions']", title: "Comece com uma sugestão", description: "Estes atalhos oferecem perguntas prontas quando você não sabe como iniciar a conversa.", tip: "Toque em uma sugestão para colocá-la no campo de mensagem.", components: [
       { target: "[data-tour='assistant-conversation']", title: "A conversa fica aqui", description: "Suas mensagens e as respostas de Alfred aparecem nesta área em ordem.", tip: "As mensagens mais recentes ficam próximas ao campo de envio." },
-      { target: "[data-tour='assistant-composer']", title: "Escreva e envie", description: "Digite sua pergunta neste campo e use a seta para enviar. O campo cresce se a mensagem ficar maior.", tip: "Fale naturalmente, como falaria com uma pessoa ajudando a planejar." },
+      { target: "[data-tour='assistant-composer']", allowInteraction: true, title: "Escreva e envie", description: "Digite sua pergunta neste campo e use a seta para enviar. O campo cresce se a mensagem ficar maior.", tip: "Fale naturalmente, como falaria com uma pessoa ajudando a planejar." },
     ] },
     { route: "/insights", area: "Insights", target: "[data-tour='insights-summary']", title: "Veja seu progresso geral", description: "Este indicador resume quanto do planejamento foi concluído no período.", tip: "Use o número como referência, não como cobrança.", components: [
       { target: "[data-tour='insights-patterns']", title: "Encontre padrões úteis", description: "Os cartões mostram o desempenho de cada meta e ajudam a perceber o que funciona melhor.", tip: "Compare algumas semanas antes de fazer mudanças grandes." },
@@ -89,7 +120,7 @@ const en: TourCopy = {
   progress: (current, total) => `${current} of ${total}`,
   previous: "Back",
   next: "Next",
-  finish: "Start using",
+  finish: "Finish",
   skip: "Skip tutorial",
   tipLabel: "How to start",
   steps: [
@@ -105,8 +136,17 @@ const en: TourCopy = {
     { route: "/goals", area: "Goals", title: "Turn intention into direction", description: "Enter a name, date, and category to create a goal.", tip: "A simple and specific goal is easier to follow.", components: [
       { target: "[data-tour='goal-list']", title: "Track and adjust goals", description: "This list shows progress and actions to view, edit, or add habits.", tip: "Link each goal to habits that support it." },
     ] },
-    { route: "/habits", area: "Habits", title: "Build consistency", description: "Colors quickly show how your frequency is changing.", tip: "They guide you; they do not judge you.", components: [
-      { target: "[data-tour='habit-list']", title: "Record your habits", description: "Each card shows progress and lets you complete, edit, or delete.", tip: "Record a habit on the same day for accurate data." },
+    { route: "/habits", area: "Habits", target: "[data-tour='habits-title']", title: "Build repeatable behaviors", description: "This area gathers the habits that support your goals and shows regularity.", tip: "Start with something small.", components: [
+      { target: "[data-tour='page-info-button']", title: "Help for this screen", description: "Open a complete explanation of this area whenever you need it.", tip: "Help remains available after the tour." },
+      { target: "[data-tour='habit-add']", preferredPlacement: "left", title: "Add a habit", description: "Open habit creation inside one of your goals.", tip: "Choose a simple name and realistic frequency." },
+      { target: "[data-tour='habit-guide']", title: "Consistency summary", description: "This panel explains the colors and active habit count.", tip: "Colors guide you; they do not grade you." },
+      { target: "[data-tour='habit-consistency-fire']", title: "Very strong consistency", description: "Fire means the habit has been completed very regularly.", tip: "Keep the pace sustainable." },
+      { target: "[data-tour='habit-consistency-grass']", title: "Healthy consistency", description: "Grass means a steady rhythm with room for normal variation.", tip: "Protect this realistic pace." },
+      { target: "[data-tour='habit-consistency-ice']", title: "Consistency is cooling", description: "Ice means the habit may need to become simpler or easier.", tip: "Reduce duration or frequency before giving up." },
+      { target: "[data-tour='habit-consistency-empty']", title: "No history yet", description: "This state appears before enough records exist to identify a pattern.", tip: "Record a few days to begin." },
+      { target: "[data-tour='habit-card']", fallbackSelector: "[data-tour='habit-list']", title: "The habit card", description: "It combines frequency, duration, progress, history, and linked goal.", tip: "An empty area will guide you to create the first habit." },
+      { target: "[data-tour='habit-controls']", fallbackSelector: "[data-tour='habit-list']", title: "Record and adjust", description: "Use card actions to complete, edit, or remove the habit.", tip: "Vacation and agenda states also appear in history." },
+      { target: "[data-tour='app-navigation']", preferredPlacement: "top", title: "Keep moving", description: "Navigation opens other areas and keeps Habits highlighted here.", tip: "It is lateral on desktop and at the bottom on mobile." },
     ] },
     { route: "/calendar", area: "Calendar", title: "See how your week fits together", description: "Change months and select a day to see its activities.", tip: "Look for conflicts, free time, and overloaded days.", components: [
       { target: "[data-tour='calendar-day']", title: "Selected day details", description: "This list combines the activities and habits for the selected date.", tip: "Alfred can help reorganize an overloaded day." },
@@ -114,7 +154,7 @@ const en: TourCopy = {
     { route: "/feedback", area: "Feedback", title: "Learn from your patterns", description: "Share your priority and receive a weekly reading with progress, obstacles, and practical adjustments.", tip: "Use it at the end of the week and describe what you want to improve." },
     { route: "/assistant", area: "Alfred", title: "Plan through conversation", description: "Suggestions help you start when you are unsure what to write.", tip: "Select a prepared suggestion to try it.", components: [
       { target: "[data-tour='assistant-conversation']", title: "Your conversation", description: "Your messages and Alfred's replies appear here in order.", tip: "The newest messages stay close to the composer." },
-      { target: "[data-tour='assistant-composer']", title: "Write and send", description: "Write naturally, then select the arrow to send your message.", tip: "The field grows automatically for longer messages." },
+      { target: "[data-tour='assistant-composer']", allowInteraction: true, title: "Write and send", description: "Write naturally, then select the arrow to send your message.", tip: "The field grows automatically for longer messages." },
     ] },
     { route: "/insights", area: "Insights", title: "Understand what works", description: "This indicator summarizes overall progress for the period.", tip: "Use it as a reference, not as pressure.", components: [
       { target: "[data-tour='insights-patterns']", title: "Find useful patterns", description: "These cards show how each goal is progressing.", tip: "Compare several weeks before making a large change." },
@@ -129,7 +169,7 @@ const en: TourCopy = {
 const es: TourCopy = {
   ...en,
   invitationEyebrow: "Bienvenido a Winperium", invitationTitle: "¿Quieres hacer el tutorial para conocer mejor las funciones?", invitationDescription: "Preparamos una visita breve y sencilla por las áreas principales. Verás paso a paso dónde organizar tu rutina, crear metas y hábitos y hablar con Alfred.", invitationAccept: "Hacer el tutorial", invitationDecline: "Ahora no",
-  eyebrow: "Primeros pasos", progress: (current, total) => `${current} de ${total}`, previous: "Volver", next: "Siguiente", finish: "Empezar a usar", skip: "Saltar tutorial", tipLabel: "Cómo empezar",
+  eyebrow: "Primeros pasos", progress: (current, total) => `${current} de ${total}`, previous: "Volver", next: "Siguiente", finish: "Concluir", skip: "Saltar tutorial", tipLabel: "Cómo empezar",
   steps: [
     { route: "/dashboard", area: "Inicio", title: "Tu día de un vistazo", description: "Consulta compromisos, hábitos principales, progreso y enfoque semanal.", tip: "Empieza el día aquí y actualiza cada elemento mientras avanzas.", components: [
       { target: "[data-tour='app-header']", title: "Siempre sabes dónde estás", description: "El encabezado muestra el área actual, ofrece información y permite volver al Inicio.", tip: "En el móvil, el menú está en la esquina izquierda." },
@@ -143,8 +183,17 @@ const es: TourCopy = {
     { route: "/goals", area: "Metas", title: "Convierte intención en dirección", description: "Completa nombre, fecha y categoría para crear una meta.", tip: "Una meta clara y sencilla es más fácil de seguir.", components: [
       { target: "[data-tour='goal-list']", title: "Sigue y ajusta tus metas", description: "La lista muestra progreso y acciones para ver detalles, editar o añadir hábitos.", tip: "Relaciona cada meta con los hábitos que la apoyan." },
     ] },
-    { route: "/habits", area: "Hábitos", title: "Construye constancia", description: "Los colores muestran rápidamente cómo evoluciona la frecuencia.", tip: "Los colores orientan; no sirven para juzgar.", components: [
-      { target: "[data-tour='habit-list']", title: "Registra tus hábitos", description: "Cada tarjeta muestra progreso y permite completar, editar o eliminar.", tip: "Registra el hábito el mismo día para mantener los datos correctos." },
+    { route: "/habits", area: "Hábitos", target: "[data-tour='habits-title']", title: "Crea comportamientos repetibles", description: "Esta pantalla reúne los hábitos que apoyan tus metas y muestra tu regularidad.", tip: "Empieza con algo pequeño.", components: [
+      { target: "[data-tour='page-info-button']", title: "Ayuda de esta pantalla", description: "Abre una explicación completa del área cuando tengas dudas.", tip: "La ayuda seguirá disponible." },
+      { target: "[data-tour='habit-add']", preferredPlacement: "left", title: "Añade un hábito", description: "Abre la creación de hábitos dentro de una meta.", tip: "Elige una frecuencia realista." },
+      { target: "[data-tour='habit-guide']", title: "Resumen de constancia", description: "Este panel explica los colores y los hábitos activos.", tip: "Los colores orientan, no califican." },
+      { target: "[data-tour='habit-consistency-fire']", title: "Constancia muy fuerte", description: "Fuego indica que el hábito se cumple con mucha regularidad.", tip: "Mantén un ritmo sostenible." },
+      { target: "[data-tour='habit-consistency-grass']", title: "Constancia saludable", description: "Hierba indica un ritmo estable con variaciones normales.", tip: "Protege este ritmo realista." },
+      { target: "[data-tour='habit-consistency-ice']", title: "La constancia se enfría", description: "Hielo indica que quizá debas simplificar el hábito.", tip: "Reduce duración o frecuencia." },
+      { target: "[data-tour='habit-consistency-empty']", title: "Aún sin historial", description: "Aparece antes de tener registros suficientes para evaluar el patrón.", tip: "Registra algunos días." },
+      { target: "[data-tour='habit-card']", fallbackSelector: "[data-tour='habit-list']", title: "La tarjeta del hábito", description: "Reúne frecuencia, duración, progreso, historial y meta vinculada.", tip: "Si no hay hábitos, verás cómo crear el primero." },
+      { target: "[data-tour='habit-controls']", fallbackSelector: "[data-tour='habit-list']", title: "Registra y ajusta", description: "Usa las acciones para completar, editar o eliminar el hábito.", tip: "Otros estados también aparecen en el historial." },
+      { target: "[data-tour='app-navigation']", preferredPlacement: "top", title: "Sigue navegando", description: "La navegación abre las demás áreas y mantiene Hábitos destacado.", tip: "Es lateral en escritorio e inferior en móvil." },
     ] },
     { route: "/calendar", area: "Calendario", title: "Entiende cómo encaja tu semana", description: "Cambia de mes y toca un día para consultar sus actividades.", tip: "Busca conflictos, espacios libres y días con demasiadas tareas.", components: [
       { target: "[data-tour='calendar-day']", title: "Detalles del día", description: "Esta lista reúne las actividades y hábitos de la fecha seleccionada.", tip: "Alfred puede ayudarte a reorganizar un día demasiado cargado." },
@@ -152,7 +201,7 @@ const es: TourCopy = {
     { route: "/feedback", area: "Feedback", title: "Aprende de tus patrones", description: "Recibe una lectura semanal con avances, obstáculos y ajustes prácticos.", tip: "Úsalo al final de la semana y explica qué deseas mejorar." },
     { route: "/assistant", area: "Alfred", title: "Planifica conversando", description: "Las sugerencias ayudan a iniciar una conversación cuando no sabes qué escribir.", tip: "Puedes tocar una sugerencia preparada.", components: [
       { target: "[data-tour='assistant-conversation']", title: "Tu conversación", description: "Tus mensajes y las respuestas de Alfred aparecen aquí en orden.", tip: "Las respuestas más recientes quedan cerca del campo de envío." },
-      { target: "[data-tour='assistant-composer']", title: "Escribe y envía", description: "Escribe con naturalidad y toca la flecha para enviar el mensaje.", tip: "El campo crece automáticamente cuando escribes más." },
+      { target: "[data-tour='assistant-composer']", allowInteraction: true, title: "Escribe y envía", description: "Escribe con naturalidad y toca la flecha para enviar el mensaje.", tip: "El campo crece automáticamente cuando escribes más." },
     ] },
     { route: "/insights", area: "Insights", title: "Descubre qué funciona", description: "Este indicador resume el progreso general del período.", tip: "Úsalo como referencia, no como presión.", components: [
       { target: "[data-tour='insights-patterns']", title: "Encuentra patrones útiles", description: "Las tarjetas muestran el desempeño de cada meta.", tip: "Compara varias semanas antes de hacer grandes cambios." },
@@ -167,7 +216,7 @@ const es: TourCopy = {
 const fr: TourCopy = {
   ...en,
   invitationEyebrow: "Bienvenue sur Winperium", invitationTitle: "Souhaitez-vous suivre le tutoriel pour mieux connaître les fonctionnalités ?", invitationDescription: "Nous avons préparé une visite courte et simple des principales zones. Vous verrez pas à pas où organiser votre routine, créer des objectifs et des habitudes, et parler à Alfred.", invitationAccept: "Faire le tutoriel", invitationDecline: "Pas maintenant",
-  eyebrow: "Premiers pas", progress: (current, total) => `${current} sur ${total}`, previous: "Retour", next: "Suivant", finish: "Commencer", skip: "Passer le tutoriel", tipLabel: "Pour commencer",
+  eyebrow: "Premiers pas", progress: (current, total) => `${current} sur ${total}`, previous: "Retour", next: "Suivant", finish: "Terminer", skip: "Passer le tutoriel", tipLabel: "Pour commencer",
   steps: [
     { route: "/dashboard", area: "Accueil", title: "Votre journée en un coup d’œil", description: "Consultez engagements, habitudes, progrès et priorité de la semaine.", tip: "Commencez votre journée ici.", components: [
       { target: "[data-tour='app-header']", title: "Sachez toujours où vous êtes", description: "L’en-tête indique la zone actuelle, offre de l’aide et permet de revenir à l’Accueil.", tip: "Sur mobile, le menu se trouve à gauche." },
@@ -181,8 +230,17 @@ const fr: TourCopy = {
     { route: "/goals", area: "Objectifs", title: "Donnez une direction à vos intentions", description: "Indiquez un nom, une date et une catégorie pour créer un objectif.", tip: "Un objectif simple et précis est plus facile à suivre.", components: [
       { target: "[data-tour='goal-list']", title: "Suivez vos objectifs", description: "Cette liste présente la progression et les actions pour consulter, modifier ou ajouter des habitudes.", tip: "Associez chaque objectif aux habitudes qui le soutiennent." },
     ] },
-    { route: "/habits", area: "Habitudes", title: "Développez votre régularité", description: "Les couleurs montrent rapidement l’évolution de votre fréquence.", tip: "Elles vous guident sans vous juger.", components: [
-      { target: "[data-tour='habit-list']", title: "Enregistrez vos habitudes", description: "Chaque carte montre la progression et permet de terminer, modifier ou supprimer.", tip: "Enregistrez l’habitude le jour même." },
+    { route: "/habits", area: "Habitudes", target: "[data-tour='habits-title']", title: "Créez des comportements réguliers", description: "Cette page rassemble les habitudes qui soutiennent vos objectifs.", tip: "Commencez par quelque chose de simple.", components: [
+      { target: "[data-tour='page-info-button']", title: "Aide de cette page", description: "Ouvrez une explication complète de la zone en cas de doute.", tip: "L’aide restera disponible." },
+      { target: "[data-tour='habit-add']", preferredPlacement: "left", title: "Ajoutez une habitude", description: "Ouvrez la création d’habitudes dans un objectif.", tip: "Choisissez une fréquence réaliste." },
+      { target: "[data-tour='habit-guide']", title: "Résumé de régularité", description: "Ce panneau explique les couleurs et le nombre d’habitudes actives.", tip: "Les couleurs guident sans noter." },
+      { target: "[data-tour='habit-consistency-fire']", title: "Très forte régularité", description: "Le feu indique une habitude accomplie très régulièrement.", tip: "Gardez un rythme durable." },
+      { target: "[data-tour='habit-consistency-grass']", title: "Régularité saine", description: "L’herbe indique un rythme stable avec des variations normales.", tip: "Préservez ce rythme réaliste." },
+      { target: "[data-tour='habit-consistency-ice']", title: "Régularité en baisse", description: "La glace indique que l’habitude devrait peut-être être simplifiée.", tip: "Réduisez la durée ou la fréquence." },
+      { target: "[data-tour='habit-consistency-empty']", title: "Pas encore d’historique", description: "Cet état apparaît avant d’avoir assez de données.", tip: "Enregistrez quelques jours." },
+      { target: "[data-tour='habit-card']", fallbackSelector: "[data-tour='habit-list']", title: "La carte d’habitude", description: "Elle réunit fréquence, durée, progression, historique et objectif.", tip: "Une zone vide aide à créer la première habitude." },
+      { target: "[data-tour='habit-controls']", fallbackSelector: "[data-tour='habit-list']", title: "Enregistrez et ajustez", description: "Utilisez les actions pour terminer, modifier ou supprimer.", tip: "D’autres états apparaissent aussi dans l’historique." },
+      { target: "[data-tour='app-navigation']", preferredPlacement: "top", title: "Continuez à naviguer", description: "La navigation ouvre les autres zones et garde Habitudes active.", tip: "Elle est latérale sur ordinateur et en bas sur mobile." },
     ] },
     { route: "/calendar", area: "Calendrier", title: "Visualisez votre semaine", description: "Changez de mois et choisissez un jour pour voir ses activités.", tip: "Repérez les conflits, le temps libre et les journées chargées.", components: [
       { target: "[data-tour='calendar-day']", title: "Détails du jour", description: "Cette liste réunit les activités et habitudes de la date choisie.", tip: "Alfred peut aider à réorganiser une journée chargée." },
@@ -190,7 +248,7 @@ const fr: TourCopy = {
     { route: "/feedback", area: "Feedback", title: "Apprenez de vos habitudes", description: "Recevez une analyse hebdomadaire avec progrès, obstacles et ajustements pratiques.", tip: "Utilisez-la en fin de semaine et précisez ce que vous souhaitez améliorer." },
     { route: "/assistant", area: "Alfred", title: "Planifiez en discutant", description: "Les suggestions vous aident à commencer quand vous ne savez pas quoi écrire.", tip: "Choisissez une suggestion préparée.", components: [
       { target: "[data-tour='assistant-conversation']", title: "Votre conversation", description: "Vos messages et les réponses d’Alfred apparaissent ici dans l’ordre.", tip: "Les messages récents restent près du champ d’envoi." },
-      { target: "[data-tour='assistant-composer']", title: "Écrivez et envoyez", description: "Écrivez naturellement puis utilisez la flèche pour envoyer.", tip: "Le champ grandit pour les messages plus longs." },
+      { target: "[data-tour='assistant-composer']", allowInteraction: true, title: "Écrivez et envoyez", description: "Écrivez naturellement puis utilisez la flèche pour envoyer.", tip: "Le champ grandit pour les messages plus longs." },
     ] },
     { route: "/insights", area: "Analyses", title: "Comprenez ce qui fonctionne", description: "Cet indicateur résume la progression générale de la période.", tip: "Utilisez-le comme repère, pas comme pression.", components: [
       { target: "[data-tour='insights-patterns']", title: "Repérez les tendances utiles", description: "Les cartes montrent la progression de chaque objectif.", tip: "Comparez plusieurs semaines avant un grand changement." },
@@ -216,13 +274,39 @@ const defaultTargetByRoute: Record<string, string> = {
   "/settings": "[data-tour='settings-preferences']",
 };
 
+function selectorId(selector: string, fallback: string) {
+  return selector.match(/data-tour=['"]([^'"]+)/)?.[1] ?? fallback;
+}
+
 export function expandedFirstAccessTourSteps(copy: TourCopy): FirstAccessTourStep[] {
-  return copy.steps.flatMap((step) => [
-    { ...step, target: step.target ?? defaultTargetByRoute[step.route] ?? "main" },
-    ...(step.components ?? []).map((component) => ({
-      ...component,
-      route: step.route,
-      area: step.area,
-    })),
-  ]);
+  return copy.steps.flatMap((screen, screenIndex) => {
+    const selector = screen.target ?? defaultTargetByRoute[screen.route] ?? "main";
+    const routeId = screen.route.replace(/^\//, "") || "app";
+    const screenStep: FirstAccessTourStep = {
+      id: `${routeId}:0:${selectorId(selector, `screen-${screenIndex}`)}`,
+      selector,
+      route: screen.route,
+      area: screen.area,
+      title: screen.title,
+      description: screen.description,
+      preferredPlacement: screen.preferredPlacement ?? "auto",
+      fallbackSelector: screen.fallbackSelector,
+      allowInteraction: screen.allowInteraction ?? false,
+    };
+
+    return [
+      screenStep,
+      ...(screen.components ?? []).map((component, componentIndex): FirstAccessTourStep => ({
+        id: `${routeId}:${componentIndex + 1}:${selectorId(component.target, `component-${componentIndex + 1}`)}`,
+        selector: component.target,
+        route: screen.route,
+        area: screen.area,
+        title: component.title,
+        description: component.description,
+        preferredPlacement: component.preferredPlacement ?? "auto",
+        fallbackSelector: component.fallbackSelector,
+        allowInteraction: component.allowInteraction ?? false,
+      })),
+    ];
+  });
 }

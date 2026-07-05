@@ -2,6 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   clearFirstAccessTourOffer,
   clearFirstAccessTourProgress,
+  completeFirstAccessTour,
+  hasCompletedFirstAccessTour,
   hasPendingFirstAccessTourOffer,
   markFirstAccessTourOfferPending,
   readFirstAccessTourProgress,
@@ -22,6 +24,7 @@ function createStorage() {
 describe("first access tour", () => {
   beforeEach(() => vi.stubGlobal("window", {
     sessionStorage: createStorage(),
+    localStorage: createStorage(),
     dispatchEvent: vi.fn(),
   }));
   afterEach(() => vi.unstubAllGlobals());
@@ -46,16 +49,39 @@ describe("first access tour", () => {
   });
 
   it("starts a manual replay from the first step", () => {
-    requestFirstAccessTour();
+    completeFirstAccessTour("user-a");
+    requestFirstAccessTour("user-a");
     expect(readFirstAccessTourProgress(9)).toBe(0);
+    expect(hasCompletedFirstAccessTour("user-a")).toBe(false);
     expect(window.dispatchEvent).toHaveBeenCalledOnce();
+  });
+
+  it("persists completion separately for each user", () => {
+    markFirstAccessTourOfferPending();
+    completeFirstAccessTour("user-a");
+    expect(hasCompletedFirstAccessTour("user-a")).toBe(true);
+    expect(hasCompletedFirstAccessTour("user-b")).toBe(false);
+    expect(hasPendingFirstAccessTourOffer()).toBe(false);
   });
 
   it("provides a component target throughout every supported language", () => {
     Object.values(firstAccessTourCopy).forEach((copy) => {
       const steps = expandedFirstAccessTourSteps(copy);
       expect(steps.length).toBeGreaterThan(20);
-      expect(steps.every((step) => Boolean(step.target))).toBe(true);
+      expect(steps.every((step) => Boolean(step.id) && Boolean(step.selector) && Boolean(step.preferredPlacement))).toBe(true);
+      expect(new Set(steps.map((step) => step.id)).size).toBe(steps.length);
+    });
+  });
+
+  it("keeps the complete habit walkthrough in every language", () => {
+    const requiredHabitSteps = [
+      "habits-title", "page-info-button", "habit-add", "habit-guide",
+      "habit-consistency-fire", "habit-consistency-grass", "habit-consistency-ice",
+      "habit-consistency-empty", "habit-card", "habit-controls", "app-navigation",
+    ];
+    Object.values(firstAccessTourCopy).forEach((copy) => {
+      const habitIds = expandedFirstAccessTourSteps(copy).filter((step) => step.route === "/habits").map((step) => step.id);
+      expect(habitIds.map((id) => id.split(":").at(-1))).toEqual(requiredHabitSteps);
     });
   });
 });

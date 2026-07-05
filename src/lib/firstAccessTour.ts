@@ -1,8 +1,12 @@
-export const firstAccessTourVersion = 1;
+export const firstAccessTourVersion = 2;
 export const firstAccessTourStartEvent = "winperium:first-access-tour:start";
 
 const offerKey = `winperium:first-access-tour:v${firstAccessTourVersion}:offer`;
 const progressKey = `winperium:first-access-tour:v${firstAccessTourVersion}:progress`;
+
+function completionKey(userId: string) {
+  return `winperium:first-access-tour:v${firstAccessTourVersion}:completed:${userId}`;
+}
 
 function storage() {
   return window.sessionStorage;
@@ -59,7 +63,34 @@ export function clearFirstAccessTourProgress() {
   }
 }
 
-export function requestFirstAccessTour() {
+export function hasCompletedFirstAccessTour(userId: string) {
+  try {
+    return window.localStorage.getItem(completionKey(userId)) === "true";
+  } catch {
+    return false;
+  }
+}
+
+export function completeFirstAccessTour(userId: string) {
+  try {
+    window.localStorage.setItem(completionKey(userId), "true");
+  } catch {
+    // Completion remains best-effort when persistent storage is unavailable.
+  }
+  clearFirstAccessTourOffer();
+  clearFirstAccessTourProgress();
+}
+
+export function resetFirstAccessTour(userId: string) {
+  try {
+    window.localStorage.removeItem(completionKey(userId));
+  } catch {
+    // The replay still starts in memory when persistent storage is unavailable.
+  }
+}
+
+export function requestFirstAccessTour(userId: string) {
+  resetFirstAccessTour(userId);
   clearFirstAccessTourOffer();
   saveFirstAccessTourProgress(0);
   window.dispatchEvent(new Event(firstAccessTourStartEvent));

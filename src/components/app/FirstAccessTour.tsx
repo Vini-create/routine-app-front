@@ -1,37 +1,61 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { expandedFirstAccessTourSteps, firstAccessTourCopy } from "@/data/firstAccessTour";
+import {
+  expandedFirstAccessTourSteps,
+  firstAccessTourCopy,
+} from "@/data/firstAccessTour";
 import {
   clearFirstAccessTourOffer,
-  clearFirstAccessTourProgress,
+  completeFirstAccessTour,
   firstAccessTourStartEvent,
+  hasCompletedFirstAccessTour,
   hasPendingFirstAccessTourOffer,
   readFirstAccessTourProgress,
   saveFirstAccessTourProgress,
 } from "@/lib/firstAccessTour";
+import { calculateTooltipLayout, normalizeSpotlightRect, overlayStyle, type SpotlightRect } from "@/lib/tourPosition";
 import { useAuth } from "./AuthProvider";
 import { useLanguage } from "./LanguageProvider";
+
+const TARGET_WAIT_MS = 4_000;
+
+function findVisibleElement(selector: string) {
+  return Array.from(document.querySelectorAll<HTMLElement>(selector)).find((element) => {
+    const rect = element.getBoundingClientRect();
+    const style = window.getComputedStyle(element);
+    return rect.width > 0 && rect.height > 0 && style.display !== "none" && style.visibility !== "hidden";
+  }) ?? null;
+}
 
 export function FirstAccessTour() {
   const { status, user } = useAuth();
   const { language } = useLanguage();
   const router = useRouter();
   const pathname = usePathname();
+  const tooltipRef = useRef<HTMLElement>(null);
   const primaryActionRef = useRef<HTMLButtonElement>(null);
   const [invitationOpen, setInvitationOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState<number | null>(null);
-  const [targetRect, setTargetRect] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
-  const [viewport, setViewport] = useState({ width: 0, height: 0 });
+  const [targetRect, setTargetRect] = useState<SpotlightRect | null>(null);
+  const [targetReady, setTargetReady] = useState(false);
+  const [viewport, setViewport] = useState({ width: 360, height: 800 });
+  const [tooltipSize, setTooltipSize] = useState({ width: 320, height: 230 });
   const copy = firstAccessTourCopy[language];
-  const steps = expandedFirstAccessTourSteps(copy);
+  const steps = useMemo(() => expandedFirstAccessTourSteps(copy), [copy]);
   const totalSteps = steps.length;
   const step = currentIndex === null ? null : steps[currentIndex];
 
   useEffect(() => {
     if (status !== "authenticated" || !user) return;
     const frame = window.requestAnimationFrame(() => {
+      if (hasCompletedFirstAccessTour(user.id)) {
+        clearFirstAccessTourOffer();
+        setInvitationOpen(false);
+        setCurrentIndex(null);
+        return;
+      }
       setInvitationOpen(hasPendingFirstAccessTourOffer());
       setCurrentIndex(readFirstAccessTourProgress(totalSteps));
     });
@@ -57,54 +81,89 @@ export function FirstAccessTour() {
     if (!step || pathname !== step.route) return;
     const activeStep = step;
     let target: HTMLElement | null = null;
-    let observer: ResizeObserver | null = null;
+    let resizeObserver: ResizeObserver | null = null;
+    let mutationObserver: MutationObserver | null = null;
     let settleTimer = 0;
+    let waitTimer = 0;
+    let cancelled = false;
 
-    function findTarget() {
-      const matches = Array.from(document.querySelectorAll<HTMLElement>(activeStep.target ?? "main"));
-      return matches.find((element) => {
-        const rect = element.getBoundingClientRect();
-        return rect.width > 0 && rect.height > 0;
-      }) ?? document.querySelector<HTMLElement>("main");
-    }
+    const findPrimaryTarget = () => findVisibleElement(activeStep.selector);
+    const findFallbackTarget = () => activeStep.fallbackSelector ? findVisibleElement(activeStep.fallbackSelector) : null;
 
     function updateTarget() {
-      target = findTarget();
-      if (!target) return;
-      const rect = target.getBoundingClientRect();
-      const padding = 8;
-      const top = Math.max(padding, rect.top - padding);
-      const left = Math.max(padding, rect.left - padding);
-      const right = Math.min(window.innerWidth - padding, rect.right + padding);
-      const bottom = Math.min(window.innerHeight - padding, rect.bottom + padding);
+      if (!target || cancelled) return;
+      const rect = normalizeSpotlightRect(target.getBoundingClientRect(), window.innerWidth, window.innerHeight);
       setViewport({ width: window.innerWidth, height: window.innerHeight });
-      setTargetRect({ top, left, width: Math.max(0, right - left), height: Math.max(0, bottom - top) });
+      setTargetRect(rect);
+      setTargetReady(true);
     }
 
-    const revealFrame = window.requestAnimationFrame(() => {
-      target = findTarget();
-      target?.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
-      target?.classList.add("firstAccessTourTarget");
+    function attachTarget(element: HTMLElement) {
+      target = element;
+      target.classList.add("firstAccessTourTarget");
+      const rect = target.getBoundingClientRect();
+      const comfortablyVisible = rect.top >= 76 && rect.bottom <= window.innerHeight - 76;
+      if (!comfortablyVisible) target.scrollIntoView({ behavior: "smooth", block: rect.height > window.innerHeight * 0.55 ? "start" : "center", inline: "nearest" });
       updateTarget();
-      settleTimer = window.setTimeout(updateTarget, 380);
-      if (target && "ResizeObserver" in window) {
-        observer = new ResizeObserver(updateTarget);
-        observer.observe(target);
+      settleTimer = window.setTimeout(updateTarget, comfortablyVisible ? 40 : 420);
+      if ("ResizeObserver" in window) {
+        resizeObserver = new ResizeObserver(updateTarget);
+        resizeObserver.observe(target);
+      }
+    }
+
+    const startTime = performance.now();
+    function locateTarget() {
+      if (cancelled || target) return;
+      const elapsed = performance.now() - startTime;
+      const found = findPrimaryTarget() ?? (elapsed >= TARGET_WAIT_MS ? findFallbackTarget() : null);
+      if (found) {
+        mutationObserver?.disconnect();
+        window.clearInterval(waitTimer);
+        attachTarget(found);
+        return;
+      }
+      if (elapsed >= TARGET_WAIT_MS) {
+        const fallback = findVisibleElement("[data-tour='app-header']") ?? document.querySelector<HTMLElement>("main");
+        if (fallback) attachTarget(fallback);
+      }
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      locateTarget();
+      if (!target) {
+        mutationObserver = new MutationObserver(locateTarget);
+        mutationObserver.observe(document.body, { childList: true, subtree: true, attributes: true });
+        waitTimer = window.setInterval(locateTarget, 120);
       }
     });
 
     window.addEventListener("resize", updateTarget);
+    window.addEventListener("orientationchange", updateTarget);
     window.addEventListener("scroll", updateTarget, true);
     return () => {
-      window.cancelAnimationFrame(revealFrame);
+      cancelled = true;
+      window.cancelAnimationFrame(frame);
       window.clearTimeout(settleTimer);
+      window.clearInterval(waitTimer);
       window.removeEventListener("resize", updateTarget);
+      window.removeEventListener("orientationchange", updateTarget);
       window.removeEventListener("scroll", updateTarget, true);
-      observer?.disconnect();
+      resizeObserver?.disconnect();
+      mutationObserver?.disconnect();
       target?.classList.remove("firstAccessTourTarget");
-      setTargetRect(null);
     };
   }, [pathname, step]);
+
+  useEffect(() => {
+    const tooltip = tooltipRef.current;
+    if (!tooltip || !("ResizeObserver" in window)) return;
+    const observer = new ResizeObserver(([entry]) => {
+      setTooltipSize({ width: entry.contentRect.width, height: entry.contentRect.height });
+    });
+    observer.observe(tooltip);
+    return () => observer.disconnect();
+  }, [invitationOpen, step]);
 
   useEffect(() => {
     if (!step && !invitationOpen) return;
@@ -112,19 +171,58 @@ export function FirstAccessTour() {
     return () => window.cancelAnimationFrame(frame);
   }, [invitationOpen, step]);
 
-  if (!user || (!invitationOpen && (!step || currentIndex === null))) return null;
-
-  function goToStep(index: number) {
-    saveFirstAccessTourProgress(index);
-    setCurrentIndex(index);
-    router.replace(steps[index].route);
-  }
-
-  function finish(destination?: string) {
-    clearFirstAccessTourProgress();
+  function finishTour(destination?: string) {
+    if (user) completeFirstAccessTour(user.id);
+    setInvitationOpen(false);
     setCurrentIndex(null);
+    setTargetReady(false);
     if (destination) router.replace(destination);
   }
+
+  function goToStep(index: number) {
+    if (index < 0 || index >= totalSteps) return;
+    saveFirstAccessTourProgress(index);
+    setCurrentIndex(index);
+    if (steps[index].route !== pathname) router.replace(steps[index].route);
+  }
+
+  useEffect(() => {
+    if (!step || currentIndex === null) return;
+    const activeIndex = currentIndex;
+    function handleKeyboard(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        finishTour();
+        return;
+      }
+      if (event.key === "ArrowLeft" && activeIndex > 0) {
+        event.preventDefault();
+        goToStep(activeIndex - 1);
+        return;
+      }
+      if (event.key === "ArrowRight" && activeIndex < totalSteps - 1) {
+        event.preventDefault();
+        goToStep(activeIndex + 1);
+        return;
+      }
+      if (event.key !== "Tab" || !tooltipRef.current) return;
+      const focusable = Array.from(tooltipRef.current.querySelectorAll<HTMLElement>("button:not([disabled]), [href], input:not([disabled]), [tabindex]:not([tabindex='-1'])"));
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+    window.addEventListener("keydown", handleKeyboard);
+    return () => window.removeEventListener("keydown", handleKeyboard);
+  });
+
+  if (!user || (!invitationOpen && (!step || currentIndex === null))) return null;
 
   function startTour() {
     clearFirstAccessTourOffer();
@@ -134,41 +232,16 @@ export function FirstAccessTour() {
     router.replace(steps[0].route);
   }
 
-  function declineInvitation() {
-    clearFirstAccessTourOffer();
-    setInvitationOpen(false);
-  }
-
   if (invitationOpen) {
     return (
-      <div
-        className="fixed inset-0 z-[100] grid items-end bg-black/58 p-3 backdrop-blur-[3px] sm:place-items-center sm:p-6"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="first-access-invitation-title"
-        aria-describedby="first-access-invitation-description"
-      >
+      <div className="fixed inset-0 z-[100] grid items-end bg-black/58 p-3 backdrop-blur-[3px] sm:place-items-center sm:p-6" role="dialog" aria-modal="true" aria-labelledby="first-access-invitation-title" aria-describedby="first-access-invitation-description">
         <section className="alfredModalSurface max-h-[calc(100dvh-1.5rem)] w-full max-w-lg overflow-y-auto rounded-[1.8rem] border border-[var(--border-medium)] bg-[var(--surface-solid)] p-5 shadow-focus sm:max-h-[calc(100dvh-3rem)] sm:p-6">
-          <div className="grid size-12 place-items-center rounded-2xl border border-[var(--border-medium)] bg-[var(--surface-ambient)] text-[var(--text-primary)] shadow-soft" aria-hidden="true">
-            <svg viewBox="0 0 24 24" className="size-6" fill="none" stroke="currentColor" strokeWidth="1.8">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2m0 14v2M3 12h2m14 0h2M5.64 5.64l1.42 1.42m9.88 9.88 1.42 1.42m0-12.72-1.42 1.42M7.06 16.94l-1.42 1.42" />
-              <circle cx="12" cy="12" r="4" />
-            </svg>
-          </div>
-          <p className="label-micro mt-5">{copy.invitationEyebrow}</p>
-          <h2 id="first-access-invitation-title" className="mt-2 break-words font-display text-[2rem] font-light uppercase leading-[0.95] text-[var(--text-primary)] sm:text-4xl">
-            {copy.invitationTitle}
-          </h2>
-          <p id="first-access-invitation-description" className="mt-3 text-sm leading-6 text-[var(--text-secondary)] sm:text-base sm:leading-7">
-            {copy.invitationDescription}
-          </p>
+          <p className="label-micro">{copy.invitationEyebrow}</p>
+          <h2 id="first-access-invitation-title" className="mt-2 break-words font-display text-[2rem] font-light uppercase leading-[0.95] text-[var(--text-primary)] sm:text-4xl">{copy.invitationTitle}</h2>
+          <p id="first-access-invitation-description" className="mt-3 text-sm leading-6 text-[var(--text-secondary)] sm:text-base sm:leading-7">{copy.invitationDescription}</p>
           <div className="mt-6 grid gap-2.5 sm:grid-cols-2">
-            <button type="button" onClick={declineInvitation} className="metallicButtonSecondary min-h-11 rounded-[1.2rem] border px-4 text-sm font-bold">
-              {copy.invitationDecline}
-            </button>
-            <button ref={primaryActionRef} type="button" onClick={startTour} className="metallicButton min-h-11 rounded-[1.2rem] px-4 text-sm font-bold">
-              {copy.invitationAccept}
-            </button>
+            <button type="button" onClick={() => finishTour()} className="metallicButtonSecondary min-h-11 rounded-[1.2rem] border px-4 text-sm font-bold">{copy.invitationDecline}</button>
+            <button ref={primaryActionRef} type="button" onClick={startTour} className="metallicButton min-h-11 rounded-[1.2rem] px-4 text-sm font-bold">{copy.invitationAccept}</button>
           </div>
         </section>
       </div>
@@ -178,112 +251,60 @@ export function FirstAccessTour() {
   if (!step || currentIndex === null) return null;
 
   const isLastStep = currentIndex === totalSteps - 1;
+  const layout = targetRect
+    ? calculateTooltipLayout(targetRect, tooltipSize, viewport, step.preferredPlacement)
+    : null;
   const percentage = ((currentIndex + 1) / totalSteps) * 100;
-  const popoverStyle: CSSProperties = (() => {
-    const gap = 16;
-    const edge = 12;
-    if (!targetRect || viewport.width < 768) {
-      const targetIsAboveCenter = !targetRect || targetRect.top + targetRect.height / 2 < viewport.height / 2;
-      return {
-        left: edge,
-        right: edge,
-        ...(targetIsAboveCenter ? { bottom: edge } : { top: edge }),
-        maxHeight: "min(52dvh, 500px)",
-      };
-    }
-
-    const width = Math.min(440, viewport.width - edge * 2);
-    const availableRight = viewport.width - (targetRect.left + targetRect.width);
-    const top = Math.min(Math.max(edge, targetRect.top), Math.max(edge, viewport.height - 520));
-    if (availableRight >= width + gap) return { width, left: targetRect.left + targetRect.width + gap, top, maxHeight: "calc(100dvh - 24px)" };
-    if (targetRect.left >= width + gap) return { width, left: targetRect.left - width - gap, top, maxHeight: "calc(100dvh - 24px)" };
-    return { width, left: (viewport.width - width) / 2, bottom: edge, maxHeight: "min(54dvh, 520px)" };
-  })();
+  const tooltipClass = `firstAccessTourTooltip firstAccessTourTooltip-${layout?.placement ?? "bottom"}`;
 
   return (
-    <>
+    <div className="pointer-events-none fixed inset-0 z-[97]" aria-live="polite" aria-atomic="true">
       {targetRect ? (
-        <div
-          aria-hidden="true"
-          className="firstAccessTourSpotlight pointer-events-none fixed z-[98] rounded-[1.6rem] border-2 border-white/80"
-          style={targetRect}
-        />
-      ) : (
-        <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-[98] bg-black/55" />
-      )}
-      <section
-        role="dialog"
-        aria-modal="false"
-        aria-labelledby="first-access-tour-title"
-        aria-describedby="first-access-tour-description"
-        style={popoverStyle}
-        className="alfredModalSurface fixed z-[100] w-auto overflow-y-auto rounded-[1.55rem] border border-[var(--border-medium)] bg-[var(--surface-solid)] shadow-focus"
-      >
-        <div className="h-1.5 bg-[var(--surface-ambient)]">
+        <>
+          <div className="firstAccessTourOverlay fixed z-[98]" style={overlayStyle(0, 0, viewport.width, targetRect.top)} />
+          <div className="firstAccessTourOverlay fixed z-[98]" style={overlayStyle(targetRect.bottom, 0, viewport.width, viewport.height - targetRect.bottom)} />
+          <div className="firstAccessTourOverlay fixed z-[98]" style={overlayStyle(targetRect.top, 0, targetRect.left, targetRect.height)} />
+          <div className="firstAccessTourOverlay fixed z-[98]" style={overlayStyle(targetRect.top, targetRect.right, viewport.width - targetRect.right, targetRect.height)} />
           <div
-            className="h-full rounded-r-full bg-[var(--text-primary)] transition-[width] duration-300"
-            style={{ width: `${percentage}%` }}
+            aria-hidden="true"
+            className={`firstAccessTourSpotlight fixed z-[99] rounded-[1.35rem] border-2 border-white/85 ${step.allowInteraction ? "pointer-events-none" : "pointer-events-auto"}`}
+            style={{ top: targetRect.top, left: targetRect.left, width: targetRect.width, height: targetRect.height }}
+            onPointerDown={step.allowInteraction ? undefined : (event) => event.preventDefault()}
           />
-        </div>
+        </>
+      ) : (
+        <div className="firstAccessTourOverlay fixed inset-0 z-[98]" />
+      )}
 
-        <div className="p-5 sm:p-6">
-          <div className="flex items-start justify-between gap-4">
-            <div className="min-w-0">
-              <p className="label-micro">{copy.eyebrow}</p>
-              <p className="mt-2 text-xs font-extrabold uppercase tracking-[0.08em] text-[var(--text-tertiary)]">
-                {step.area} · {copy.progress(currentIndex + 1, totalSteps)}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => finish()}
-              className="shrink-0 rounded-full px-3 py-2 text-xs font-bold text-[var(--text-secondary)] transition hover:bg-[var(--surface-ambient)] hover:text-[var(--text-primary)]"
-            >
-              {copy.skip}
-            </button>
+      {layout ? (
+        <section
+          ref={tooltipRef}
+          role="dialog"
+          aria-modal={!step.allowInteraction}
+          aria-labelledby="first-access-tour-title"
+          aria-describedby="first-access-tour-description"
+          style={layout.style}
+          className={`${tooltipClass} alfredModalSurface fixed isolate z-[100] overflow-visible rounded-[1.25rem] border border-[var(--border-medium)] bg-[var(--surface-solid)] shadow-focus transition-[top,left,opacity,transform] duration-200 ${targetReady ? "opacity-100" : "pointer-events-none opacity-0"}`}
+        >
+          <span aria-hidden="true" className="firstAccessTourArrow absolute size-3 bg-[var(--surface-solid)]" style={layout.arrowStyle} />
+          <div className="relative z-[1] overflow-y-auto rounded-[1.2rem] bg-[var(--surface-solid)] p-4" style={{ maxHeight: layout.style.maxHeight }}>
+          <div className="flex items-center justify-between gap-3">
+            <p className="label-micro">{copy.eyebrow}</p>
+            <span className="text-[10px] font-extrabold uppercase tracking-[0.08em] text-[var(--text-tertiary)]">{copy.progress(currentIndex + 1, totalSteps)}</span>
           </div>
-
-          <h2 id="first-access-tour-title" className="mt-5 break-words font-display text-[2rem] font-light uppercase leading-[0.95] text-[var(--text-primary)] sm:text-4xl">
-            {step.title}
-          </h2>
-          <p id="first-access-tour-description" className="mt-3 text-sm leading-6 text-[var(--text-secondary)] sm:text-base sm:leading-7">
-            {step.description}
-          </p>
-
-          <div className="mt-5 rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-ambient)] p-4">
-            <p className="text-[10px] font-extrabold uppercase tracking-[0.08em] text-[var(--text-tertiary)]">{copy.tipLabel}</p>
-            <p className="mt-2 text-sm font-semibold leading-6 text-[var(--text-primary)]">{step.tip}</p>
+          <div className="mt-2 h-1 w-16 overflow-hidden rounded-full bg-[var(--surface-ambient)]" aria-hidden="true">
+            <div className="h-full rounded-full bg-[var(--text-primary)] transition-[width] duration-300" style={{ width: `${percentage}%` }} />
           </div>
-
-          <div className="mt-5 flex items-center justify-center gap-1" aria-hidden="true">
-            {steps.map((item, index) => (
-              <span
-                key={`${item.route}-${index}`}
-                className={`h-1.5 rounded-full transition-all ${index === currentIndex ? "w-6 bg-[var(--text-primary)]" : index < currentIndex ? "w-2 bg-[var(--text-secondary)]" : "w-2 bg-[var(--border-strong)]"}`}
-              />
-            ))}
+          <h2 id="first-access-tour-title" className="mt-3 break-words text-lg font-black leading-tight text-[var(--text-primary)]">{step.title}</h2>
+          <p id="first-access-tour-description" className="mt-2 text-sm leading-5 text-[var(--text-secondary)]">{step.description}</p>
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            <button type="button" disabled={currentIndex === 0} onClick={() => goToStep(currentIndex - 1)} className="metallicButtonSecondary min-h-10 rounded-xl border px-3 text-xs font-bold disabled:cursor-not-allowed disabled:opacity-40">{copy.previous}</button>
+            <button ref={primaryActionRef} type="button" onClick={() => isLastStep ? finishTour("/dashboard") : goToStep(currentIndex + 1)} className="metallicButton min-h-10 rounded-xl px-3 text-xs font-bold">{isLastStep ? copy.finish : copy.next}</button>
           </div>
-
-          <div className="mt-5 grid grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)] gap-2.5">
-            <button
-              type="button"
-              disabled={currentIndex === 0}
-              onClick={() => goToStep(currentIndex - 1)}
-              className="metallicButtonSecondary min-h-11 rounded-[1.2rem] border px-4 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              {copy.previous}
-            </button>
-            <button
-              ref={primaryActionRef}
-              type="button"
-              onClick={() => isLastStep ? finish("/dashboard") : goToStep(currentIndex + 1)}
-              className="metallicButton min-h-11 rounded-[1.2rem] px-4 text-sm font-bold"
-            >
-              {isLastStep ? copy.finish : copy.next}
-            </button>
+          <button type="button" onClick={() => finishTour()} className="mt-2 min-h-9 w-full rounded-lg text-xs font-bold text-[var(--text-tertiary)] transition hover:bg-[var(--surface-ambient)] hover:text-[var(--text-primary)]">{copy.skip}</button>
           </div>
-        </div>
-      </section>
-    </>
+        </section>
+      ) : null}
+    </div>
   );
 }

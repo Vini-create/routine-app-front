@@ -34,6 +34,7 @@ export function PageInfoButton({ page, className }: { page: PageInfoKey; classNa
   return (
     <>
       <button
+        data-tour="page-info-button"
         ref={triggerRef}
         type="button"
         onClick={() => setOpen(true)}

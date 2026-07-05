@@ -1745,11 +1745,18 @@ h3,
   animation: assistant-rise 320ms ease both;
 }
 
+.firstAccessTourOverlay {
+  pointer-events: auto;
+  touch-action: none;
+  background: rgba(5, 5, 8, 0.62);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  transition: top 220ms ease, left 220ms ease, width 220ms ease, height 220ms ease, opacity 180ms ease;
+}
+
 .firstAccessTourSpotlight {
-  box-shadow:
-    0 0 0 9999px rgba(0, 0, 0, 0.64),
-    0 0 0 6px rgba(255, 255, 255, 0.12),
-    0 18px 50px rgba(0, 0, 0, 0.35);
+  background: transparent;
+  box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.1), 0 0 30px rgba(255, 255, 255, 0.13);
   animation: first-access-tour-pulse 1.8s ease-in-out infinite;
   transition: top 240ms ease, left 240ms ease, width 240ms ease, height 240ms ease;
 }
@@ -1758,15 +1765,57 @@ h3,
   scroll-margin-block: 7rem;
 }
 
+.firstAccessTourTooltip {
+  pointer-events: auto;
+  min-width: 0;
+  max-width: calc(100vw - 20px);
+  transform-origin: center;
+}
+
+.firstAccessTourArrow {
+  z-index: 0;
+  transform: rotate(45deg);
+}
+
+.firstAccessTourTooltip-bottom .firstAccessTourArrow {
+  top: -0.4rem;
+  border-left: 1px solid var(--border-medium);
+  border-top: 1px solid var(--border-medium);
+}
+
+.firstAccessTourTooltip-top .firstAccessTourArrow {
+  bottom: -0.4rem;
+  border-bottom: 1px solid var(--border-medium);
+  border-right: 1px solid var(--border-medium);
+}
+
+.firstAccessTourTooltip-right .firstAccessTourArrow {
+  left: -0.4rem;
+  border-bottom: 1px solid var(--border-medium);
+  border-left: 1px solid var(--border-medium);
+}
+
+.firstAccessTourTooltip-left .firstAccessTourArrow {
+  right: -0.4rem;
+  border-right: 1px solid var(--border-medium);
+  border-top: 1px solid var(--border-medium);
+}
+
 @keyframes first-access-tour-pulse {
   0%, 100% { border-color: rgba(255, 255, 255, 0.72); }
   50% { border-color: rgba(255, 255, 255, 1); }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .firstAccessTourOverlay,
   .firstAccessTourSpotlight {
     animation: none;
     transition: none;
+  }
+
+  .firstAccessTourTooltip {
+    scroll-behavior: auto;
+    transition: none !important;
   }
 }
 

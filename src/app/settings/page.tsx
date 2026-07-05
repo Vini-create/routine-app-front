@@ -112,7 +112,7 @@ export default function SettingsPage() {
             <h3 className="font-bold text-[var(--text-primary)]">{settings.tutorial}</h3>
             <p className="mt-1 text-sm leading-6 text-[var(--text-secondary)]">{settings.tutorialDescription}</p>
           </div>
-          <Button type="button" variant="secondary" onClick={requestFirstAccessTour}>{settings.replayTutorial}</Button>
+          <Button type="button" variant="secondary" onClick={() => user && requestFirstAccessTour(user.id)} disabled={!user}>{settings.replayTutorial}</Button>
         </div>
       </Card>
 

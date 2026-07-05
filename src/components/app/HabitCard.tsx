@@ -46,7 +46,7 @@ export function HabitCard({
 
   if (compact) {
     return (
-      <Card className={cn("habitCard relative grid min-w-0 max-w-full gap-3 overflow-hidden p-4 sm:p-5", variantClasses)}>
+      <Card data-tour="habit-card" className={cn("habitCard relative grid min-w-0 max-w-full gap-3 overflow-hidden p-4 sm:p-5", variantClasses)}>
         <span className="habitCardAccent pointer-events-none absolute inset-x-4 top-0 z-[1] h-1 rounded-b-full" />
         <div className="flex min-w-0 items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
@@ -72,7 +72,7 @@ export function HabitCard({
   }
 
   return (
-    <Card className={cn(
+    <Card data-tour="habit-card" className={cn(
       "habitCard relative min-w-0 max-w-full grid gap-4 overflow-hidden",
       variantClasses,
     )}>
@@ -110,7 +110,7 @@ export function HabitCard({
       <p className="habitCardMessage rounded-2xl p-3 text-xs font-semibold leading-5">
         {variant === "fire" ? labels.hotMessage : variant === "ice" ? labels.frozenMessage : variant === "grass" ? labels.neutralMessage : labels.emptyMessage}
       </p>
-      <div className="flex flex-wrap gap-2">
+      <div data-tour="habit-controls" className="flex flex-wrap gap-2">
         {onLog && canLog ? (
           <Button className="habitCardAction flex-1" variant={todayOccurrence.status === "completed" ? "secondary" : "primary"} onClick={() => onLog(item.habit.id, todayOccurrence.status === "completed" ? "pending" : "completed")}>
             {todayOccurrence.status === "completed" ? common.doneToday : common.markAsDone}
