@@ -35,7 +35,7 @@ describe("tour positioning", () => {
     expect(Number(layout.style.left)).toBeGreaterThanOrEqual(10);
     expect(Number(layout.style.top)).toBeGreaterThanOrEqual(10);
     expect(Number(layout.style.left) + Number(layout.style.width)).toBeLessThanOrEqual(350);
-    expect(Number(layout.style.top) + Number(layout.style.maxHeight)).toBeLessThanOrEqual(310);
+    expect(Number(layout.style.top) + 230).toBeLessThanOrEqual(310);
   });
 
   it("clips an off-screen target to the visible viewport without negative sizes", () => {
@@ -45,5 +45,13 @@ describe("tour positioning", () => {
     expect(normalized.right).toBe(350);
     expect(normalized.width).toBeGreaterThan(0);
     expect(normalized.height).toBeGreaterThan(0);
+  });
+
+  it("lets a mobile tooltip overlap a large highlight instead of squeezing its content", () => {
+    const target = rect(250, 16, 328, 520);
+    const layout = calculateTooltipLayout(target, { width: 320, height: 330 }, { width: 360, height: 800 }, "auto");
+    expect(layout.style.maxHeight).toBe(780);
+    expect(Number(layout.style.top)).toBeGreaterThanOrEqual(10);
+    expect(Number(layout.style.top) + 330).toBeLessThanOrEqual(790);
   });
 });

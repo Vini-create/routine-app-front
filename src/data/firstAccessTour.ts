@@ -310,3 +310,33 @@ export function expandedFirstAccessTourSteps(copy: TourCopy): FirstAccessTourSte
     ];
   });
 }
+
+const mobileTourTargets = new Set([
+  "dashboard-overview",
+  "app-navigation",
+  "dashboard-today",
+  "routine-calendar",
+  "routine-timeline",
+  "routine-default",
+  "goal-create",
+  "goal-list",
+  "habit-guide",
+  "habit-card",
+  "calendar-main",
+  "feedback-form",
+  "assistant-composer",
+  "insights-summary",
+  "insights-patterns",
+  "settings-preferences",
+]);
+
+/** A shorter, flow-oriented tour for small screens. Desktop keeps the full tour. */
+export function mobileFirstAccessTourSteps(steps: FirstAccessTourStep[]) {
+  const includedTargets = new Set<string>();
+  return steps.filter((step) => {
+    const target = selectorId(step.selector, step.id);
+    if (!mobileTourTargets.has(target) || includedTargets.has(target)) return false;
+    includedTargets.add(target);
+    return true;
+  });
+}

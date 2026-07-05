@@ -10,7 +10,7 @@ import {
   requestFirstAccessTour,
   saveFirstAccessTourProgress,
 } from "./firstAccessTour";
-import { expandedFirstAccessTourSteps, firstAccessTourCopy } from "../data/firstAccessTour";
+import { expandedFirstAccessTourSteps, firstAccessTourCopy, mobileFirstAccessTourSteps } from "../data/firstAccessTour";
 
 function createStorage() {
   const values = new Map<string, string>();
@@ -82,6 +82,18 @@ describe("first access tour", () => {
     Object.values(firstAccessTourCopy).forEach((copy) => {
       const habitIds = expandedFirstAccessTourSteps(copy).filter((step) => step.route === "/habits").map((step) => step.id);
       expect(habitIds.map((id) => id.split(":").at(-1))).toEqual(requiredHabitSteps);
+    });
+  });
+
+  it("keeps the mobile walkthrough focused on the main flow", () => {
+    Object.values(firstAccessTourCopy).forEach((copy) => {
+      const fullTour = expandedFirstAccessTourSteps(copy);
+      const mobileTour = mobileFirstAccessTourSteps(fullTour);
+      expect(mobileTour).toHaveLength(16);
+      expect(mobileTour.length).toBeLessThan(fullTour.length);
+      expect(mobileTour.some((step) => step.selector.includes("page-info-button"))).toBe(false);
+      expect(mobileTour.some((step) => step.selector.includes("habit-consistency-fire"))).toBe(false);
+      expect(new Set(mobileTour.map((step) => step.route))).toEqual(new Set(fullTour.map((step) => step.route)));
     });
   });
 });

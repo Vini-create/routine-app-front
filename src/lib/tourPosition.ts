@@ -36,6 +36,7 @@ export function calculateTooltipLayout(
   viewport: { width: number; height: number },
   preferred: TourPlacement,
 ): TooltipLayout {
+  const canOverlapTarget = viewport.width < 640;
   const width = Math.min(Math.max(260, tooltip.width || 320), viewport.width - tourViewportMargin * 2);
   const measuredHeight = Math.max(170, tooltip.height || 230);
   const space = {
@@ -54,7 +55,11 @@ export function calculateTooltipLayout(
     .sort((a, b) => (space[b] / needed[b]) - (space[a] / needed[a]));
   const candidates = preferred === "auto" ? automaticOrder : [preferred, ...automaticOrder.filter((placement) => placement !== preferred)];
   const viableFallback = automaticOrder.filter((candidate) => candidate === "top" || candidate === "bottom" || space[candidate] >= 260 + tooltipGap);
-  const placement = candidates.find((candidate) => space[candidate] >= needed[candidate]) ?? viableFallback[0] ?? automaticOrder[0];
+  const fittingPlacement = candidates.find((candidate) => space[candidate] >= needed[candidate]);
+  const placement = fittingPlacement
+    ?? (canOverlapTarget ? (target.top + target.height / 2 > viewport.height / 2 ? "top" : "bottom") : undefined)
+    ?? viableFallback[0]
+    ?? automaticOrder[0];
   const horizontalCenter = target.left + target.width / 2;
   const verticalCenter = target.top + target.height / 2;
   let left = horizontalCenter - width / 2;
@@ -81,6 +86,18 @@ export function calculateTooltipLayout(
   left = Math.min(Math.max(tourViewportMargin, left), viewport.width - tourViewportMargin - width);
   top = Math.min(Math.max(tourViewportMargin, top), viewport.height - tourViewportMargin - renderedHeight);
   maxHeight = Math.max(60, Math.min(maxHeight, viewport.height - top - tourViewportMargin));
+
+  if (canOverlapTarget && !fittingPlacement) {
+    renderedHeight = measuredHeight;
+    top = placement === "top"
+      ? target.top - tooltipGap - renderedHeight
+      : target.bottom + tooltipGap;
+    top = Math.min(
+      Math.max(tourViewportMargin, top),
+      Math.max(tourViewportMargin, viewport.height - tourViewportMargin - renderedHeight),
+    );
+    maxHeight = viewport.height - tourViewportMargin * 2;
+  }
 
   const arrowSize = 12;
   const arrowInset = 22;

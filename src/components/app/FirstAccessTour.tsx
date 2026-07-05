@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   expandedFirstAccessTourSteps,
   firstAccessTourCopy,
+  mobileFirstAccessTourSteps,
 } from "@/data/firstAccessTour";
 import {
   clearFirstAccessTourOffer,
@@ -42,10 +43,23 @@ export function FirstAccessTour() {
   const [targetReady, setTargetReady] = useState(false);
   const [viewport, setViewport] = useState({ width: 360, height: 800 });
   const [tooltipSize, setTooltipSize] = useState({ width: 320, height: 230 });
+  const [isMobileTour, setIsMobileTour] = useState(false);
   const copy = firstAccessTourCopy[language];
-  const steps = useMemo(() => expandedFirstAccessTourSteps(copy), [copy]);
+  const allSteps = useMemo(() => expandedFirstAccessTourSteps(copy), [copy]);
+  const steps = useMemo(
+    () => isMobileTour ? mobileFirstAccessTourSteps(allSteps) : allSteps,
+    [allSteps, isMobileTour],
+  );
   const totalSteps = steps.length;
   const step = currentIndex === null ? null : steps[currentIndex];
+
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 639px)");
+    const updateMode = () => setIsMobileTour(media.matches);
+    updateMode();
+    media.addEventListener("change", updateMode);
+    return () => media.removeEventListener("change", updateMode);
+  }, []);
 
   useEffect(() => {
     if (status !== "authenticated" || !user) return;
@@ -287,7 +301,7 @@ export function FirstAccessTour() {
           className={`${tooltipClass} alfredModalSurface fixed isolate z-[100] overflow-visible rounded-[1.25rem] border border-[var(--border-medium)] bg-[var(--surface-solid)] shadow-focus transition-[top,left,opacity,transform] duration-200 ${targetReady ? "opacity-100" : "pointer-events-none opacity-0"}`}
         >
           <span aria-hidden="true" className="firstAccessTourArrow absolute size-3 bg-[var(--surface-solid)]" style={layout.arrowStyle} />
-          <div className="relative z-[1] overflow-y-auto rounded-[1.2rem] bg-[var(--surface-solid)] p-4" style={{ maxHeight: layout.style.maxHeight }}>
+          <div className="relative z-[1] overflow-visible rounded-[1.2rem] bg-[var(--surface-solid)] p-4 sm:overflow-y-auto" style={{ maxHeight: isMobileTour ? undefined : layout.style.maxHeight }}>
           <div className="flex items-center justify-between gap-3">
             <p className="label-micro">{copy.eyebrow}</p>
             <span className="text-[10px] font-extrabold uppercase tracking-[0.08em] text-[var(--text-tertiary)]">{copy.progress(currentIndex + 1, totalSteps)}</span>
