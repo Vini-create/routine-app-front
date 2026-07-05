@@ -8,6 +8,7 @@ import {
   requestFirstAccessTour,
   saveFirstAccessTourProgress,
 } from "./firstAccessTour";
+import { expandedFirstAccessTourSteps, firstAccessTourCopy } from "../data/firstAccessTour";
 
 function createStorage() {
   const values = new Map<string, string>();
@@ -48,5 +49,13 @@ describe("first access tour", () => {
     requestFirstAccessTour();
     expect(readFirstAccessTourProgress(9)).toBe(0);
     expect(window.dispatchEvent).toHaveBeenCalledOnce();
+  });
+
+  it("provides a component target throughout every supported language", () => {
+    Object.values(firstAccessTourCopy).forEach((copy) => {
+      const steps = expandedFirstAccessTourSteps(copy);
+      expect(steps.length).toBeGreaterThan(20);
+      expect(steps.every((step) => Boolean(step.target))).toBe(true);
+    });
   });
 });

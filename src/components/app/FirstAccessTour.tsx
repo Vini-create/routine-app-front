@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { firstAccessTourCopy } from "@/data/firstAccessTour";
+import { expandedFirstAccessTourSteps, firstAccessTourCopy } from "@/data/firstAccessTour";
 import {
   clearFirstAccessTourOffer,
   clearFirstAccessTourProgress,
@@ -22,9 +22,12 @@ export function FirstAccessTour() {
   const primaryActionRef = useRef<HTMLButtonElement>(null);
   const [invitationOpen, setInvitationOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState<number | null>(null);
+  const [targetRect, setTargetRect] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
+  const [viewport, setViewport] = useState({ width: 0, height: 0 });
   const copy = firstAccessTourCopy[language];
-  const totalSteps = copy.steps.length;
-  const step = currentIndex === null ? null : copy.steps[currentIndex];
+  const steps = expandedFirstAccessTourSteps(copy);
+  const totalSteps = steps.length;
+  const step = currentIndex === null ? null : steps[currentIndex];
 
   useEffect(() => {
     if (status !== "authenticated" || !user) return;
@@ -51,6 +54,59 @@ export function FirstAccessTour() {
   }, [pathname, router, step]);
 
   useEffect(() => {
+    if (!step || pathname !== step.route) return;
+    const activeStep = step;
+    let target: HTMLElement | null = null;
+    let observer: ResizeObserver | null = null;
+    let settleTimer = 0;
+
+    function findTarget() {
+      const matches = Array.from(document.querySelectorAll<HTMLElement>(activeStep.target ?? "main"));
+      return matches.find((element) => {
+        const rect = element.getBoundingClientRect();
+        return rect.width > 0 && rect.height > 0;
+      }) ?? document.querySelector<HTMLElement>("main");
+    }
+
+    function updateTarget() {
+      target = findTarget();
+      if (!target) return;
+      const rect = target.getBoundingClientRect();
+      const padding = 8;
+      const top = Math.max(padding, rect.top - padding);
+      const left = Math.max(padding, rect.left - padding);
+      const right = Math.min(window.innerWidth - padding, rect.right + padding);
+      const bottom = Math.min(window.innerHeight - padding, rect.bottom + padding);
+      setViewport({ width: window.innerWidth, height: window.innerHeight });
+      setTargetRect({ top, left, width: Math.max(0, right - left), height: Math.max(0, bottom - top) });
+    }
+
+    const revealFrame = window.requestAnimationFrame(() => {
+      target = findTarget();
+      target?.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
+      target?.classList.add("firstAccessTourTarget");
+      updateTarget();
+      settleTimer = window.setTimeout(updateTarget, 380);
+      if (target && "ResizeObserver" in window) {
+        observer = new ResizeObserver(updateTarget);
+        observer.observe(target);
+      }
+    });
+
+    window.addEventListener("resize", updateTarget);
+    window.addEventListener("scroll", updateTarget, true);
+    return () => {
+      window.cancelAnimationFrame(revealFrame);
+      window.clearTimeout(settleTimer);
+      window.removeEventListener("resize", updateTarget);
+      window.removeEventListener("scroll", updateTarget, true);
+      observer?.disconnect();
+      target?.classList.remove("firstAccessTourTarget");
+      setTargetRect(null);
+    };
+  }, [pathname, step]);
+
+  useEffect(() => {
     if (!step && !invitationOpen) return;
     const frame = window.requestAnimationFrame(() => primaryActionRef.current?.focus());
     return () => window.cancelAnimationFrame(frame);
@@ -61,7 +117,7 @@ export function FirstAccessTour() {
   function goToStep(index: number) {
     saveFirstAccessTourProgress(index);
     setCurrentIndex(index);
-    router.replace(copy.steps[index].route);
+    router.replace(steps[index].route);
   }
 
   function finish(destination?: string) {
@@ -75,7 +131,7 @@ export function FirstAccessTour() {
     setInvitationOpen(false);
     saveFirstAccessTourProgress(0);
     setCurrentIndex(0);
-    router.replace(copy.steps[0].route);
+    router.replace(steps[0].route);
   }
 
   function declineInvitation() {
@@ -92,7 +148,7 @@ export function FirstAccessTour() {
         aria-labelledby="first-access-invitation-title"
         aria-describedby="first-access-invitation-description"
       >
-        <section className="alfredModalSurface w-full max-w-lg rounded-[1.8rem] border border-[var(--border-medium)] bg-[var(--surface-solid)] p-5 shadow-focus sm:p-6">
+        <section className="alfredModalSurface max-h-[calc(100dvh-1.5rem)] w-full max-w-lg overflow-y-auto rounded-[1.8rem] border border-[var(--border-medium)] bg-[var(--surface-solid)] p-5 shadow-focus sm:max-h-[calc(100dvh-3rem)] sm:p-6">
           <div className="grid size-12 place-items-center rounded-2xl border border-[var(--border-medium)] bg-[var(--surface-ambient)] text-[var(--text-primary)] shadow-soft" aria-hidden="true">
             <svg viewBox="0 0 24 24" className="size-6" fill="none" stroke="currentColor" strokeWidth="1.8">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2m0 14v2M3 12h2m14 0h2M5.64 5.64l1.42 1.42m9.88 9.88 1.42 1.42m0-12.72-1.42 1.42M7.06 16.94l-1.42 1.42" />
@@ -123,16 +179,46 @@ export function FirstAccessTour() {
 
   const isLastStep = currentIndex === totalSteps - 1;
   const percentage = ((currentIndex + 1) / totalSteps) * 100;
+  const popoverStyle: CSSProperties = (() => {
+    const gap = 16;
+    const edge = 12;
+    if (!targetRect || viewport.width < 768) {
+      const targetIsAboveCenter = !targetRect || targetRect.top + targetRect.height / 2 < viewport.height / 2;
+      return {
+        left: edge,
+        right: edge,
+        ...(targetIsAboveCenter ? { bottom: edge } : { top: edge }),
+        maxHeight: "min(52dvh, 500px)",
+      };
+    }
+
+    const width = Math.min(440, viewport.width - edge * 2);
+    const availableRight = viewport.width - (targetRect.left + targetRect.width);
+    const top = Math.min(Math.max(edge, targetRect.top), Math.max(edge, viewport.height - 520));
+    if (availableRight >= width + gap) return { width, left: targetRect.left + targetRect.width + gap, top, maxHeight: "calc(100dvh - 24px)" };
+    if (targetRect.left >= width + gap) return { width, left: targetRect.left - width - gap, top, maxHeight: "calc(100dvh - 24px)" };
+    return { width, left: (viewport.width - width) / 2, bottom: edge, maxHeight: "min(54dvh, 520px)" };
+  })();
 
   return (
-    <div
-      className="fixed inset-0 z-[100] grid items-end bg-black/58 p-3 backdrop-blur-[3px] sm:place-items-center sm:p-6"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="first-access-tour-title"
-      aria-describedby="first-access-tour-description"
-    >
-      <section className="alfredModalSurface relative w-full max-w-lg overflow-hidden rounded-[1.8rem] border border-[var(--border-medium)] bg-[var(--surface-solid)] shadow-focus">
+    <>
+      {targetRect ? (
+        <div
+          aria-hidden="true"
+          className="firstAccessTourSpotlight pointer-events-none fixed z-[98] rounded-[1.6rem] border-2 border-white/80"
+          style={targetRect}
+        />
+      ) : (
+        <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-[98] bg-black/55" />
+      )}
+      <section
+        role="dialog"
+        aria-modal="false"
+        aria-labelledby="first-access-tour-title"
+        aria-describedby="first-access-tour-description"
+        style={popoverStyle}
+        className="alfredModalSurface fixed z-[100] w-auto overflow-y-auto rounded-[1.55rem] border border-[var(--border-medium)] bg-[var(--surface-solid)] shadow-focus"
+      >
         <div className="h-1.5 bg-[var(--surface-ambient)]">
           <div
             className="h-full rounded-r-full bg-[var(--text-primary)] transition-[width] duration-300"
@@ -169,10 +255,10 @@ export function FirstAccessTour() {
             <p className="mt-2 text-sm font-semibold leading-6 text-[var(--text-primary)]">{step.tip}</p>
           </div>
 
-          <div className="mt-5 flex items-center justify-center gap-1.5" aria-hidden="true">
-            {copy.steps.map((item, index) => (
+          <div className="mt-5 flex items-center justify-center gap-1" aria-hidden="true">
+            {steps.map((item, index) => (
               <span
-                key={item.route}
+                key={`${item.route}-${index}`}
                 className={`h-1.5 rounded-full transition-all ${index === currentIndex ? "w-6 bg-[var(--text-primary)]" : index < currentIndex ? "w-2 bg-[var(--text-secondary)]" : "w-2 bg-[var(--border-strong)]"}`}
               />
             ))}
@@ -198,6 +284,6 @@ export function FirstAccessTour() {
           </div>
         </div>
       </section>
-    </div>
+    </>
   );
 }

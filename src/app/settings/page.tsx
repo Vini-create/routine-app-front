@@ -91,7 +91,7 @@ export default function SettingsPage() {
 
   return (
     <AppShell title={settings.title} infoPage="settings">
-      <Card>
+      <Card data-tour="settings-personal">
         <form onSubmit={onSubmit} className="grid gap-4">
           <h2 className="text-lg font-bold">{settings.personalDetails}</h2>
           <FieldLabel label={settings.name}>
@@ -104,7 +104,7 @@ export default function SettingsPage() {
         </form>
       </Card>
 
-      <Card className="grid gap-4">
+      <Card data-tour="settings-preferences" className="grid gap-4">
         <h2 className="text-lg font-bold">{settings.preferences}</h2>
         <ThemeToggle title={settings.appearance} description={settings.appearanceDescription} lightLabel={settings.lightMode} darkLabel={settings.darkMode} />
         <div className="grid gap-3 border-t border-[var(--border-soft)] pt-4 sm:grid-cols-[1fr_auto] sm:items-center">
@@ -116,7 +116,7 @@ export default function SettingsPage() {
         </div>
       </Card>
 
-      <Card>
+      <Card data-tour="settings-security">
         {user?.has_password ? <form onSubmit={onChangePassword} className="grid gap-4">
           <h2 className="text-lg font-bold">{settings.security}</h2>
           <FieldLabel label={settings.currentPassword}><PasswordInput name="currentPassword" autoComplete="current-password" minLength={8} maxLength={72} showLabel={authLabels.showPassword} hideLabel={authLabels.hidePassword} required /></FieldLabel>

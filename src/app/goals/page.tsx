@@ -103,7 +103,7 @@ export default function GoalsPage() {
   return (
     <AppShell title={labels.title} infoPage="goals">
       <SectionTitle title={labels.heading} description={labels.description} />
-      <Card><form onSubmit={createGoal} className="grid gap-3">
+      <Card data-tour="goal-create"><form onSubmit={createGoal} className="grid gap-3">
         <div className="grid gap-3 sm:grid-cols-2"><FieldLabel label={labels.goalName}><Input name="title" minLength={2} maxLength={60} required /></FieldLabel><FieldLabel label={labels.targetDate}><Input name="targetDate" type="date" min={toDateKey(new Date())} required /></FieldLabel></div>
         <FieldLabel label={labels.category}><Select name="category" defaultValue="productivity"><option value="health">{labels.health}</option><option value="productivity">{labels.productivity}</option><option value="learning">{labels.learning}</option><option value="fitness">{labels.fitness}</option><option value="mental_wellness">{labels.mentalWellness}</option><option value="other">{labels.other}</option></Select></FieldLabel>
         <FieldLabel label={labels.descriptionLabel}><Textarea name="description" maxLength={200} /></FieldLabel>
@@ -111,6 +111,7 @@ export default function GoalsPage() {
       </form></Card>
       {error ? <p role="alert" className="text-sm font-semibold text-red-500">{error}</p> : null}
       <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end"><SectionTitle title={labels.activeGoals} description={labels.activeGoalsDescription} /><div className="grid grid-cols-2 gap-2 sm:flex"><Button variant={period === "month" ? "primary" : "secondary"} onClick={() => setPeriod("month")}>{labels.month}</Button><Button variant={period === "since" ? "primary" : "secondary"} onClick={() => setPeriod("since")}>{labels.sinceCreation}</Button></div></div>
+      <div data-tour="goal-list" className="grid gap-4">
       {dashboard.isLoading ? <Card>Carregando metas…</Card> : null}
       {dashboard.isError ? <Card>Não foi possível carregar as metas.</Card> : null}
       {goals.map((item) => {
@@ -155,6 +156,7 @@ export default function GoalsPage() {
         </Card>;
       })}
       {!dashboard.isLoading && !goals.length ? <EmptyState title={labels.emptyTitle} description={labels.emptyDescription} /> : null}
+      </div>
       {editingGoal ? <div className="fixed inset-0 z-50 grid place-items-end bg-black/55 p-4 backdrop-blur-md sm:place-items-center"><Card className="alfredModalSurface w-full max-w-lg"><form onSubmit={saveGoal} className="grid gap-3"><h2 className="text-xl font-bold">Editar meta</h2><FieldLabel label={labels.goalName}><Input name="title" defaultValue={editingGoal.title} required /></FieldLabel><FieldLabel label={labels.targetDate}><Input name="targetDate" type="date" min={toDateKey(new Date())} defaultValue={editingGoal.target_date ?? ""} required /></FieldLabel><FieldLabel label={labels.category}><Select name="category" defaultValue={editingGoal.category ?? "other"}><option value="health">{labels.health}</option><option value="productivity">{labels.productivity}</option><option value="learning">{labels.learning}</option><option value="fitness">{labels.fitness}</option><option value="mental_wellness">{labels.mentalWellness}</option><option value="other">{labels.other}</option></Select></FieldLabel><FieldLabel label={labels.descriptionLabel}><Textarea name="description" defaultValue={editingGoal.description ?? ""} /></FieldLabel><div className="grid grid-cols-2 gap-2"><Button type="button" variant="secondary" onClick={() => setEditingGoal(null)}>Cancelar</Button><Button type="submit">Salvar</Button></div></form></Card></div> : null}
     </AppShell>
   );

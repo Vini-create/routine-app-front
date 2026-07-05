@@ -51,7 +51,7 @@ export function BottomNavigation() {
 
   return (
     <>
-      <aside className="winperiumSideRail fixed bottom-6 left-6 top-6 z-40 hidden w-[88px] flex-col items-center rounded-[30px] px-3 py-5 lg:flex">
+      <aside data-tour="app-navigation" className="winperiumSideRail fixed bottom-6 left-6 top-6 z-40 hidden w-[88px] flex-col items-center rounded-[30px] px-3 py-5 lg:flex">
         <Link
           href="/dashboard"
           className="mb-9 grid size-11 place-items-center rounded-[17px] border border-[var(--border-soft)] bg-[var(--surface-ambient)] text-[var(--text-primary)] shadow-[inset_0_1px_0_rgba(255,255,255,.08)]"
@@ -168,7 +168,7 @@ export function BottomNavigation() {
         </div>
       ) : null}
 
-      <nav className="glass-ambient winperiumMobileNav fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] left-4 right-4 z-30 grid h-[66px] grid-cols-6 items-center rounded-full px-2 lg:hidden" aria-label="Primary">
+      <nav data-tour="app-navigation" className="glass-ambient winperiumMobileNav fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] left-4 right-4 z-30 grid h-[66px] grid-cols-6 items-center rounded-full px-2 lg:hidden" aria-label="Primary">
         {items.map((item) => {
           const active = pathname === item.href;
           return (

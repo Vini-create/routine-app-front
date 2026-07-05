@@ -168,7 +168,7 @@ export default function RoutinePage() {
   const isReadOnlyHistory = view === "day" && selectedDate < oldestEditableDate;
   return (
     <AppShell title={labels.title} infoPage="routine">
-      <InteractiveRoutineCalendar
+      <div data-tour="routine-calendar"><InteractiveRoutineCalendar
         selectedDate={selectedDate}
         visibleMonth={visibleMonth}
         entries={monthEntries}
@@ -179,8 +179,8 @@ export default function RoutinePage() {
         correctionWindowHint={labels.correctionWindowHint}
         onSelectDate={openDate}
         onMonthChange={setVisibleMonth}
-      />
-      <Card><div className="flex min-w-0 flex-wrap items-start justify-between gap-4"><div className="grid min-w-0 gap-2"><h2 className="break-words font-display text-4xl font-light uppercase leading-[0.92] text-[var(--text-primary)]"><span>{labels.timeline}</span>{view === "day" ? <><span aria-hidden="true"> · </span><span className="text-[var(--text-secondary)]">{selectedDateLong}</span></> : null}</h2><p className="subtitle-display max-w-3xl break-words text-lg text-[var(--text-secondary)]">{labels.description}</p></div><Button onClick={openCreate}>{labels.newBlock}</Button></div><div className="mt-5 grid min-w-0 grid-cols-3 gap-2"><Button className="routineViewButton min-w-0" variant={view === "day" && selectedDate === today ? "primary" : "secondary"} onClick={() => openDate(today)}>Hoje</Button><Button className="routineViewButton min-w-0" variant={view === "day" && selectedDate === tomorrow ? "primary" : "secondary"} onClick={() => openDate(tomorrow)}>Amanhã</Button><Button className="routineViewButton min-w-0" variant={view === "week" ? "primary" : "secondary"} onClick={() => setView("week")}>Semana</Button></div></Card>
+      /></div>
+      <Card data-tour="routine-timeline"><div className="flex min-w-0 flex-wrap items-start justify-between gap-4"><div className="grid min-w-0 gap-2"><h2 className="break-words font-display text-4xl font-light uppercase leading-[0.92] text-[var(--text-primary)]"><span>{labels.timeline}</span>{view === "day" ? <><span aria-hidden="true"> · </span><span className="text-[var(--text-secondary)]">{selectedDateLong}</span></> : null}</h2><p className="subtitle-display max-w-3xl break-words text-lg text-[var(--text-secondary)]">{labels.description}</p></div><Button onClick={openCreate}>{labels.newBlock}</Button></div><div className="mt-5 grid min-w-0 grid-cols-3 gap-2"><Button className="routineViewButton min-w-0" variant={view === "day" && selectedDate === today ? "primary" : "secondary"} onClick={() => openDate(today)}>Hoje</Button><Button className="routineViewButton min-w-0" variant={view === "day" && selectedDate === tomorrow ? "primary" : "secondary"} onClick={() => openDate(tomorrow)}>Amanhã</Button><Button className="routineViewButton min-w-0" variant={view === "week" ? "primary" : "secondary"} onClick={() => setView("week")}>Semana</Button></div></Card>
       {error ? <p role="alert" className="text-sm font-semibold text-red-500">{error}</p> : null}
       {agenda.isLoading ? <Card>Carregando agenda…</Card> : null}
       {isReadOnlyHistory ? <Card role="alert" aria-live="polite" className="border-red-500/35 bg-red-500/[0.07]"><div className="flex items-start gap-3"><span aria-hidden="true" className="grid size-8 shrink-0 place-items-center rounded-full border border-red-400/50 bg-red-500/10 font-black text-red-400">!</span><div><h3 className="font-black text-red-400">{labels.historyReadOnlyTitle}</h3><p className="mt-1 text-sm font-semibold text-[var(--text-secondary)]">{labels.historyReadOnly}</p></div></div></Card> : null}
@@ -194,7 +194,7 @@ export default function RoutinePage() {
       })}
       {!agenda.isLoading && !entries.length ? <EmptyState title={labels.emptyTitle} description={labels.emptyDescription} /> : null}
 
-      <Card className="grid gap-4">
+      <Card data-tour="routine-default" className="grid gap-4">
         <SectionTitle title={labels.defaultRoutine} description={labels.defaultRoutineDescription} />
         {recurringItems.length ? <div className="grid gap-2">{recurringItems.map((item) => <div key={item.id} className="flex min-w-0 items-center justify-between gap-3 rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-ambient)] px-4 py-3"><div className="min-w-0"><p className="break-words font-bold [overflow-wrap:anywhere]">{localInputParts(item.start_at).time} · {item.title}</p><p className="mt-1 break-words text-xs text-[var(--text-tertiary)]">{item.duration_minutes} min · {describeRRule(item.recurrence_rule ?? "", language)}</p></div><Button variant="ghost" className="min-h-10 shrink-0 px-3 text-xs" onClick={() => { if (window.confirm("Remover este item da rotina padrão?")) mutation.mutate(() => routineApi.deleteItem(item.id)); }}>{labels.remove}</Button></div>)}</div> : null}
         <form onSubmit={saveDefaultRoutineItem} className="grid gap-3">

@@ -203,7 +203,7 @@ export default function AssistantPage() {
           </span>
         </header>
 
-        <div className="assistantQuickScroll -mx-5 shrink-0 overflow-x-auto px-5 pb-3 pt-1 sm:-mx-6 sm:px-6 lg:mx-0 lg:px-0">
+        <div data-tour="assistant-suggestions" className="assistantQuickScroll -mx-5 shrink-0 overflow-x-auto px-5 pb-3 pt-1 sm:-mx-6 sm:px-6 lg:mx-0 lg:px-0">
           <div className="flex w-max gap-2 lg:flex-wrap">
             {assistant.quickActions.map((action) => (
               <Button
@@ -218,7 +218,7 @@ export default function AssistantPage() {
           </div>
         </div>
 
-        <div ref={conversationRef} className="assistantConversation min-h-0 flex-1 overflow-y-auto overscroll-contain px-0.5 py-2 pr-1 sm:pr-2">
+        <div ref={conversationRef} data-tour="assistant-conversation" className="assistantConversation min-h-0 flex-1 overflow-y-auto overscroll-contain px-0.5 py-2 pr-1 sm:pr-2">
           <div className="grid gap-3 pb-3 sm:gap-4">
             {isLoadingHistory ? (
               <div className="assistantBubble assistantBubbleBot mx-auto max-w-sm rounded-[1.4rem] px-4 py-3 text-center">
@@ -282,6 +282,7 @@ export default function AssistantPage() {
         </div>
 
         <form
+          data-tour="assistant-composer"
           onSubmit={sendMessage}
           autoComplete="off"
           className="assistantComposer mt-2 flex shrink-0 items-end gap-2 rounded-[1.55rem] border border-[var(--border-medium)] bg-[var(--surface-focus)] p-1.5 pl-4 shadow-[0_18px_48px_-28px_rgba(0,0,0,0.85),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-2xl"

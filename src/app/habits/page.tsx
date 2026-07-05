@@ -72,11 +72,13 @@ export default function HabitsPage() {
   return (
     <AppShell title={labels.title} infoPage="habits">
       <div className="flex items-center justify-between gap-4"><SectionTitle title={labels.heading} description={labels.description} /><Button href="/goals">{labels.add}</Button></div>
-      <Card className="habitGuideCard grid gap-3"><p className="habitGuideText text-sm font-semibold leading-6">{labels.consistencyGuide}</p><div className="flex flex-wrap gap-2 text-xs font-bold text-[var(--text-tertiary)]"><span className="habitGuidePill habitGuidePillFire">{labels.fireGuide}</span><span className="habitGuidePill habitGuidePillGrass">{labels.grassGuide}</span><span className="habitGuidePill habitGuidePillIce">{labels.iceGuide}</span><span className="habitGuidePill habitGuidePillEmpty">{labels.emptyGuide}</span></div><p className="text-xs text-[var(--text-tertiary)]">{habits.data?.length ?? items.length} hábitos ativos · semana de {range.start} a {range.end}</p></Card>
+      <Card data-tour="habit-guide" className="habitGuideCard grid gap-3"><p className="habitGuideText text-sm font-semibold leading-6">{labels.consistencyGuide}</p><div className="flex flex-wrap gap-2 text-xs font-bold text-[var(--text-tertiary)]"><span className="habitGuidePill habitGuidePillFire">{labels.fireGuide}</span><span className="habitGuidePill habitGuidePillGrass">{labels.grassGuide}</span><span className="habitGuidePill habitGuidePillIce">{labels.iceGuide}</span><span className="habitGuidePill habitGuidePillEmpty">{labels.emptyGuide}</span></div><p className="text-xs text-[var(--text-tertiary)]">{habits.data?.length ?? items.length} hábitos ativos · semana de {range.start} a {range.end}</p></Card>
       {error ? <p role="alert" className="text-sm font-semibold text-red-500">{error}</p> : null}
       {dashboard.isLoading ? <Card>Carregando hábitos…</Card> : null}
-      {items.map((item) => <HabitCard key={item.habit.id} item={item} preferredTime={preferredTimes[item.habit.id]} onLog={logHabit} onEdit={openEdit} onDelete={(id) => { if (window.confirm("Excluir este hábito permanentemente?")) mutation.mutate(() => routineApi.deleteHabit(id)); }} />)}
-      {!dashboard.isLoading && !items.length ? <EmptyState title={labels.emptyTitle} description={labels.emptyDescription} href="/goals" /> : null}
+      <div data-tour="habit-list" className="grid gap-4">
+        {items.map((item) => <HabitCard key={item.habit.id} item={item} preferredTime={preferredTimes[item.habit.id]} onLog={logHabit} onEdit={openEdit} onDelete={(id) => { if (window.confirm("Excluir este hábito permanentemente?")) mutation.mutate(() => routineApi.deleteHabit(id)); }} />)}
+        {!dashboard.isLoading && !items.length ? <EmptyState title={labels.emptyTitle} description={labels.emptyDescription} href="/goals" /> : null}
+      </div>
       {editing ? (
         <div className="fixed inset-0 z-50 grid place-items-end bg-black/55 p-4 backdrop-blur-md sm:place-items-center">
           <Card className="alfredModalSurface max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto">

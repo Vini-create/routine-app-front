@@ -84,7 +84,7 @@ export default function FeedbackPage() {
         footnote={feedbackLabels.developmentFootnote}
       />
 
-      <Card>
+      <Card data-tour="feedback-form">
         <form onSubmit={onSubmit} className="grid gap-4">
           <FieldLabel label={feedbackLabels.goalLabel}>
             <Textarea

@@ -92,7 +92,7 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      <section className="grid gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)] lg:items-end">
+      <section data-tour="dashboard-overview" className="grid gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)] lg:items-end">
         <div className="grid gap-5 py-2 lg:py-8">
           <p className="text-xs font-extrabold uppercase tracking-[0.08em] text-[var(--text-secondary)] sm:text-sm lg:text-[0.95rem]">
             {labels.greeting}, {user?.display_name || user?.email}
@@ -122,13 +122,13 @@ export default function DashboardPage() {
         </Card>
       </section>
 
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <section data-tour="dashboard-shortcuts" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <Button href="/feedback" className="sm:text-base">{labels.openFeedback}</Button>
         <Button href="/assistant" variant="secondary" className="sm:text-base">{labels.assistantShortcut}</Button>
         <Button href="/habits" variant="secondary" className="sm:text-base">{labels.habitsShortcut}</Button>
       </section>
 
-      <section className="grid gap-7 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.72fr)] lg:items-start">
+      <section data-tour="dashboard-today" className="grid gap-7 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.72fr)] lg:items-start">
         <div className="grid gap-5">
           <SectionTitle title={labels.now} />
           {agenda.isLoading ? (
