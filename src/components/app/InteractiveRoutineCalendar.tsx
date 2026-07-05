@@ -1,6 +1,6 @@
 "use client";
 
-import type { AgendaEntry } from "@/lib/agenda";
+import type { AgendaEntry, CalendarItemMarker } from "@/lib/agenda";
 import type { ItemType } from "@/lib/api-contracts";
 import { toDateKey } from "@/lib/date";
 import { cn } from "@/lib/utils";
@@ -30,6 +30,7 @@ export function InteractiveRoutineCalendar({
   selectedDate,
   visibleMonth,
   entries,
+  markers = [],
   months,
   weekdays,
   title,
@@ -42,6 +43,7 @@ export function InteractiveRoutineCalendar({
   selectedDate: string;
   visibleMonth: Date;
   entries: AgendaEntry[];
+  markers?: CalendarItemMarker[];
   months: readonly string[];
   weekdays: readonly string[];
   title: string;
@@ -54,6 +56,8 @@ export function InteractiveRoutineCalendar({
   const today = toDateKey(new Date());
   const entriesByDate = new Map<string, AgendaEntry[]>();
   entries.forEach((entry) => entriesByDate.set(entry.date, [...(entriesByDate.get(entry.date) ?? []), entry]));
+  const markersByDate = new Map<string, CalendarItemMarker[]>();
+  markers.forEach((marker) => markersByDate.set(marker.date, [...(markersByDate.get(marker.date) ?? []), marker]));
 
   return (
     <Card className="grid min-w-0 gap-6 overflow-hidden p-6 sm:p-8">
@@ -79,7 +83,10 @@ export function InteractiveRoutineCalendar({
           const past = key < today;
           const withinCorrectionWindow = past && Boolean(correctionWindowStart) && key >= correctionWindowStart!;
           const dayEntries = entriesByDate.get(key) ?? [];
-          const dayItemTypes = Array.from(new Set(dayEntries.map((entry) => entry.itemType).filter(isCalendarMarkerType)));
+          const dayItemTypes = Array.from(new Set([
+            ...dayEntries.map((entry) => entry.itemType).filter(isCalendarMarkerType),
+            ...(markersByDate.get(key) ?? []).map((marker) => marker.itemType),
+          ]));
           return (
             <button
               key={key}
@@ -103,7 +110,6 @@ export function InteractiveRoutineCalendar({
             >
               <span className="relative z-10">{date.getDate()}</span>
               {past && inMonth ? <span aria-hidden="true" className={cn(permanentMarker.className, "pointer-events-none absolute inset-0 z-20 flex -rotate-3 scale-x-110 translate-y-px items-center justify-center text-[3.4rem] font-normal leading-none text-red-500 opacity-35 sm:text-[5rem]")} style={permanentMarker.style}>X</span> : null}
-              {current ? <span aria-label="Hoje" className="absolute right-1.5 top-1.5 z-30 size-1.5 rounded-full bg-[#050507]" /> : null}
               {dayItemTypes.length ? <span className="absolute bottom-1.5 z-30 flex max-w-[80%] gap-0.5">{dayItemTypes.map((type) => <i key={type} className={cn("size-1.5 rounded-full shadow-[0_0_0_1px_rgba(0,0,0,0.12)]", itemTypeDot[type])} />)}</span> : null}
             </button>
           );

@@ -14,7 +14,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { DurationInput, FieldLabel, Input, Select, Textarea, TimeInput } from "@/components/ui/Form";
 import { ApiError } from "@/lib/api";
 import type { ItemStatus, ItemType, RoutineItem, ScheduleType } from "@/lib/api-contracts";
-import { agendaEntries, type AgendaEntry } from "@/lib/agenda";
+import { agendaEntries, routineItemCalendarMarkers, type AgendaEntry } from "@/lib/agenda";
 import { addDays, fromDateKey, toDateKey, toLocalDateTime, weekRange } from "@/lib/date";
 import { preferredHabitTimes, readHabitPreferences } from "@/lib/habitPreferences";
 import { buildRRule, describeRRule, parseRRule, type RecurrenceFrequency } from "@/lib/rrule";
@@ -65,6 +65,7 @@ export default function RoutinePage() {
   const goals = useQuery({ queryKey: ["goals"], queryFn: routineApi.listGoals });
   const entries = useMemo(() => agendaEntries(agenda.data, habitTimes), [agenda.data, habitTimes]);
   const monthEntries = useMemo(() => agendaEntries(monthAgenda.data, habitTimes), [habitTimes, monthAgenda.data]);
+  const monthMarkers = useMemo(() => routineItemCalendarMarkers(items.data, monthStart, monthEnd), [items.data, monthEnd, monthStart]);
 
   function refresh() {
     return Promise.all([
@@ -172,6 +173,7 @@ export default function RoutinePage() {
         selectedDate={selectedDate}
         visibleMonth={visibleMonth}
         entries={monthEntries}
+        markers={monthMarkers}
         months={labels.months}
         weekdays={labels.weekdays}
         title={labels.calendar}
