@@ -190,10 +190,10 @@ export default function AssistantPage() {
               className="size-11 shrink-0 rounded-2xl border border-[var(--border-medium)] object-cover shadow-[0_14px_34px_-22px_rgba(24,24,27,0.9)] sm:size-12"
               sizes="(max-width: 640px) 44px, 48px"
             />
-            <div className="min-w-0">
+            <div className="shrink-0">
               <p className="label-micro assistantOnlineStatus">{assistant.status}</p>
-              <div className="flex min-w-0 items-center gap-2">
-                <h2 className="display-title metallicPageTitle min-w-0 break-words text-[2.1rem] leading-none [overflow-wrap:anywhere] min-[380px]:text-[2.35rem] sm:text-5xl">{assistant.title}</h2>
+              <div className="grid justify-items-start gap-2 sm:flex sm:items-center">
+                <h2 className="display-title metallicPageTitle shrink-0 whitespace-nowrap text-[2.1rem] leading-none min-[380px]:text-[2.35rem] sm:text-5xl">{assistant.title}</h2>
                 <PageInfoButton page="assistant" className="size-8 sm:size-9" />
               </div>
             </div>
@@ -314,8 +314,8 @@ export default function AssistantPage() {
             {isSending ? (
               <span className="size-4 animate-spin rounded-full border-2 border-black/25 border-t-black" aria-hidden="true" />
             ) : (
-              <svg aria-hidden="true" viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h13m-5-5 5 5-5 5" />
+              <svg aria-hidden="true" viewBox="0 0 24 24" className="assistantSendIcon size-5" fill="currentColor">
+                <path d="M11.28 3.22a1 1 0 0 1 1.44 0l6.75 7a1 1 0 0 1-1.44 1.39L13 6.39V20a1 1 0 1 1-2 0V6.39l-5.03 5.22a1 1 0 1 1-1.44-1.39l6.75-7Z" />
               </svg>
             )}
           </Button>
