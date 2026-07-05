@@ -79,6 +79,9 @@ export const fr = {
     installIosStepOpen: "Activez Ouvrir comme app, puis touchez Ajouter.",
     close: "Fermer",
     understood: "Compris",
+    duration: "Durée",
+    durationHours: "Durée en heures",
+    durationMinutes: "Minutes supplémentaires de durée",
   },
   landing: {
     ...en.landing,

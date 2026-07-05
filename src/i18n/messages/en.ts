@@ -103,6 +103,9 @@ export const en = {
     installIosStepOpen: "Turn on Open as Web App and tap Add.",
     close: "Close",
     understood: "Got it",
+    duration: "Duration",
+    durationHours: "Duration in hours",
+    durationMinutes: "Additional duration in minutes",
   },
   routineCard: {
     pending: "Pending",

@@ -1,29 +1,9 @@
 "use client";
 
-import { forwardRef, useState } from "react";
+import { forwardRef, useEffect, useRef, useState } from "react";
 import type { InputHTMLAttributes, SelectHTMLAttributes, TextareaHTMLAttributes } from "react";
+import { useTranslations } from "@/components/app/LanguageProvider";
 import { cn } from "@/lib/utils";
-
-const durationOptions = [
-  "10 min",
-  "15 min",
-  "20 min",
-  "30 min",
-  "45 min",
-  "1 h",
-  "1 h 30 min",
-  "2 h",
-  "3 h",
-  "4 h",
-  "6 h",
-  "8 h",
-] as const;
-
-const timeOptions = Array.from({ length: 24 * 4 }, (_, index) => {
-  const hours = Math.floor(index / 4);
-  const minutes = (index % 4) * 15;
-  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
-});
 
 export function FieldLabel({
   label,
@@ -108,24 +88,95 @@ export function Select(props: SelectHTMLAttributes<HTMLSelectElement>) {
   );
 }
 
-export function DurationSelect(props: SelectHTMLAttributes<HTMLSelectElement>) {
+export function DurationInput({
+  name,
+  label,
+  defaultMinutes = 30,
+  min = 1,
+  max = 1440,
+  className,
+}: {
+  name: string;
+  label: string;
+  defaultMinutes?: number;
+  min?: number;
+  max?: number;
+  className?: string;
+}) {
+  const common = useTranslations("common");
+  const initialHours = Math.floor(defaultMinutes / 60);
+  const initialMinutes = defaultMinutes % 60;
+  const [hours, setHours] = useState(String(initialHours));
+  const [minutes, setMinutes] = useState(String(initialMinutes));
+  const containerRef = useRef<HTMLFieldSetElement>(null);
+  const hoursNumber = Number(hours) || 0;
+  const totalMinutes = hoursNumber * 60 + (Number(minutes) || 0);
+  const maximumHours = Math.floor(max / 60);
+  const maximumMinutes = hoursNumber >= maximumHours ? max % 60 : 59;
+  const minimumMinutes = hoursNumber === 0 ? Math.min(min, 59) : 0;
+
+  useEffect(() => {
+    const form = containerRef.current?.closest("form");
+    if (!form) return;
+
+    const reset = () => {
+      setHours(String(initialHours));
+      setMinutes(String(initialMinutes));
+    };
+    form.addEventListener("reset", reset);
+    return () => form.removeEventListener("reset", reset);
+  }, [initialHours, initialMinutes]);
+
   return (
-    <Select {...props}>
-      {durationOptions.map((duration) => (
-        <option key={duration} value={duration}>{duration}</option>
-      ))}
-    </Select>
+    <fieldset ref={containerRef} className={cn("grid min-w-0 gap-2", className)}>
+      <legend className="mb-2 text-sm font-semibold text-[var(--text-secondary)]">{label}</legend>
+      <div className="grid min-w-0 grid-cols-2 gap-2">
+        <span className="relative min-w-0">
+          <Input
+            type="number"
+            inputMode="numeric"
+            min={0}
+            max={maximumHours}
+            value={hours}
+            onChange={(event) => setHours(event.target.value)}
+            onBlur={() => { if (hours === "") setHours("0"); }}
+            aria-label={common.durationHours}
+            className="pr-9 tabular-nums"
+          />
+          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-[var(--text-tertiary)]">h</span>
+        </span>
+        <span className="relative min-w-0">
+          <Input
+            type="number"
+            inputMode="numeric"
+            min={minimumMinutes}
+            max={maximumMinutes}
+            value={minutes}
+            onChange={(event) => setMinutes(event.target.value)}
+            onBlur={() => { if (minutes === "") setMinutes("0"); }}
+            aria-label={common.durationMinutes}
+            className="pr-11 tabular-nums"
+          />
+          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-[var(--text-tertiary)]">min</span>
+        </span>
+      </div>
+      <input
+        type="number"
+        name={name}
+        value={totalMinutes}
+        min={min}
+        max={max}
+        readOnly
+        required
+        tabIndex={-1}
+        aria-label={label}
+        className="pointer-events-none absolute size-px opacity-0"
+      />
+    </fieldset>
   );
 }
 
-export function TimeSelect(props: SelectHTMLAttributes<HTMLSelectElement>) {
-  const selectedValue = typeof props.value === "string"
-    ? props.value
-    : typeof props.defaultValue === "string"
-      ? props.defaultValue
-      : "";
-  const hasCustomValue = /^\d{2}:\d{2}$/.test(selectedValue) && !timeOptions.includes(selectedValue);
-
+export function TimeInput(props: Omit<InputHTMLAttributes<HTMLInputElement>, "type">) {
   return (
     <span className="relative block min-w-0">
       <svg
@@ -139,13 +190,7 @@ export function TimeSelect(props: SelectHTMLAttributes<HTMLSelectElement>) {
         <circle cx="12" cy="12" r="8.25" />
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 7.5V12l3 1.75" />
       </svg>
-      <Select {...props} className={cn("w-full pl-11 tabular-nums", props.className)}>
-        <option value="">--:--</option>
-        {hasCustomValue ? <option value={selectedValue}>{selectedValue}</option> : null}
-        {timeOptions.map((time) => (
-          <option key={time} value={time}>{time}</option>
-        ))}
-      </Select>
+      <Input {...props} type="time" step={60} className={cn("w-full pl-11 tabular-nums", props.className)} />
     </span>
   );
 }

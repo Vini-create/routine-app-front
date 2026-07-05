@@ -201,7 +201,7 @@ export default function DashboardPage() {
         ) : habits.data?.habits.length ? (
           <div className="grid gap-4 lg:grid-cols-2">
             {habits.data.habits.slice(0, 2).map((item) => (
-              <HabitCard key={item.habit.id} item={item} preferredTime={preferredTimes[item.habit.id]} />
+              <HabitCard key={item.habit.id} item={item} preferredTime={preferredTimes[item.habit.id]} compact />
             ))}
           </div>
         ) : (

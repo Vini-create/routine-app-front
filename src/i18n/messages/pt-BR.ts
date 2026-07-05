@@ -98,6 +98,9 @@ export const ptBR = {
     installIosStepOpen: "Ative Abrir como App e toque em Adicionar.",
     close: "Fechar",
     understood: "Entendi",
+    duration: "Duração",
+    durationHours: "Duração em horas",
+    durationMinutes: "Minutos adicionais da duração",
   },
   routineCard: {
     pending: "Pendente",

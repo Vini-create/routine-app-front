@@ -9,7 +9,7 @@ import { SectionTitle } from "@/components/app/SectionTitle";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { FieldLabel, Input, Select, Textarea, TimeSelect } from "@/components/ui/Form";
+import { DurationInput, FieldLabel, Input, Select, Textarea, TimeInput } from "@/components/ui/Form";
 import { ApiError } from "@/lib/api";
 import type { Habit, ItemStatus } from "@/lib/api-contracts";
 import { toDateKey, weekRange } from "@/lib/date";
@@ -19,6 +19,7 @@ import { buildRRule, parseRRule, type RecurrenceFrequency } from "@/lib/rrule";
 
 export default function HabitsPage() {
   const labels = useTranslations("habitsPage");
+  const common = useTranslations("common");
   const queryClient = useQueryClient();
   const range = weekRange();
   const [editing, setEditing] = useState<Habit | null>(null);
@@ -83,9 +84,9 @@ export default function HabitsPage() {
               <h2 className="text-xl font-bold">Editar hábito</h2>
               <FieldLabel label={labels.habitName}><Input name="name" defaultValue={editing.name} minLength={2} maxLength={60} required /></FieldLabel>
               <FieldLabel label="Meta"><Select name="goalId" defaultValue={editing.goal_id ?? ""}>{goals.data?.map((goal) => <option key={goal.id} value={goal.id}>{goal.title}</option>)}</Select></FieldLabel>
-              <div className="grid grid-cols-2 gap-3">
-                <FieldLabel label="Duração (min)"><Input name="duration" type="number" min={1} max={1440} defaultValue={editing.duration_minutes} required /></FieldLabel>
-                <FieldLabel label={labels.preferredTime}><TimeSelect name="preferredTime" defaultValue={preferredTimes[editing.id] ?? "08:00"} /></FieldLabel>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <DurationInput name="duration" label={common.duration} defaultMinutes={editing.duration_minutes} />
+                <FieldLabel label={labels.preferredTime}><TimeInput name="preferredTime" defaultValue={preferredTimes[editing.id] ?? "08:00"} /></FieldLabel>
               </div>
               <FieldLabel label="Recorrência"><Select value={editRecurrence} onChange={(event) => setEditRecurrence(event.target.value as RecurrenceFrequency)}><option value="daily">Diário</option><option value="weekly">Semanal</option><option value="monthly">Mensal</option><option value="yearly">Anual</option></Select></FieldLabel>
               {editRecurrence === "weekly" ? <DayPicker name="weekDays" count={7} defaults={parseRRule(editing.recurrence_rule).frequency === "weekly" ? parseRRule(editing.recurrence_rule).selected : [1,2,3,4,5]} /> : editRecurrence === "monthly" ? <DayPicker name="monthDays" count={31} defaults={parseRRule(editing.recurrence_rule).frequency === "monthly" ? parseRRule(editing.recurrence_rule).selected : [1]} /> : null}

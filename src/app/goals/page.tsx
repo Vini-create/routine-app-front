@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { FieldLabel, Input, Select, Textarea, TimeSelect } from "@/components/ui/Form";
+import { DurationInput, FieldLabel, Input, Select, Textarea, TimeInput } from "@/components/ui/Form";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { ApiError } from "@/lib/api";
 import type { Goal, GoalCategory, Habit } from "@/lib/api-contracts";
@@ -23,6 +23,7 @@ import { routineApi } from "@/lib/routineApi";
 export default function GoalsPage() {
   const labels = useTranslations("goalsPage");
   const habitsLabels = useTranslations("habitsPage");
+  const common = useTranslations("common");
   const { language } = useLanguage();
   const queryClient = useQueryClient();
   const [period, setPeriod] = useState<"month" | "since">("month");
@@ -145,7 +146,7 @@ export default function GoalsPage() {
           <div className="flex flex-wrap gap-2"><Button variant="secondary" onClick={() => setDetailsGoalId(detailsGoalId === item.goal.id ? null : item.goal.id)}>Detalhes</Button><Button variant="secondary" onClick={() => openEdit(item.goal.id)}>Editar</Button><Button variant="danger" onClick={() => { if (window.confirm("Excluir esta meta permanentemente?")) mutation.mutate(() => routineApi.deleteGoal(item.goal.id)); }}>Excluir</Button><Button onClick={() => setHabitGoalId(item.goal.id)}>{labels.addHabit}</Button></div>
           {habitGoalId === item.goal.id ? <form onSubmit={(event) => createHabit(event, item.goal.id)} className="grid gap-3 rounded-3xl border border-[var(--border-soft)] p-4">
             <FieldLabel label={habitsLabels.habitName}><Input name="name" minLength={2} maxLength={60} required /></FieldLabel>
-            <div className="grid grid-cols-3 gap-3"><FieldLabel label="Duração (min)"><Input name="duration" type="number" min={1} max={1440} defaultValue={20} required /></FieldLabel><FieldLabel label="Data inicial"><Input name="startDate" type="date" min={toDateKey(new Date())} defaultValue={toDateKey(new Date())} required /></FieldLabel><FieldLabel label={habitsLabels.preferredTime}><TimeSelect name="preferredTime" defaultValue="08:00" /></FieldLabel></div>
+            <div className="grid gap-3 sm:grid-cols-3"><DurationInput name="duration" label={common.duration} defaultMinutes={20} /><FieldLabel label="Data inicial"><Input name="startDate" type="date" min={toDateKey(new Date())} defaultValue={toDateKey(new Date())} required /></FieldLabel><FieldLabel label={habitsLabels.preferredTime}><TimeInput name="preferredTime" defaultValue="08:00" /></FieldLabel></div>
             <FieldLabel label={labels.recurrence}><Select value={recurrence} onChange={(event) => setRecurrence(event.target.value as RecurrenceFrequency)}><option value="daily">Diário</option><option value="weekly">{labels.weekly}</option><option value="monthly">{labels.monthly}</option><option value="yearly">Anual</option></Select></FieldLabel>
             {recurrence === "weekly" ? <DayPicker name="weekDays" count={7} defaults={[1,2,3,4,5]} /> : recurrence === "monthly" ? <DayPicker name="monthDays" count={31} defaults={[1]} /> : null}
             <FieldLabel label={habitsLabels.reason}><Textarea name="description" maxLength={200} /></FieldLabel>

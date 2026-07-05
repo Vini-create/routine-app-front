@@ -23,12 +23,14 @@ export function HabitCard({
   onEdit,
   onDelete,
   preferredTime,
+  compact = false,
 }: {
   item: HabitDashboardItem;
   onLog?: (habitId: string, status: ItemStatus) => void;
   onEdit?: (habitId: string) => void;
   onDelete?: (habitId: string) => void;
   preferredTime?: string;
+  compact?: boolean;
 }) {
   const labels = useTranslations("habitsPage");
   const common = useTranslations("common");
@@ -37,12 +39,42 @@ export function HabitCard({
   const todayOccurrence = item.occurrences.find((occurrence) => occurrence.date === today);
   const canLog = todayOccurrence && todayOccurrence.status !== "vacation";
   const variant = item.consistency_level === "neutral" ? "empty" : item.consistency_level;
+  const variantClasses = cn(
+    variant === "fire" && "habitCardFire", variant === "ice" && "habitCardIce",
+    variant === "grass" && "habitCardGrass", variant === "empty" && "habitCardEmpty",
+  );
+
+  if (compact) {
+    return (
+      <Card className={cn("habitCard relative grid min-w-0 max-w-full gap-3 overflow-hidden p-4 sm:p-5", variantClasses)}>
+        <span className="habitCardAccent pointer-events-none absolute inset-x-4 top-0 z-[1] h-1 rounded-b-full" />
+        <div className="flex min-w-0 items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <Badge tone="blue" className="habitCardGoalBadge max-w-full whitespace-normal break-words [overflow-wrap:anywhere]">{item.goal?.title ?? common.unlinkedGoal}</Badge>
+            <h3 className="subtitle-display mt-3 break-words text-xl text-[var(--text-primary)] [overflow-wrap:anywhere]">{item.habit.name}</h3>
+            <p className="mt-1 text-sm text-[var(--text-secondary)]">{item.habit.duration_minutes} min · {preferredTime ?? "08:00"}</p>
+          </div>
+          <p className="habitCardPercentage shrink-0 text-2xl font-black">{item.expected_count ? `${Math.round(item.consistency_percent)}%` : "—"}</p>
+        </div>
+        <ProgressBar value={item.consistency_percent} />
+        {item.occurrences.length ? (
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex min-w-0 flex-1 gap-1.5" aria-label={`${item.completed_count} ${labels.completedLegend}`}>
+              {item.occurrences.slice(-7).map((occurrence) => (
+                <span key={occurrence.date} title={occurrence.status} className={cn("habitDay h-2.5 min-w-0 flex-1 rounded-full", statusClass[occurrence.status])} />
+              ))}
+            </div>
+            <span className="shrink-0 text-xs font-bold text-[var(--text-secondary)]">{item.completed_count}/{item.expected_count}</span>
+          </div>
+        ) : null}
+      </Card>
+    );
+  }
 
   return (
     <Card className={cn(
       "habitCard relative min-w-0 max-w-full grid gap-4 overflow-hidden",
-      variant === "fire" && "habitCardFire", variant === "ice" && "habitCardIce",
-      variant === "grass" && "habitCardGrass", variant === "empty" && "habitCardEmpty",
+      variantClasses,
     )}>
       <span className="habitCardAccent pointer-events-none absolute inset-x-4 top-0 z-[1] h-1 rounded-b-full" />
       <div className="flex min-w-0 items-start justify-between gap-3 sm:gap-4">
