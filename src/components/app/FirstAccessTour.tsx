@@ -47,8 +47,8 @@ export function FirstAccessTour() {
   const copy = firstAccessTourCopy[language];
   const allSteps = useMemo(() => expandedFirstAccessTourSteps(copy), [copy]);
   const steps = useMemo(
-    () => isMobileTour ? mobileFirstAccessTourSteps(allSteps) : allSteps,
-    [allSteps, isMobileTour],
+    () => isMobileTour ? mobileFirstAccessTourSteps(allSteps, language) : allSteps,
+    [allSteps, isMobileTour, language],
   );
   const totalSteps = steps.length;
   const step = currentIndex === null ? null : steps[currentIndex];

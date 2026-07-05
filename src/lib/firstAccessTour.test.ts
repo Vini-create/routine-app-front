@@ -86,11 +86,12 @@ describe("first access tour", () => {
   });
 
   it("keeps the mobile walkthrough focused on the main flow", () => {
-    Object.values(firstAccessTourCopy).forEach((copy) => {
+    Object.entries(firstAccessTourCopy).forEach(([language, copy]) => {
       const fullTour = expandedFirstAccessTourSteps(copy);
-      const mobileTour = mobileFirstAccessTourSteps(fullTour);
+      const mobileTour = mobileFirstAccessTourSteps(fullTour, language as keyof typeof firstAccessTourCopy);
       expect(mobileTour).toHaveLength(16);
       expect(mobileTour.length).toBeLessThan(fullTour.length);
+      expect(mobileTour.every((step) => step.description.length <= 80)).toBe(true);
       expect(mobileTour.some((step) => step.selector.includes("page-info-button"))).toBe(false);
       expect(mobileTour.some((step) => step.selector.includes("habit-consistency-fire"))).toBe(false);
       expect(new Set(mobileTour.map((step) => step.route))).toEqual(new Set(fullTour.map((step) => step.route)));

@@ -330,13 +330,88 @@ const mobileTourTargets = new Set([
   "settings-preferences",
 ]);
 
+const mobileTourCopy: Record<SupportedLanguage, Record<string, Pick<FirstAccessTourStep, "title" | "description">>> = {
+  "pt-BR": {
+    "dashboard-overview": { title: "Seu dia em um olhar", description: "Veja o que importa agora e como seu dia está avançando." },
+    "app-navigation": { title: "Tudo a poucos toques", description: "Use a navegação para circular pelas áreas principais." },
+    "dashboard-today": { title: "Seu próximo passo", description: "Veja o que vem agora e atualize cada item conforme avança." },
+    "routine-calendar": { title: "Planeje por dia", description: "Escolha uma data para ver ou ajustar o que foi planejado." },
+    "routine-timeline": { title: "Monte seu dia", description: "Crie blocos para tarefas e compromissos nos melhores horários para você." },
+    "routine-default": { title: "O que se repete", description: "Guarde aqui atividades recorrentes, como estudo, treino ou trabalho." },
+    "goal-create": { title: "Transforme planos em metas", description: "Defina uma meta clara para acompanhar seu avanço." },
+    "goal-list": { title: "Acompanhe suas metas", description: "Veja o progresso e conecte os hábitos que ajudam você a chegar lá." },
+    "habit-guide": { title: "Entenda sua consistência", description: "As cores mostram seu ritmo e ajudam a ajustar hábitos sem cobrança." },
+    "habit-card": { title: "Cada hábito em um só lugar", description: "Acompanhe frequência, progresso e vínculo com suas metas." },
+    "calendar-main": { title: "Sua semana em conjunto", description: "Veja tudo por data para encontrar espaço e evitar conflitos." },
+    "feedback-form": { title: "Aprenda com sua semana", description: "Conte o que deseja melhorar e receba uma análise prática." },
+    "assistant-composer": { title: "Converse com Alfred", description: "Escreva naturalmente: Alfred usa seu contexto para ajudar você." },
+    "insights-summary": { title: "Veja seu progresso", description: "Use este resumo como orientação, nunca como cobrança." },
+    "insights-patterns": { title: "Descubra o que funciona", description: "Observe algumas semanas antes de mudar sua estratégia." },
+    "settings-preferences": { title: "Do seu jeito", description: "Ajuste a aparência e refaça este tutorial quando quiser." },
+  },
+  en: {
+    "dashboard-overview": { title: "Your day at a glance", description: "See what matters now and how your day is moving forward." },
+    "app-navigation": { title: "Everything within reach", description: "Use navigation to move through the main areas." },
+    "dashboard-today": { title: "Your next step", description: "See what comes next and update each item as you go." },
+    "routine-calendar": { title: "Plan day by day", description: "Choose a date to review or adjust your plan." },
+    "routine-timeline": { title: "Build your day", description: "Create blocks for tasks and commitments at times that suit you." },
+    "routine-default": { title: "What repeats", description: "Keep recurring activities like study, exercise, or work here." },
+    "goal-create": { title: "Turn plans into goals", description: "Set a clear goal so you can follow your progress." },
+    "goal-list": { title: "Follow your goals", description: "See progress and connect the habits that help you get there." },
+    "habit-guide": { title: "Understand your consistency", description: "Colors show your rhythm and help you adjust without pressure." },
+    "habit-card": { title: "Each habit in one place", description: "Follow its frequency, progress, and connection to your goals." },
+    "calendar-main": { title: "Your week together", description: "See everything by date to find space and avoid conflicts." },
+    "feedback-form": { title: "Learn from your week", description: "Share what you want to improve and receive practical guidance." },
+    "assistant-composer": { title: "Talk to Alfred", description: "Write naturally: Alfred uses your context to help you." },
+    "insights-summary": { title: "See your progress", description: "Use this summary as guidance, never as pressure." },
+    "insights-patterns": { title: "Discover what works", description: "Watch a few weeks before changing your strategy." },
+    "settings-preferences": { title: "Make it yours", description: "Adjust the appearance and replay this tour whenever you like." },
+  },
+  es: {
+    "dashboard-overview": { title: "Tu día de un vistazo", description: "Mira qué importa ahora y cómo avanza tu día." },
+    "app-navigation": { title: "Todo a pocos toques", description: "Usa la navegación para moverte por las áreas principales." },
+    "dashboard-today": { title: "Tu próximo paso", description: "Mira qué sigue y actualiza cada elemento mientras avanzas." },
+    "routine-calendar": { title: "Planifica cada día", description: "Elige una fecha para revisar o ajustar tu plan." },
+    "routine-timeline": { title: "Organiza tu día", description: "Crea bloques para tareas y compromisos en horarios que te sirvan." },
+    "routine-default": { title: "Lo que se repite", description: "Guarda aquí actividades recurrentes como estudio, ejercicio o trabajo." },
+    "goal-create": { title: "Convierte planes en metas", description: "Define una meta clara para seguir tu avance." },
+    "goal-list": { title: "Sigue tus metas", description: "Mira el progreso y conecta los hábitos que te acercan a ellas." },
+    "habit-guide": { title: "Entiende tu constancia", description: "Los colores muestran tu ritmo y ayudan a ajustarlo sin presión." },
+    "habit-card": { title: "Cada hábito en un lugar", description: "Sigue su frecuencia, progreso y relación con tus metas." },
+    "calendar-main": { title: "Tu semana en conjunto", description: "Mira todo por fecha para encontrar espacio y evitar conflictos." },
+    "feedback-form": { title: "Aprende de tu semana", description: "Cuenta qué quieres mejorar y recibe una orientación práctica." },
+    "assistant-composer": { title: "Habla con Alfred", description: "Escribe con naturalidad: Alfred usa tu contexto para ayudarte." },
+    "insights-summary": { title: "Mira tu progreso", description: "Usa este resumen como guía, nunca como presión." },
+    "insights-patterns": { title: "Descubre qué funciona", description: "Observa varias semanas antes de cambiar tu estrategia." },
+    "settings-preferences": { title: "A tu manera", description: "Ajusta la apariencia y repite este tutorial cuando quieras." },
+  },
+  fr: {
+    "dashboard-overview": { title: "Votre journée en un coup d’œil", description: "Voyez ce qui compte maintenant et comment avance votre journée." },
+    "app-navigation": { title: "Tout à portée de main", description: "Utilisez la navigation pour parcourir les zones principales." },
+    "dashboard-today": { title: "Votre prochaine étape", description: "Voyez la suite et actualisez chaque élément en avançant." },
+    "routine-calendar": { title: "Planifiez jour après jour", description: "Choisissez une date pour consulter ou ajuster votre planning." },
+    "routine-timeline": { title: "Composez votre journée", description: "Créez des blocs aux horaires qui vous conviennent vraiment." },
+    "routine-default": { title: "Ce qui se répète", description: "Gardez ici les activités régulières : études, sport ou travail." },
+    "goal-create": { title: "Transformez vos plans en objectifs", description: "Définissez un objectif clair pour suivre votre progression." },
+    "goal-list": { title: "Suivez vos objectifs", description: "Voyez les progrès et reliez les habitudes qui vous en rapprochent." },
+    "habit-guide": { title: "Comprenez votre régularité", description: "Les couleurs montrent votre rythme et aident à l’ajuster sans pression." },
+    "habit-card": { title: "Chaque habitude au même endroit", description: "Suivez sa fréquence, sa progression et son objectif associé." },
+    "calendar-main": { title: "Votre semaine réunie", description: "Voyez tout par date pour trouver du temps et éviter les conflits." },
+    "feedback-form": { title: "Apprenez de votre semaine", description: "Dites ce que vous souhaitez améliorer et recevez un conseil pratique." },
+    "assistant-composer": { title: "Parlez à Alfred", description: "Écrivez naturellement : Alfred utilise votre contexte pour vous aider." },
+    "insights-summary": { title: "Voyez vos progrès", description: "Utilisez ce résumé comme guide, jamais comme pression." },
+    "insights-patterns": { title: "Découvrez ce qui fonctionne", description: "Observez plusieurs semaines avant de changer de stratégie." },
+    "settings-preferences": { title: "À votre façon", description: "Ajustez l’apparence et relancez ce tutoriel quand vous voulez." },
+  },
+};
+
 /** A shorter, flow-oriented tour for small screens. Desktop keeps the full tour. */
-export function mobileFirstAccessTourSteps(steps: FirstAccessTourStep[]) {
+export function mobileFirstAccessTourSteps(steps: FirstAccessTourStep[], language: SupportedLanguage) {
   const includedTargets = new Set<string>();
-  return steps.filter((step) => {
+  return steps.flatMap((step) => {
     const target = selectorId(step.selector, step.id);
-    if (!mobileTourTargets.has(target) || includedTargets.has(target)) return false;
+    if (!mobileTourTargets.has(target) || includedTargets.has(target)) return [];
     includedTargets.add(target);
-    return true;
+    return [{ ...step, ...mobileTourCopy[language][target] }];
   });
 }
