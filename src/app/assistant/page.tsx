@@ -106,7 +106,6 @@ export default function AssistantPage() {
       if (!composerHasFocus) restingHeight = Math.max(restingHeight, viewport.height);
 
       const keyboardIsVisible = composerHasFocus && restingHeight - viewport.height > 120;
-      document.documentElement.style.setProperty("--assistant-visual-height", `${viewport.height}px`);
       setIsKeyboardOpen(keyboardIsVisible);
 
       if (keyboardIsVisible) {
@@ -121,7 +120,6 @@ export default function AssistantPage() {
     return () => {
       viewport.removeEventListener("resize", syncVisualViewport);
       viewport.removeEventListener("scroll", syncVisualViewport);
-      document.documentElement.style.removeProperty("--assistant-visual-height");
     };
   }, []);
 
@@ -183,8 +181,8 @@ export default function AssistantPage() {
         className="assistantShell flex h-full min-h-0 flex-col overflow-hidden lg:h-[calc(100dvh-5rem)]"
         data-keyboard-open={isKeyboardOpen}
       >
-        <header className="relative flex shrink-0 items-center justify-between gap-3 pb-3">
-          <div className="flex min-w-0 items-center gap-3">
+        <header className="relative flex shrink-0 flex-wrap items-center gap-x-3 gap-y-2 pb-3">
+          <div className="flex min-w-[10rem] flex-1 items-center gap-3">
             <Image
               src={alfredAvatar}
               alt=""
@@ -195,12 +193,12 @@ export default function AssistantPage() {
             <div className="min-w-0">
               <p className="label-micro assistantOnlineStatus">{assistant.status}</p>
               <div className="flex min-w-0 items-center gap-2">
-                <h2 className="display-title metallicPageTitle truncate text-[2.35rem] leading-none sm:text-5xl">{assistant.title}</h2>
+                <h2 className="display-title metallicPageTitle min-w-0 break-words text-[2.1rem] leading-none [overflow-wrap:anywhere] min-[380px]:text-[2.35rem] sm:text-5xl">{assistant.title}</h2>
                 <PageInfoButton page="assistant" className="size-8 sm:size-9" />
               </div>
             </div>
           </div>
-          <span className="developmentBadge max-w-[9rem] shrink-0 truncate rounded-full border px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[0.07em] lg:absolute lg:left-1/2 lg:-translate-x-1/2">
+          <span className="developmentBadge shrink-0 whitespace-nowrap rounded-full border px-2.5 py-1.5 text-[9px] font-extrabold uppercase tracking-[0.05em] min-[380px]:px-3 min-[380px]:text-[10px] min-[380px]:tracking-[0.07em] lg:absolute lg:left-1/2 lg:-translate-x-1/2">
             {assistant.developmentLabel}
           </span>
         </header>

@@ -41,7 +41,11 @@ export function PageInfoButton({ page, className }: { page: PageInfoKey; classNa
         aria-label={copy.buttonLabel}
         title={copy.buttonLabel}
       >
-        i
+        <svg aria-hidden="true" viewBox="0 0 24 24" className="size-[1.1rem]" fill="none" stroke="currentColor" strokeWidth="2.2">
+          <circle cx="12" cy="12" r="9" />
+          <path strokeLinecap="round" d="M12 10.75v5.25" />
+          <circle cx="12" cy="7.5" r="1" fill="currentColor" stroke="none" />
+        </svg>
       </button>
 
       {open ? (

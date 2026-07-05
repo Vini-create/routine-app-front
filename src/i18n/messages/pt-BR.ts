@@ -325,7 +325,7 @@ export const ptBR = {
   feedback: {
     title: "Feedback de rotina",
     subtitle: "Defina uma meta e receba uma análise da sua rotina semanal.",
-    developmentLabel: "Em Desenvolvimento...",
+    developmentLabel: "Em desenvolvimento",
     developmentDescription: "Aqui você receberá uma análise personalizada da sua rotina, dos seus hábitos e das suas metas, com pontos de melhoria e sugestões práticas para a próxima semana.",
     developmentFootnote: "Esta funcionalidade ainda está sendo preparada e será disponibilizada em uma próxima atualização do beta.",
     goalLabel: "Qual é sua meta principal agora?",
@@ -492,7 +492,7 @@ export const ptBR = {
     ...en.assistant,
     title: "Alfred",
     status: "online",
-    developmentLabel: "Em Desenvolvimento...",
+    developmentLabel: "Em desenvolvimento",
     developmentDescription: "Aqui você poderá conversar com o Alfred para organizar seu dia, ajustar seus hábitos, superar dificuldades e tomar decisões alinhadas às suas metas.",
     developmentFootnote: "O Alfred ainda está em desenvolvimento e chegará em uma próxima atualização do beta.",
     chatTitle: "AI Coach",

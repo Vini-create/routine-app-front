@@ -1755,7 +1755,18 @@ h3,
 }
 
 .assistantComposerInput {
+  appearance: none;
+  border: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
   scrollbar-width: none;
+}
+
+.assistantComposerInput:focus,
+.assistantComposerInput:focus-visible {
+  border: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
 }
 
 .assistantComposerInput::-webkit-scrollbar {
@@ -1843,7 +1854,7 @@ h3,
 
 @media (max-width: 1023px) {
   .assistantMain {
-    height: calc(var(--assistant-visual-height, 100dvh) - 4.5rem);
+    height: calc(100dvh - 4.5rem);
     overflow: hidden;
     padding-bottom: calc(5.75rem + env(safe-area-inset-bottom));
     transition: height 120ms ease-out, padding-bottom 180ms ease;

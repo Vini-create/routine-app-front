@@ -24,9 +24,9 @@ export function AppShell({
       <MobileHeader />
       <main className={`mx-auto grid w-full min-w-0 max-w-[1420px] gap-7 overflow-x-clip px-5 pb-[calc(112px+env(safe-area-inset-bottom))] pt-7 sm:px-6 lg:ml-0 lg:gap-8 lg:px-12 lg:pb-14 lg:pl-[150px] lg:pt-10 xl:mx-auto xl:pl-[150px] ${mainClassName}`}>
         {showTitle ? (
-          <div className="flex min-w-0 items-center gap-3 sm:gap-4">
-            <h1 className="display-title metallicPageTitle min-w-0 break-words text-[3.25rem] text-[var(--text-primary)] sm:text-7xl lg:text-[5.35rem]">{title}</h1>
-            {infoPage ? <PageInfoButton page={infoPage} /> : null}
+          <div className="flex min-w-0 items-start gap-2.5 sm:gap-4">
+            <h1 className="display-title metallicPageTitle min-w-0 flex-1 break-words text-[clamp(2.55rem,12vw,3.25rem)] leading-[0.88] text-[var(--text-primary)] [overflow-wrap:anywhere] sm:text-7xl lg:text-[5.35rem]">{title}</h1>
+            {infoPage ? <PageInfoButton page={infoPage} className="mt-1" /> : null}
           </div>
         ) : null}
         {children}

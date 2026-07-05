@@ -80,12 +80,12 @@ export default function DashboardPage() {
 
   return (
     <AppShell title={labels.title} showTitle={false} mainClassName="lg:gap-10">
-      <div className="flex flex-wrap items-end gap-x-5 gap-y-2">
-        <div className="flex items-center gap-3 sm:gap-4">
-          <h1 className="display-title metallicPageTitle text-[3.25rem] text-[var(--text-primary)] sm:text-7xl lg:text-[5.35rem]">
+      <div className="flex min-w-0 flex-wrap items-end gap-x-5 gap-y-2">
+        <div className="flex min-w-0 flex-1 items-start gap-2.5 sm:flex-none sm:gap-4">
+          <h1 className="display-title metallicPageTitle min-w-0 flex-1 break-words text-[clamp(2.55rem,12vw,3.25rem)] leading-[0.88] text-[var(--text-primary)] [overflow-wrap:anywhere] sm:text-7xl lg:text-[5.35rem]">
             {labels.title}
           </h1>
-          <PageInfoButton page="dashboard" />
+          <PageInfoButton page="dashboard" className="mt-1" />
         </div>
         <p className="font-display pb-2 text-2xl font-light uppercase leading-none text-[var(--text-tertiary)] sm:pb-3 sm:text-3xl lg:pb-4 lg:text-[2.45rem]">
           {new Date().toLocaleDateString(language, { day: "2-digit", month: "long", year: "numeric" })}

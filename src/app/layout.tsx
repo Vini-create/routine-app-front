@@ -67,6 +67,7 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: "#111114",
+  interactiveWidget: "resizes-content",
 };
 
 export default function RootLayout({

@@ -14,7 +14,7 @@ export function SectionTitle({
           {eyebrow}
         </p>
       ) : null}
-      <h2 className="break-words font-display text-4xl font-light uppercase leading-[0.92] text-[var(--text-primary)] [overflow-wrap:anywhere]">{title}</h2>
+      <h2 className="break-words font-display text-[2rem] font-light uppercase leading-[0.95] text-[var(--text-primary)] [overflow-wrap:anywhere] sm:text-4xl">{title}</h2>
       {description ? <p className="subtitle-display max-w-3xl break-words text-lg text-[var(--text-secondary)]">{description}</p> : null}
     </div>
   );
