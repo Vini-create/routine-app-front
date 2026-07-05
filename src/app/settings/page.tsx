@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { FieldLabel, Input, PasswordInput } from "@/components/ui/Form";
 import { getAuthErrorMessage } from "@/lib/authErrors";
+import { requestFirstAccessTour } from "@/lib/firstAccessTour";
 import { apiToAppLanguage, appToApiLanguage } from "@/lib/api-contracts";
 import { authApi } from "@/lib/authApi";
 
@@ -106,6 +107,13 @@ export default function SettingsPage() {
       <Card className="grid gap-4">
         <h2 className="text-lg font-bold">{settings.preferences}</h2>
         <ThemeToggle title={settings.appearance} description={settings.appearanceDescription} lightLabel={settings.lightMode} darkLabel={settings.darkMode} />
+        <div className="grid gap-3 border-t border-[var(--border-soft)] pt-4 sm:grid-cols-[1fr_auto] sm:items-center">
+          <div>
+            <h3 className="font-bold text-[var(--text-primary)]">{settings.tutorial}</h3>
+            <p className="mt-1 text-sm leading-6 text-[var(--text-secondary)]">{settings.tutorialDescription}</p>
+          </div>
+          <Button type="button" variant="secondary" onClick={requestFirstAccessTour}>{settings.replayTutorial}</Button>
+        </div>
       </Card>
 
       <Card>

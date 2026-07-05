@@ -1,3 +1,5 @@
+import { clearFirstAccessTourSession } from "./firstAccessTour";
+
 export type SessionTokens = {
   accessToken: string;
   refreshToken: string;
@@ -59,6 +61,7 @@ export function clearLegacyUserData() {
 export function clearSession() {
   if (typeof window === "undefined") return;
   window.localStorage.removeItem(sessionStorageKey);
+  clearFirstAccessTourSession();
   clearLegacyUserData();
 }
 

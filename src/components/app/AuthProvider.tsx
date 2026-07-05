@@ -5,6 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { authApi, type LoginChallengeResponse, type LoginRequest, type TokenResponse } from "@/lib/authApi";
 import { apiToAppLanguage, type UserMe } from "@/lib/api-contracts";
 import { clearLegacyUserData, clearSession, getRefreshToken, hasSession, saveSession, sessionStorageKey } from "@/lib/session";
+import { markFirstAccessTourOfferPending } from "@/lib/firstAccessTour";
 import { useLanguage } from "./LanguageProvider";
 
 type AuthStatus = "loading" | "authenticated" | "anonymous";
@@ -89,7 +90,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [becomeAnonymous, refreshUser]);
 
   async function completeLogin(tokens: TokenResponse) {
+    const previousRefreshToken = getRefreshToken();
     saveSession({ accessToken: tokens.access_token, refreshToken: tokens.refresh_token });
+    if (previousRefreshToken !== tokens.refresh_token) markFirstAccessTourOfferPending();
     return refreshUser();
   }
 

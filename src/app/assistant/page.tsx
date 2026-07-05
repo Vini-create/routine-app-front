@@ -176,7 +176,7 @@ export default function AssistantPage() {
   }
 
   return (
-    <AppShell title={assistant.title} showTitle={false} mainClassName="assistantMain">
+    <AppShell title={assistant.title} showTitle={false} infoPage="assistant" mainClassName="assistantMain">
       <section
         className="assistantShell flex h-full min-h-0 flex-col overflow-hidden lg:h-[calc(100dvh-5rem)]"
         data-keyboard-open={isKeyboardOpen}
@@ -192,7 +192,7 @@ export default function AssistantPage() {
             />
             <div className="shrink-0">
               <p className="label-micro assistantOnlineStatus">{assistant.status}</p>
-              <div className="grid justify-items-start gap-2 sm:flex sm:items-center">
+              <div className="hidden justify-items-start gap-2 lg:flex lg:items-center">
                 <h2 className="display-title metallicPageTitle shrink-0 whitespace-nowrap text-[2.1rem] leading-none min-[380px]:text-[2.35rem] sm:text-5xl">{assistant.title}</h2>
                 <PageInfoButton page="assistant" className="size-8 sm:size-9" />
               </div>
@@ -304,21 +304,21 @@ export default function AssistantPage() {
             aria-label={assistant.placeholder}
             className="assistantComposerInput max-h-28 min-h-11 min-w-0 flex-1 resize-none overflow-y-auto border-0 bg-transparent py-3 text-base leading-5 text-[var(--text-primary)] outline-none placeholder:text-[var(--text-tertiary)]"
           />
-          <Button
+          <button
             type="submit"
             disabled={isSending || !text.trim()}
             aria-label={isSending ? assistant.sending : assistant.send}
             title={isSending ? assistant.sending : assistant.send}
-            className="assistantSendButton grid size-11 min-h-11 shrink-0 place-items-center rounded-full p-0"
+            className="assistantSendButton grid shrink-0 place-items-center rounded-full"
           >
             {isSending ? (
-              <span className="size-4 animate-spin rounded-full border-2 border-black/25 border-t-black" aria-hidden="true" />
+              <span className="size-4 animate-spin rounded-full border-2 border-current/25 border-t-current" aria-hidden="true" />
             ) : (
               <svg aria-hidden="true" viewBox="0 0 24 24" className="assistantSendIcon size-5" fill="currentColor">
                 <path d="M11.28 3.22a1 1 0 0 1 1.44 0l6.75 7a1 1 0 0 1-1.44 1.39L13 6.39V20a1 1 0 1 1-2 0V6.39l-5.03 5.22a1 1 0 1 1-1.44-1.39l6.75-7Z" />
               </svg>
             )}
-          </Button>
+          </button>
         </form>
       </section>
     </AppShell>

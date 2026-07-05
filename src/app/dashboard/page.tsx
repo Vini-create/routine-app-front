@@ -79,9 +79,9 @@ export default function DashboardPage() {
   const weekCompleted = elapsedWeekEntries.filter((entry) => entry.status === "completed").length;
 
   return (
-    <AppShell title={labels.title} showTitle={false} mainClassName="lg:gap-10">
+    <AppShell title={labels.title} showTitle={false} infoPage="dashboard" mainClassName="lg:gap-10">
       <div className="flex min-w-0 flex-wrap items-end gap-x-5 gap-y-2">
-        <div className="flex min-w-0 flex-1 items-start gap-2.5 sm:flex-none sm:gap-4">
+        <div className="hidden min-w-0 flex-1 items-start gap-2.5 sm:gap-4 lg:flex lg:flex-none">
           <h1 className="display-title metallicPageTitle min-w-0 flex-1 break-words text-[clamp(2.55rem,12vw,3.25rem)] leading-[0.88] text-[var(--text-primary)] [overflow-wrap:anywhere] sm:text-7xl lg:text-[5.35rem]">
             {labels.title}
           </h1>

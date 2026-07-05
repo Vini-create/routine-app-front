@@ -12,6 +12,7 @@ import homeIcon from "../../../new_nav_icons/home.svg";
 import profileIcon from "../../../new_nav_icons/profile.svg";
 import routineIcon from "../../../new_nav_icons/routine.svg";
 import { BrandMark } from "@/components/app/BrandMark";
+import { InstallAppButton } from "@/components/app/InstallAppButton";
 import { useTranslations } from "@/components/app/LanguageProvider";
 import { cn } from "@/lib/utils";
 
@@ -149,6 +150,7 @@ export function BottomNavigation() {
                 </Link>
               );
             })}
+            <InstallAppButton className="mt-2 w-full" />
             <Link
               href="/settings"
               onClick={() => setOpen(false)}

@@ -1773,13 +1773,42 @@ h3,
   display: none;
 }
 
+.assistantSendButton {
+  width: 44px !important;
+  height: 44px !important;
+  min-width: 44px !important;
+  min-height: 44px !important;
+  max-width: 44px !important;
+  max-height: 44px !important;
+  padding: 0 !important;
+  overflow: hidden;
+  color: var(--background-primary);
+  background: var(--text-primary);
+  border: 1px solid color-mix(in srgb, var(--text-primary) 72%, transparent);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.22);
+  transition: opacity 160ms ease, transform 160ms ease, background 160ms ease;
+}
+
+.assistantSendButton:active:not(:disabled) {
+  transform: scale(0.94);
+}
+
+.assistantSendButton:disabled {
+  cursor: not-allowed;
+  color: var(--text-tertiary);
+  background: var(--surface-ambient);
+  border-color: var(--border-medium);
+  box-shadow: none;
+  opacity: 0.72;
+}
+
 .assistantSendButton .assistantSendIcon {
   position: relative;
   z-index: 1;
   display: block;
-  width: 1.25rem;
-  height: 1.25rem;
-  color: #050507 !important;
+  width: 21px !important;
+  height: 21px !important;
+  color: currentColor !important;
   opacity: 1 !important;
 }
 
