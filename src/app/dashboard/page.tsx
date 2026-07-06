@@ -76,8 +76,6 @@ export default function DashboardPage() {
   }), [language, week.start, weekEntries]);
 
   const hasWeeklyPlan = weeklyPlan.some((day) => day.blocks.length > 0);
-  const elapsedWeekEntries = weekEntries.filter((entry) => entry.date <= today && entry.status !== "vacation");
-  const weekCompleted = elapsedWeekEntries.filter((entry) => entry.status === "completed").length;
 
   return (
     <AppShell title={labels.title} showTitle={false} infoPage="dashboard" mainClassName="lg:gap-10">
@@ -160,16 +158,6 @@ export default function DashboardPage() {
             <Button href="/feedback" variant="secondary" className="sm:text-base">{labels.openFeedback}</Button>
           </Card>
 
-          <Card className="grid gap-2 p-5 lg:p-6">
-            <h3 className="font-display text-2xl font-light uppercase leading-none text-[var(--text-primary)] lg:text-3xl">
-              {labels.weeklySummary}
-            </h3>
-            <p className="text-base leading-7 text-[var(--text-secondary)]">
-              {elapsedWeekEntries.length
-                ? `${weekCompleted} ${labels.weeklyCompletionConnector} ${elapsedWeekEntries.length} ${labels.weeklyCompletionSuffix}`
-                : labels.weeklyText}
-            </p>
-          </Card>
         </div>
       </section>
 

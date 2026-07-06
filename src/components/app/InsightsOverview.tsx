@@ -28,22 +28,24 @@ export function InsightsOverview() {
     : 0;
 
   return (
-    <section id="insights" className="grid scroll-mt-24 gap-4">
-      <h2 className="label-micro text-xs">{labels.title}</h2>
-      <div className="grid gap-5 lg:grid-cols-[minmax(260px,0.38fr)_minmax(0,1fr)] lg:items-start">
-        <Card data-tour="insights-summary" className="grid gap-4 p-6 lg:sticky lg:top-28 lg:p-7">
+    <section id="insights" className="grid scroll-mt-24 gap-5">
+      <SectionTitle title={labels.title} description={labels.patternsDescription} />
+      <Card className="grid overflow-hidden p-0 lg:grid-cols-[minmax(250px,0.32fr)_minmax(0,1fr)]">
+        <div data-tour="insights-summary" className="grid content-center gap-5 border-b border-[var(--border-soft)] p-6 lg:border-b-0 lg:border-r lg:p-8">
           <div>
-            <p className="text-sm text-[var(--text-secondary)]">{labels.completion}</p>
-            <p className="mt-2 font-display text-6xl font-light leading-none text-[var(--text-primary)]">{completion}%</p>
+            <p className="label-micro">{labels.completion}</p>
+            <p className="mt-4 font-display text-7xl font-light leading-none text-[var(--text-primary)]">{completion}%</p>
           </div>
           <ProgressBar value={completion} />
-        </Card>
+        </div>
 
-        <div className="grid gap-4">
-          <SectionTitle title={labels.patterns} description={labels.patternsDescription} />
+        <div className="grid content-start gap-5 p-6 lg:p-8">
+          <h3 className="font-display text-2xl font-light uppercase leading-none text-[var(--text-primary)] sm:text-3xl">
+            {labels.patterns}
+          </h3>
           <div data-tour="insights-patterns" className="grid gap-3 sm:grid-cols-2">
             {goalItems.slice(0, 4).map((item) => (
-              <Card key={item.goal.id} className="grid gap-3 p-5">
+              <div key={item.goal.id} className="grid gap-3 rounded-[1.35rem] border border-[var(--border-soft)] bg-[var(--surface-ambient)] p-5">
                 <div className="flex items-start justify-between gap-4">
                   <h3 className="text-lg font-bold text-[var(--text-primary)]">{item.goal.title}</h3>
                   <Badge tone={item.consistency_level === "fire" ? "green" : item.consistency_level === "grass" ? "blue" : item.consistency_level === "ice" ? "amber" : "neutral"}>
@@ -53,7 +55,7 @@ export function InsightsOverview() {
                 <p className="text-sm leading-6 text-[var(--text-secondary)]">
                   {item.completed_count} {labels.completed} · {item.uncompleted_count} {labels.uncompleted} · {item.pending_count} {labels.pending}
                 </p>
-              </Card>
+              </div>
             ))}
             {!goals.isLoading && !goalItems.length ? (
               <div className="sm:col-span-2">
@@ -62,7 +64,7 @@ export function InsightsOverview() {
             ) : null}
           </div>
         </div>
-      </div>
+      </Card>
     </section>
   );
 }
