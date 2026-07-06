@@ -11,6 +11,7 @@ import { ThemeProvider } from "@/components/app/ThemeProvider";
 import { AppProviders } from "@/components/app/AppProviders";
 import { permanentMarker } from "@/lib/fonts";
 import { defaultLanguage } from "@/lib/i18n";
+import "ldrs/react/DotWave.css";
 import "./globals.css";
 
 const robotoCondensed = Roboto_Condensed({

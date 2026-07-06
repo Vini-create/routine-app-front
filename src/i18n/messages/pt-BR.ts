@@ -119,6 +119,7 @@ export const ptBR = {
     remove: "Remover",
   },
   landing: {
+    loadingExperience: "Preparando sua experiência…",
     login: "Entrar",
     terms: "Termos",
     privacy: "Privacidade",

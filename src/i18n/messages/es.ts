@@ -88,6 +88,7 @@ export const es = {
   },
   landing: {
     ...en.landing,
+    loadingExperience: "Preparando tu experiencia…",
     login: "Iniciar sesión",
     badge: "Copiloto personal con IA",
     headline: "Transforma tus SUEÑOS en METAS.",

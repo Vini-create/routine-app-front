@@ -8,6 +8,7 @@ import { SilverHighlight, StoryTextStep } from "./StoryTextStep";
 import { storySteps, type StoryStepId } from "./storyConfig";
 import { useReducedMotion } from "./useReducedMotion";
 import { useScrollVideo } from "./useScrollVideo";
+import { useLandingMediaReady } from "./LandingLoadGate";
 
 type VideoMode = "desktop" | "mobile";
 type StoryCopy = { title: ReactNode; eyebrow?: string; support?: ReactNode };
@@ -21,6 +22,11 @@ export function ScrollVideoStory() {
   const [activeStep, setActiveStep] = useState<StoryStepId | null>("dreams");
   const [videoReady, setVideoReady] = useState(false);
   const [videoFailed, setVideoFailed] = useState(false);
+  const markLandingMediaReady = useLandingMediaReady();
+
+  useEffect(() => {
+    if (reducedMotion) markLandingMediaReady();
+  }, [markLandingMediaReady, reducedMotion]);
 
   useEffect(() => {
     const query = window.matchMedia("(max-width: 767px)");
@@ -124,8 +130,8 @@ export function ScrollVideoStory() {
             poster={poster}
             aria-hidden="true"
             tabIndex={-1}
-            onLoadedData={() => setVideoReady(true)}
-            onError={() => setVideoFailed(true)}
+            onLoadedData={() => { setVideoReady(true); markLandingMediaReady(); }}
+            onError={() => { setVideoFailed(true); markLandingMediaReady(); }}
           >
             {videoMode === "mobile" ? (
               <>

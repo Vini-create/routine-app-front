@@ -88,6 +88,7 @@ export const fr = {
   },
   landing: {
     ...en.landing,
+    loadingExperience: "Préparation de votre expérience…",
     login: "Se connecter",
     badge: "Copilote personnel IA",
     headline: "Transformez vos RÊVES en OBJECTIFS.",

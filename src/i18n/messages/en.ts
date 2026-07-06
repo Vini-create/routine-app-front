@@ -124,6 +124,7 @@ export const en = {
     remove: "Remove",
   },
   landing: {
+    loadingExperience: "Preparing your experience…",
     login: "Log in",
     terms: "Terms",
     privacy: "Privacy",

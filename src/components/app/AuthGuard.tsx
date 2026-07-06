@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { DotWave } from "ldrs/react";
 import { useAuth } from "./AuthProvider";
 import { clearSession } from "@/lib/session";
 import { Button } from "@/components/ui/Button";
@@ -24,7 +25,8 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   if (status !== "authenticated") {
     return (
       <main className="alfredPage grid min-h-dvh place-items-center px-5">
-        <div className="grid max-w-sm gap-4 text-center">
+        <div className="grid max-w-sm justify-items-center gap-4 text-center" role="status" aria-live="polite" aria-busy="true">
+          <DotWave size="47" speed="1" color="var(--text-primary)" />
           <p className="text-sm font-semibold text-[var(--text-secondary)]">
             {slow ? "A conexão está demorando mais que o esperado." : "Carregando sua rotina…"}
           </p>
