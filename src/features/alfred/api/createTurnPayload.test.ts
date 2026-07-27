@@ -30,4 +30,25 @@ describe("createTurnPayload", () => {
     expect(first.message).toBe("Olá");
     expect(second.message).toBe("Quem é você?");
   });
+
+  it.each([
+    "auto",
+    "conversar",
+    "analisar_progresso",
+    "reorganizar_rotina",
+    "criar_plano",
+    "consultar_conhecimento",
+  ] as const)("preserves the %s skill selected in the menu", (selectedSkill) => {
+    const payload = createTurnPayload(
+      {
+        conversationId: null,
+        message: "Teste de habilidade",
+        selectedSkill,
+      },
+      () => "turn-skill",
+    );
+
+    expect(payload.selected_skill).toBe(selectedSkill);
+    expect(payload.screen_context).toEqual({ screen: "alfred" });
+  });
 });
