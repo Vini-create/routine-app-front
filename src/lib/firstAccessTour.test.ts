@@ -89,7 +89,7 @@ describe("first access tour", () => {
     Object.entries(firstAccessTourCopy).forEach(([language, copy]) => {
       const fullTour = expandedFirstAccessTourSteps(copy);
       const essentialTour = essentialFirstAccessTourSteps(fullTour, language as keyof typeof firstAccessTourCopy);
-      expect(essentialTour).toHaveLength(16);
+      expect(essentialTour).toHaveLength(15);
       expect(essentialTour.length).toBeLessThan(fullTour.length);
       expect(essentialTour.every((step) => step.description.length <= 80)).toBe(true);
       expect(essentialTour.some((step) => step.selector.includes("page-info-button"))).toBe(false);

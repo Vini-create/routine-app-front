@@ -122,7 +122,7 @@ export default function DashboardPage() {
       </section>
 
       <section data-tour="dashboard-shortcuts" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        <Button href="/feedback" className="sm:text-base">{labels.openFeedback}</Button>
+        <Button href="/assistant" className="sm:text-base">{labels.openFeedback}</Button>
         <Button href="/assistant" variant="secondary" className="sm:text-base">{labels.assistantShortcut}</Button>
         <Button href="/habits" variant="secondary" className="sm:text-base">{labels.habitsShortcut}</Button>
       </section>
@@ -155,7 +155,7 @@ export default function DashboardPage() {
               </h3>
               <p className="mt-3 text-base leading-7 text-[var(--text-secondary)]">{labels.routineFeedbackText}</p>
             </div>
-            <Button href="/feedback" variant="secondary" className="sm:text-base">{labels.openFeedback}</Button>
+            <Button href="/assistant" variant="secondary" className="sm:text-base">{labels.openFeedback}</Button>
           </Card>
 
         </div>

@@ -5,7 +5,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import alfredIcon from "../../../new_nav_icons/alfred.svg";
-import feedbackIcon from "../../../new_nav_icons/feedback.svg";
 import goalsIcon from "../../../new_nav_icons/goals.svg";
 import habitsIcon from "../../../new_nav_icons/habits.svg";
 import homeIcon from "../../../new_nav_icons/home.svg";
@@ -21,7 +20,6 @@ const items = [
   { href: "/routine", labelKey: "routine", icon: routineIcon },
   { href: "/goals", labelKey: "goals", icon: goalsIcon },
   { href: "/habits", labelKey: "habits", icon: habitsIcon },
-  { href: "/feedback", labelKey: "feedback", icon: feedbackIcon },
   { href: "/assistant", labelKey: "ai", icon: alfredIcon },
 ] as const;
 
@@ -168,7 +166,7 @@ export function BottomNavigation() {
         </div>
       ) : null}
 
-      <nav data-tour="app-navigation" className="glass-ambient winperiumMobileNav fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] left-4 right-4 z-30 grid h-[66px] grid-cols-6 items-center rounded-full px-2 lg:hidden" aria-label="Primary">
+      <nav data-tour="app-navigation" className="glass-ambient winperiumMobileNav fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] left-4 right-4 z-30 grid h-[66px] grid-cols-5 items-center rounded-full px-2 lg:hidden" aria-label="Primary">
         {items.map((item) => {
           const active = pathname === item.href;
           return (

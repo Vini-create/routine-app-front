@@ -3,7 +3,7 @@
 import { useTranslations } from "@/components/app/LanguageProvider";
 import { AppScreenPreview } from "./AppScreenPreview";
 
-const featureRoutes = ["/routine", "/habits", "/goals", "/feedback"] as const;
+const featureRoutes = ["/routine", "/habits", "/goals", "/assistant"] as const;
 
 export function FeatureShowcase() {
   const landing = useTranslations("landing");

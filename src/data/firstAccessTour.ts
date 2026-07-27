@@ -69,8 +69,8 @@ const ptBR: TourCopy = {
   steps: [
     { route: "/dashboard", area: "Início", target: "[data-tour='dashboard-overview']", title: "Sua visão do dia", description: "Este resumo mostra seu progresso e o que merece atenção agora.", tip: "Use esta tela como ponto de partida do seu dia.", components: [
       { target: "[data-tour='app-header']", title: "Você sempre sabe onde está", description: "O cabeçalho mostra o nome da área atual. O botão de informação explica a tela e a logo leva de volta ao Início.", tip: "No celular, o botão de menu fica no canto esquerdo." },
-      { target: "[data-tour='app-navigation']", title: "Passe de uma área para outra", description: "Use estes ícones para abrir Início, Rotina, Metas, Hábitos, Feedback e Alfred.", tip: "O ícone destacado mostra a área em que você está." },
-      { target: "[data-tour='dashboard-shortcuts']", title: "Atalhos para as ações principais", description: "Estes botões levam rapidamente ao Feedback, ao Alfred e aos Hábitos.", tip: "Toque no atalho da tarefa que você quer realizar." },
+      { target: "[data-tour='app-navigation']", title: "Passe de uma área para outra", description: "Use estes ícones para abrir Início, Rotina, Metas, Hábitos e Alfred.", tip: "O ícone destacado mostra a área em que você está." },
+      { target: "[data-tour='dashboard-shortcuts']", title: "Atalhos para as ações principais", description: "Estes botões levam rapidamente às análises do Alfred e aos Hábitos.", tip: "Toque no atalho da tarefa que você quer realizar." },
       { target: "[data-tour='dashboard-today']", title: "O que fazer agora", description: "Aqui aparecem os próximos itens da sua rotina, com ações para concluir, pular ou ajustar.", tip: "Atualizar cada item deixa todo o restante do aplicativo mais preciso." },
     ] },
     { route: "/routine", area: "Rotina", target: "[data-tour='routine-calendar']", title: "Escolha um dia", description: "Use o calendário para abrir uma data e ver o que está planejado nela.", tip: "Os pontos e cores ajudam a identificar dias com atividades.", components: [
@@ -95,7 +95,6 @@ const ptBR: TourCopy = {
     { route: "/calendar", area: "Calendário", target: "[data-tour='calendar-main']", title: "Veja como sua semana se encaixa", description: "Mude o mês pelas setas e toque em um dia para ver seus itens.", tip: "Use esta visão para encontrar conflitos e espaços livres.", components: [
       { target: "[data-tour='calendar-day']", title: "Detalhes do dia escolhido", description: "A lista abaixo reúne atividades e hábitos da data selecionada.", tip: "Se o dia estiver pesado, use o botão de reorganizar com Alfred." },
     ] },
-    { route: "/feedback", area: "Feedback", target: "[data-tour='feedback-form']", title: "Peça uma análise da sua semana", description: "Digite a prioridade que deseja melhorar e toque em gerar feedback.", tip: "Você pode escrever com suas próprias palavras; não existe resposta certa." },
     { route: "/assistant", area: "Alfred", target: "[data-tour='assistant-suggestions']", title: "Comece com uma sugestão", description: "Estes atalhos oferecem perguntas prontas quando você não sabe como iniciar a conversa.", tip: "Toque em uma sugestão para colocá-la no campo de mensagem.", components: [
       { target: "[data-tour='assistant-conversation']", title: "A conversa fica aqui", description: "Suas mensagens e as respostas de Alfred aparecem nesta área em ordem.", tip: "As mensagens mais recentes ficam próximas ao campo de envio." },
       { target: "[data-tour='assistant-composer']", allowInteraction: true, title: "Escreva e envie", description: "Digite sua pergunta neste campo e use a seta para enviar. O campo cresce se a mensagem ficar maior.", tip: "Fale naturalmente, como falaria com uma pessoa ajudando a planejar." },
@@ -151,7 +150,6 @@ const en: TourCopy = {
     { route: "/calendar", area: "Calendar", title: "See how your week fits together", description: "Change months and select a day to see its activities.", tip: "Look for conflicts, free time, and overloaded days.", components: [
       { target: "[data-tour='calendar-day']", title: "Selected day details", description: "This list combines the activities and habits for the selected date.", tip: "Alfred can help reorganize an overloaded day." },
     ] },
-    { route: "/feedback", area: "Feedback", title: "Learn from your patterns", description: "Share your priority and receive a weekly reading with progress, obstacles, and practical adjustments.", tip: "Use it at the end of the week and describe what you want to improve." },
     { route: "/assistant", area: "Alfred", title: "Plan through conversation", description: "Suggestions help you start when you are unsure what to write.", tip: "Select a prepared suggestion to try it.", components: [
       { target: "[data-tour='assistant-conversation']", title: "Your conversation", description: "Your messages and Alfred's replies appear here in order.", tip: "The newest messages stay close to the composer." },
       { target: "[data-tour='assistant-composer']", allowInteraction: true, title: "Write and send", description: "Write naturally, then select the arrow to send your message.", tip: "The field grows automatically for longer messages." },
@@ -198,7 +196,6 @@ const es: TourCopy = {
     { route: "/calendar", area: "Calendario", title: "Entiende cómo encaja tu semana", description: "Cambia de mes y toca un día para consultar sus actividades.", tip: "Busca conflictos, espacios libres y días con demasiadas tareas.", components: [
       { target: "[data-tour='calendar-day']", title: "Detalles del día", description: "Esta lista reúne las actividades y hábitos de la fecha seleccionada.", tip: "Alfred puede ayudarte a reorganizar un día demasiado cargado." },
     ] },
-    { route: "/feedback", area: "Feedback", title: "Aprende de tus patrones", description: "Recibe una lectura semanal con avances, obstáculos y ajustes prácticos.", tip: "Úsalo al final de la semana y explica qué deseas mejorar." },
     { route: "/assistant", area: "Alfred", title: "Planifica conversando", description: "Las sugerencias ayudan a iniciar una conversación cuando no sabes qué escribir.", tip: "Puedes tocar una sugerencia preparada.", components: [
       { target: "[data-tour='assistant-conversation']", title: "Tu conversación", description: "Tus mensajes y las respuestas de Alfred aparecen aquí en orden.", tip: "Las respuestas más recientes quedan cerca del campo de envío." },
       { target: "[data-tour='assistant-composer']", allowInteraction: true, title: "Escribe y envía", description: "Escribe con naturalidad y toca la flecha para enviar el mensaje.", tip: "El campo crece automáticamente cuando escribes más." },
@@ -245,7 +242,6 @@ const fr: TourCopy = {
     { route: "/calendar", area: "Calendrier", title: "Visualisez votre semaine", description: "Changez de mois et choisissez un jour pour voir ses activités.", tip: "Repérez les conflits, le temps libre et les journées chargées.", components: [
       { target: "[data-tour='calendar-day']", title: "Détails du jour", description: "Cette liste réunit les activités et habitudes de la date choisie.", tip: "Alfred peut aider à réorganiser une journée chargée." },
     ] },
-    { route: "/feedback", area: "Feedback", title: "Apprenez de vos habitudes", description: "Recevez une analyse hebdomadaire avec progrès, obstacles et ajustements pratiques.", tip: "Utilisez-la en fin de semaine et précisez ce que vous souhaitez améliorer." },
     { route: "/assistant", area: "Alfred", title: "Planifiez en discutant", description: "Les suggestions vous aident à commencer quand vous ne savez pas quoi écrire.", tip: "Choisissez une suggestion préparée.", components: [
       { target: "[data-tour='assistant-conversation']", title: "Votre conversation", description: "Vos messages et les réponses d’Alfred apparaissent ici dans l’ordre.", tip: "Les messages récents restent près du champ d’envoi." },
       { target: "[data-tour='assistant-composer']", allowInteraction: true, title: "Écrivez et envoyez", description: "Écrivez naturellement puis utilisez la flèche pour envoyer.", tip: "Le champ grandit pour les messages plus longs." },
@@ -268,7 +264,6 @@ const defaultTargetByRoute: Record<string, string> = {
   "/goals": "[data-tour='goal-create']",
   "/habits": "[data-tour='habit-guide']",
   "/calendar": "[data-tour='calendar-main']",
-  "/feedback": "[data-tour='feedback-form']",
   "/assistant": "[data-tour='assistant-composer']",
   "/settings": "[data-tour='settings-preferences']",
 };
@@ -322,7 +317,6 @@ const essentialTourTargets = new Set([
   "habit-guide",
   "habit-card",
   "calendar-main",
-  "feedback-form",
   "assistant-composer",
   "insights-summary",
   "insights-patterns",
@@ -342,7 +336,6 @@ const essentialTourCopy: Record<SupportedLanguage, Record<string, Pick<FirstAcce
     "habit-guide": { title: "Entenda sua consistência", description: "As cores mostram seu ritmo e ajudam a ajustar hábitos sem cobrança." },
     "habit-card": { title: "Cada hábito em um só lugar", description: "Acompanhe frequência, progresso e vínculo com suas metas." },
     "calendar-main": { title: "Sua semana em conjunto", description: "Veja tudo por data para encontrar espaço e evitar conflitos." },
-    "feedback-form": { title: "Aprenda com sua semana", description: "Conte o que deseja melhorar e receba uma análise prática." },
     "assistant-composer": { title: "Converse com Alfred", description: "Escreva naturalmente: Alfred usa seu contexto para ajudar você." },
     "insights-summary": { title: "Veja seu progresso", description: "Use este resumo como orientação, nunca como cobrança." },
     "insights-patterns": { title: "Descubra o que funciona", description: "Observe algumas semanas antes de mudar sua estratégia." },
@@ -360,7 +353,6 @@ const essentialTourCopy: Record<SupportedLanguage, Record<string, Pick<FirstAcce
     "habit-guide": { title: "Understand your consistency", description: "Colors show your rhythm and help you adjust without pressure." },
     "habit-card": { title: "Each habit in one place", description: "Follow its frequency, progress, and connection to your goals." },
     "calendar-main": { title: "Your week together", description: "See everything by date to find space and avoid conflicts." },
-    "feedback-form": { title: "Learn from your week", description: "Share what you want to improve and receive practical guidance." },
     "assistant-composer": { title: "Talk to Alfred", description: "Write naturally: Alfred uses your context to help you." },
     "insights-summary": { title: "See your progress", description: "Use this summary as guidance, never as pressure." },
     "insights-patterns": { title: "Discover what works", description: "Watch a few weeks before changing your strategy." },
@@ -378,7 +370,6 @@ const essentialTourCopy: Record<SupportedLanguage, Record<string, Pick<FirstAcce
     "habit-guide": { title: "Entiende tu constancia", description: "Los colores muestran tu ritmo y ayudan a ajustarlo sin presión." },
     "habit-card": { title: "Cada hábito en un lugar", description: "Sigue su frecuencia, progreso y relación con tus metas." },
     "calendar-main": { title: "Tu semana en conjunto", description: "Mira todo por fecha para encontrar espacio y evitar conflictos." },
-    "feedback-form": { title: "Aprende de tu semana", description: "Cuenta qué quieres mejorar y recibe una orientación práctica." },
     "assistant-composer": { title: "Habla con Alfred", description: "Escribe con naturalidad: Alfred usa tu contexto para ayudarte." },
     "insights-summary": { title: "Mira tu progreso", description: "Usa este resumen como guía, nunca como presión." },
     "insights-patterns": { title: "Descubre qué funciona", description: "Observa varias semanas antes de cambiar tu estrategia." },
@@ -396,7 +387,6 @@ const essentialTourCopy: Record<SupportedLanguage, Record<string, Pick<FirstAcce
     "habit-guide": { title: "Comprenez votre régularité", description: "Les couleurs montrent votre rythme et aident à l’ajuster sans pression." },
     "habit-card": { title: "Chaque habitude au même endroit", description: "Suivez sa fréquence, sa progression et son objectif associé." },
     "calendar-main": { title: "Votre semaine réunie", description: "Voyez tout par date pour trouver du temps et éviter les conflits." },
-    "feedback-form": { title: "Apprenez de votre semaine", description: "Dites ce que vous souhaitez améliorer et recevez un conseil pratique." },
     "assistant-composer": { title: "Parlez à Alfred", description: "Écrivez naturellement : Alfred utilise votre contexte pour vous aider." },
     "insights-summary": { title: "Voyez vos progrès", description: "Utilisez ce résumé comme guide, jamais comme pression." },
     "insights-patterns": { title: "Découvrez ce qui fonctionne", description: "Observez plusieurs semaines avant de changer de stratégie." },

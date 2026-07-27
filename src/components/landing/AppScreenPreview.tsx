@@ -11,11 +11,6 @@ const appScreens: Record<string, { src: string; width: number; height: number }>
     width: 1080,
     height: 2254,
   },
-  "/feedback": {
-    src: "/images/app-screens/WhatsApp Image 2026-06-30 at 23.07.11(2).jpeg",
-    width: 1080,
-    height: 2259,
-  },
   "/assistant": {
     src: "/images/app-screens/WhatsApp Image 2026-06-30 at 23.07.11(3).jpeg",
     width: 1080,

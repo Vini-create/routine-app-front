@@ -11,13 +11,24 @@ export class ApiError extends Error {
   status: number;
   detail: string;
   issues: ValidationIssue[];
+  code: string | null;
+  requestId: string | null;
+  details: Record<string, unknown>;
 
-  constructor(status: number, detail: string, issues: ValidationIssue[] = []) {
+  constructor(
+    status: number,
+    detail: string,
+    issues: ValidationIssue[] = [],
+    metadata: { code?: string | null; requestId?: string | null; details?: Record<string, unknown> } = {},
+  ) {
     super(detail);
     this.name = "ApiError";
     this.status = status;
     this.detail = detail;
     this.issues = issues;
+    this.code = metadata.code ?? null;
+    this.requestId = metadata.requestId ?? null;
+    this.details = metadata.details ?? {};
   }
 }
 
@@ -42,6 +53,19 @@ function emitSessionExpired() {
 }
 
 function normalizeError(status: number, body: unknown) {
+  if (body && typeof body === "object") {
+    const record = body as Record<string, unknown>;
+    const message = typeof record.message === "string" ? record.message : null;
+    const code = typeof record.code === "string" ? record.code : null;
+    if (message || code) {
+      return new ApiError(status, message ?? "Não foi possível concluir a solicitação.", [], {
+        code,
+        requestId: typeof record.request_id === "string" ? record.request_id : null,
+        details: record.details && typeof record.details === "object" ? record.details as Record<string, unknown> : {},
+      });
+    }
+  }
+
   if (body && typeof body === "object" && "detail" in body) {
     const detail = (body as { detail?: unknown }).detail;
     if (typeof detail === "string") return new ApiError(status, detail);
@@ -72,6 +96,15 @@ async function parseResponse(response: Response) {
 }
 
 async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}, timeoutMs = requestTimeoutMs) {
+  if (timeoutMs <= 0) {
+    try {
+      return await fetch(input, init);
+    } catch {
+      if (init.signal?.aborted) throw new DOMException("The operation was aborted.", "AbortError");
+      throw new ApiError(0, "Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.");
+    }
+  }
+
   const controller = new AbortController();
   const timeout = globalThis.setTimeout(() => controller.abort(), timeoutMs);
   const abortFromCaller = () => controller.abort();
@@ -80,6 +113,7 @@ async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}
   try {
     return await fetch(input, { ...init, signal: controller.signal });
   } catch {
+    if (init.signal?.aborted) throw new DOMException("The operation was aborted.", "AbortError");
     if (controller.signal.aborted) {
       throw new ApiError(408, "A conexão com o servidor demorou demais. Tente novamente.");
     }
@@ -115,7 +149,7 @@ async function refreshAccessToken() {
   return refreshPromise;
 }
 
-export async function apiFetch<TResponse>(path: string, options: ApiFetchOptions = {}): Promise<TResponse> {
+export async function apiFetchResponse(path: string, options: ApiFetchOptions = {}): Promise<Response> {
   const { authenticated = true, retryAuth = true, timeoutMs, headers, ...init } = options;
   const accessToken = authenticated ? getAccessToken() : null;
   const response = await fetchWithTimeout(buildApiUrl(path), {
@@ -131,14 +165,18 @@ export async function apiFetch<TResponse>(path: string, options: ApiFetchOptions
   if (response.status === 401 && authenticated && retryAuth) {
     try {
       await refreshAccessToken();
-      return apiFetch<TResponse>(path, { ...options, retryAuth: false });
+      return apiFetchResponse(path, { ...options, retryAuth: false });
     } catch {
       clearSession();
       emitSessionExpired();
       throw new ApiError(401, "Sessão expirada");
     }
   }
+  return response;
+}
 
+export async function apiFetch<TResponse>(path: string, options: ApiFetchOptions = {}): Promise<TResponse> {
+  const response = await apiFetchResponse(path, options);
   const body = await parseResponse(response);
   if (!response.ok) {
     const error = normalizeError(response.status, body);
