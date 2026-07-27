@@ -2033,6 +2033,10 @@ h3,
     display: none;
   }
 
+  .assistantShell[data-keyboard-open="true"] .assistantChatHeader {
+    display: none;
+  }
+
   .assistantShell[data-keyboard-open="true"] .assistantComposer {
     margin-top: 0.35rem;
   }

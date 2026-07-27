@@ -160,6 +160,13 @@ export default function AssistantPage() {
     conversation.scrollTo({ top: conversation.scrollHeight, behavior });
   }
 
+  function scrollConversationToLatest(behavior: ScrollBehavior = "smooth") {
+    window.requestAnimationFrame(() => {
+      scrollConversationToBottom(behavior);
+      window.requestAnimationFrame(() => scrollConversationToBottom(behavior));
+    });
+  }
+
   function replaceMessage(id: string, update: Partial<AlfredUiMessage>) {
     setMessages((current) => current.map((message) => message.id === id ? { ...message, ...update } : message));
   }
@@ -255,6 +262,19 @@ export default function AssistantPage() {
     const frame = window.requestAnimationFrame(() => scrollConversationToBottom());
     return () => window.cancelAnimationFrame(frame);
   }, [messages, isSending]);
+
+  useEffect(() => {
+    if (!isKeyboardOpen) return;
+    let secondFrame = 0;
+    const firstFrame = window.requestAnimationFrame(() => {
+      scrollConversationToBottom("auto");
+      secondFrame = window.requestAnimationFrame(() => scrollConversationToBottom("auto"));
+    });
+    return () => {
+      window.cancelAnimationFrame(firstFrame);
+      window.cancelAnimationFrame(secondFrame);
+    };
+  }, [isKeyboardOpen]);
 
   useEffect(() => {
     if (error) errorRef.current?.focus();
@@ -407,6 +427,7 @@ export default function AssistantPage() {
       });
       setIsSending(false);
       inputRef.current?.focus();
+      scrollConversationToLatest();
       return;
     }
 
@@ -536,6 +557,7 @@ export default function AssistantPage() {
       if (abortRef.current === controller) abortRef.current = null;
       setIsSending(false);
       inputRef.current?.focus();
+      scrollConversationToLatest();
     }
   }
 
@@ -568,6 +590,7 @@ export default function AssistantPage() {
 
     setMessages((current) => [...current, userMessage, assistantMessage]);
     setText("");
+    scrollConversationToLatest();
     void runTurn(payload, assistantMessage.id);
   }
 
@@ -655,7 +678,7 @@ export default function AssistantPage() {
   return (
     <AppShell title={assistant.title} showTitle={false} showBottomNavigation={false} infoPage="assistant" mainClassName="assistantMain">
       <section className="assistantShell flex h-full min-h-0 flex-col overflow-hidden lg:h-[calc(100dvh-5rem)]" data-keyboard-open={isKeyboardOpen}>
-        <header className="relative flex shrink-0 flex-wrap items-center gap-3 pb-3">
+        <header className="assistantChatHeader relative flex shrink-0 flex-wrap items-center gap-3 pb-3">
           <div className="flex min-w-[10rem] flex-1 items-center gap-3">
             <Image src={alfredAvatar} alt="" priority className="size-11 shrink-0 rounded-2xl border border-[var(--border-medium)] object-cover shadow-[0_14px_34px_-22px_rgba(24,24,27,.9)] sm:size-12" sizes="(max-width:640px) 44px, 48px" />
             <div>
