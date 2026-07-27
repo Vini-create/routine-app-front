@@ -6,6 +6,7 @@ import { authApi, type LoginChallengeResponse, type LoginRequest, type TokenResp
 import { apiToAppLanguage, type UserMe } from "@/lib/api-contracts";
 import { clearLegacyUserData, clearSession, getRefreshToken, hasSession, saveSession, sessionStorageKey } from "@/lib/session";
 import { markFirstAccessTourOfferPending } from "@/lib/firstAccessTour";
+import { designPreviewEnabled, designPreviewUser } from "@/lib/designPreview";
 import { useLanguage } from "./LanguageProvider";
 
 type AuthStatus = "loading" | "authenticated" | "anonymous";
@@ -25,8 +26,8 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
   const { setLanguage } = useLanguage();
-  const [status, setStatus] = useState<AuthStatus>("loading");
-  const [user, setUser] = useState<UserMe | null>(null);
+  const [status, setStatus] = useState<AuthStatus>(designPreviewEnabled ? "authenticated" : "loading");
+  const [user, setUser] = useState<UserMe | null>(designPreviewEnabled ? designPreviewUser : null);
 
   const becomeAnonymous = useCallback(() => {
     clearSession();
@@ -36,6 +37,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [queryClient]);
 
   const refreshUser = useCallback(async () => {
+    if (designPreviewEnabled) {
+      setUser(designPreviewUser);
+      setStatus("authenticated");
+      return designPreviewUser;
+    }
     const currentUser = await authApi.me();
     setUser(currentUser);
     if (currentUser.language) setLanguage(apiToAppLanguage[currentUser.language]);
@@ -44,6 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [setLanguage]);
 
   useEffect(() => {
+    if (designPreviewEnabled) return;
     let active = true;
     if (!hasSession()) {
       clearLegacyUserData();
@@ -101,6 +108,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function logout() {
+    if (designPreviewEnabled) return;
     const refreshToken = getRefreshToken();
     try {
       if (refreshToken) await authApi.logout(refreshToken);
@@ -110,6 +118,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function deleteAccount(password: string) {
+    if (designPreviewEnabled) return;
     await authApi.deleteAccount(password);
     becomeAnonymous();
   }

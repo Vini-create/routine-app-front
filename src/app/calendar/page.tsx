@@ -41,7 +41,7 @@ export default function CalendarPage() {
 
   return (
     <AppShell title={labels.title} infoPage="calendar">
-      <div className="flex items-center justify-between gap-4"><SectionTitle title={labels.heading} description={labels.description} /><Button href="/assistant">{labels.reorganize}</Button></div>
+      <div className="flex items-center justify-between gap-4"><SectionTitle title={labels.heading} description={labels.description} /><Button href="/alfred">{labels.reorganize}</Button></div>
       <div data-tour="calendar-main"><InteractiveRoutineCalendar selectedDate={selectedDate} visibleMonth={visibleMonth} entries={entries} markers={markers} months={routineLabels.months} weekdays={routineLabels.weekdays} title={routineLabels.calendar} itemTypeLabels={routineLabels.itemTypes} onSelectDate={openDate} onMonthChange={setVisibleMonth} /></div>
       <Card data-tour="calendar-day">
         <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-wider text-[var(--text-tertiary)]">{selectedDate}</p><h2 className="mt-1 text-xl font-black capitalize">{fromDateKey(selectedDate).toLocaleDateString(language, { weekday: "long", day: "2-digit", month: "long" })}</h2></div><Badge tone="neutral">{selectedEntries.length} {labels.blocks}</Badge></div>

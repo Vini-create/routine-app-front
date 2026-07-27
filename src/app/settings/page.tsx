@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/app/AppShell";
 import { useAuth } from "@/components/app/AuthProvider";
 import { LanguageSelect } from "@/components/app/LanguageSelect";
+import { PlanSettingsCard } from "@/components/app/PlanSettingsCard";
 import { useLanguage, useTranslations } from "@/components/app/LanguageProvider";
 import { ThemeToggle } from "@/components/app/ThemeToggle";
 import { Button } from "@/components/ui/Button";
@@ -103,6 +104,8 @@ export default function SettingsPage() {
           {error && !deleteOpen ? <p role="alert" className="text-sm font-semibold text-red-500">{error}</p> : null}
         </form>
       </Card>
+
+      <PlanSettingsCard />
 
       <Card data-tour="settings-preferences" className="grid gap-4">
         <h2 className="text-lg font-bold">{settings.preferences}</h2>

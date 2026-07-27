@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { AICapabilitiesResponse, SelectedSkill } from "../api/alfred.types";
 import { cn } from "@/lib/utils";
 
@@ -44,6 +45,8 @@ export function SkillMenu({
   disabled,
   addLabel,
   unavailableLabel,
+  closeLabel,
+  showCurrentLabel = false,
 }: {
   value: SelectedSkill;
   onChange: (skill: SelectedSkill) => void;
@@ -52,76 +55,122 @@ export function SkillMenu({
   disabled?: boolean;
   addLabel: string;
   unavailableLabel: string;
+  closeLabel: string;
+  showCurrentLabel?: boolean;
 }) {
   const [open, setOpen] = useState(false);
-  const rootRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
   const current = options.find((option) => option.value === value) ?? options[0];
 
   useEffect(() => {
     if (!open) return;
-    function closeOnOutside(event: PointerEvent) {
-      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
-    }
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    closeButtonRef.current?.focus();
+
     function closeOnEscape(event: KeyboardEvent) {
       if (event.key === "Escape") setOpen(false);
     }
-    document.addEventListener("pointerdown", closeOnOutside);
     document.addEventListener("keydown", closeOnEscape);
     return () => {
-      document.removeEventListener("pointerdown", closeOnOutside);
+      document.body.style.overflow = previousOverflow;
       document.removeEventListener("keydown", closeOnEscape);
     };
   }, [open]);
 
-  return (
-    <div ref={rootRef} className="relative shrink-0">
-      {open ? (
-        <div className="assistantSkillMenu absolute bottom-[calc(100%+0.7rem)] left-0 z-50 w-[min(22rem,calc(100vw-2.5rem))] overflow-hidden rounded-[1.35rem] border border-[var(--border-medium)] bg-[var(--surface-solid)] p-2 shadow-[0_22px_65px_-24px_rgba(0,0,0,.72)] backdrop-blur-2xl">
-          <div className="grid gap-1" role="menu" aria-label={addLabel}>
-            {options.map((option) => {
-              const unavailable = isUnavailable(option.value, capabilities);
-              const selected = option.value === value;
-              return (
-                <button
-                  key={option.value}
-                  type="button"
-                  role="menuitemradio"
-                  aria-checked={selected}
-                  disabled={unavailable}
-                  onClick={() => {
-                    onChange(option.value);
-                    setOpen(false);
-                  }}
-                  className={cn(
-                    "grid min-h-[3.75rem] grid-cols-[2.4rem_1fr_auto] items-center gap-2 rounded-[1rem] px-2.5 py-2 text-left transition",
-                    selected ? "bg-[var(--surface-focus)] text-[var(--text-primary)]" : "text-[var(--text-secondary)] hover:bg-[var(--surface-ambient)] hover:text-[var(--text-primary)]",
-                    unavailable && "cursor-not-allowed opacity-45",
-                  )}
-                >
-                  <span className="grid size-9 place-items-center rounded-xl border border-[var(--border-soft)] bg-[var(--surface-ambient)]">
-                    <svg viewBox="0 0 24 24" className="size-[1.1rem]" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                      <SkillIcon skill={option.value} />
-                    </svg>
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block text-sm font-bold">{option.label}</span>
-                    <span className="mt-0.5 block text-[11px] leading-4 text-[var(--text-tertiary)]">{option.description}</span>
-                  </span>
-                  {unavailable ? <span className="text-[9px] font-extrabold uppercase tracking-[.06em]">{unavailableLabel}</span> : selected ? <span aria-hidden="true">✓</span> : null}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      ) : null}
+  const modal = open && typeof document !== "undefined"
+    ? createPortal(
+      <div
+        className="fixed inset-0 z-[120] grid items-end bg-black/60 p-3 backdrop-blur-md sm:place-items-center sm:p-6"
+        role="presentation"
+        onPointerDown={() => setOpen(false)}
+      >
+        <section
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="alfred-skill-menu-title"
+          onPointerDown={(event) => event.stopPropagation()}
+          className="alfredModalSurface max-h-[min(43rem,calc(100dvh-1.5rem))] w-full max-w-xl overflow-hidden rounded-[1.75rem] border border-[var(--border-medium)] bg-[var(--surface-solid)] shadow-[0_30px_90px_-30px_rgba(0,0,0,.9)]"
+        >
+          <header className="flex items-center justify-between gap-4 border-b border-[var(--border-soft)] px-5 py-4">
+            <div className="min-w-0">
+              <p className="label-micro">{current.label}</p>
+              <h2 id="alfred-skill-menu-title" className="mt-1 font-display text-2xl font-light uppercase leading-none text-[var(--text-primary)]">
+                {addLabel}
+              </h2>
+            </div>
+            <button
+              ref={closeButtonRef}
+              type="button"
+              onClick={() => setOpen(false)}
+              aria-label={closeLabel}
+              className="grid size-10 shrink-0 place-items-center rounded-full border border-[var(--border-soft)] bg-[var(--surface-ambient)] text-[var(--text-secondary)] transition hover:text-[var(--text-primary)]"
+            >
+              <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
+                <path d="m6 6 12 12M18 6 6 18" />
+              </svg>
+            </button>
+          </header>
 
+          <div className="max-h-[calc(100dvh-7.5rem)] overflow-y-auto p-3 sm:p-4">
+            <div className="grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label={addLabel}>
+              {options.map((option) => {
+                const unavailable = isUnavailable(option.value, capabilities);
+                const selected = option.value === value;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    disabled={unavailable}
+                    onClick={() => {
+                      onChange(option.value);
+                      setOpen(false);
+                    }}
+                    className={cn(
+                      "grid min-h-[5.25rem] grid-cols-[2.75rem_1fr_auto] items-start gap-3 rounded-[1.2rem] border px-3 py-3 text-left transition",
+                      selected
+                        ? "border-[var(--border-strong)] bg-[var(--surface-focus)] text-[var(--text-primary)] shadow-[var(--shadow-soft)]"
+                        : "border-[var(--border-soft)] bg-[var(--surface-ambient)] text-[var(--text-secondary)] hover:border-[var(--border-medium)] hover:bg-[var(--surface-standard)] hover:text-[var(--text-primary)]",
+                      unavailable && "cursor-not-allowed opacity-45",
+                    )}
+                  >
+                    <span className="grid size-11 place-items-center rounded-[.95rem] border border-[var(--border-soft)] bg-[var(--surface-standard)]">
+                      <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <SkillIcon skill={option.value} />
+                      </svg>
+                    </span>
+                    <span className="min-w-0 pt-0.5">
+                      <span className="block text-sm font-extrabold">{option.label}</span>
+                      <span className="mt-1 block text-xs leading-5 text-[var(--text-tertiary)]">{option.description}</span>
+                    </span>
+                    {unavailable ? (
+                      <span className="pt-1 text-[9px] font-extrabold uppercase tracking-[.06em]">{unavailableLabel}</span>
+                    ) : selected ? (
+                      <span className="grid size-6 place-items-center rounded-full bg-[var(--text-primary)] text-[11px] font-black text-[var(--background-primary)]" aria-hidden="true">✓</span>
+                    ) : null}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      </div>,
+      document.body,
+    )
+    : null;
+
+  return (
+    <div className="assistantSkillMenuRoot shrink-0">
       <button
         type="button"
         disabled={disabled}
         aria-label={addLabel}
         title={`${addLabel}: ${current.label}`}
+        aria-haspopup="dialog"
         aria-expanded={open}
-        onClick={() => setOpen((currentOpen) => !currentOpen)}
+        onClick={() => setOpen(true)}
         className={cn(
           "assistantSkillTrigger grid size-11 place-items-center rounded-full text-[var(--text-secondary)] transition hover:bg-[var(--surface-ambient)] hover:text-[var(--text-primary)] disabled:cursor-not-allowed disabled:opacity-45",
           value !== "auto" && "bg-[var(--surface-ambient)] text-[var(--text-primary)]",
@@ -131,6 +180,21 @@ export function SkillMenu({
           <path d="M12 5v14M5 12h14" />
         </svg>
       </button>
+      {showCurrentLabel ? (
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => setOpen(true)}
+          className="assistantCurrentSkill hidden min-w-0 items-center gap-1.5 rounded-full px-2.5 py-1.5 text-[10px] font-extrabold text-[var(--text-secondary)] transition hover:text-[var(--text-primary)] disabled:opacity-45"
+          aria-label={`${addLabel}: ${current.label}`}
+        >
+          <span className="max-w-32 truncate">{current.label}</span>
+          <svg viewBox="0 0 24 24" className="size-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
+            <path d="m8 10 4 4 4-4" />
+          </svg>
+        </button>
+      ) : null}
+      {modal}
     </div>
   );
 }

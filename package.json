@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:design": "NEXT_PUBLIC_DESIGN_PREVIEW=true next dev",
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",

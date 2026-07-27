@@ -2,6 +2,7 @@ import Link from "next/link";
 import { BrandMark } from "./BrandMark";
 import { InstallAppButton } from "./InstallAppButton";
 import { PageInfoButton } from "./PageInfoButton";
+import { PlanBadge } from "./PlanBadge";
 import type { PageInfoKey } from "@/data/pageInfo";
 
 export function MobileHeader({ title, infoPage }: { title: string; infoPage?: PageInfoKey }) {
@@ -14,19 +15,23 @@ export function MobileHeader({ title, infoPage }: { title: string; infoPage?: Pa
           </h1>
           {infoPage ? <PageInfoButton page={infoPage} className="size-8" /> : null}
         </div>
-        <Link
-          href="/dashboard"
-          aria-label="Winperium"
-          className="shrink-0 rounded-xl transition-opacity hover:opacity-80 focus-visible:outline-offset-4"
-        >
-          <BrandMark
-            showWordmark={false}
-            iconClassName="size-9 text-[var(--text-primary)]"
-          />
-        </Link>
+        <div className="flex shrink-0 items-center gap-2">
+          <PlanBadge />
+          <Link
+            href="/dashboard"
+            aria-label="Winperium"
+            className="shrink-0 rounded-xl transition-opacity hover:opacity-80 focus-visible:outline-offset-4"
+          >
+            <BrandMark
+              showWordmark={false}
+              iconClassName="size-9 text-[var(--text-primary)]"
+            />
+          </Link>
+        </div>
       </div>
 
       <div className="hidden items-center justify-end gap-3 lg:flex">
+        <PlanBadge />
         <Link
           href="/dashboard"
           aria-label="Winperium"

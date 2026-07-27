@@ -199,6 +199,11 @@ export interface AIMessage {
   route: InternalRoute | null;
   request_id: UUID;
   created_at: ISODateTime;
+  analysis: AnalysisReport | null;
+  references: EvidenceReference[] | null;
+  proposed_patch: ProposedPatch | null;
+  requires_confirmation: boolean | null;
+  patch_status: PatchStatus | null;
 }
 
 export interface AIConversationDetail extends AIConversationSummary {

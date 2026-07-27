@@ -95,7 +95,7 @@ const ptBR: TourCopy = {
     { route: "/calendar", area: "Calendário", target: "[data-tour='calendar-main']", title: "Veja como sua semana se encaixa", description: "Mude o mês pelas setas e toque em um dia para ver seus itens.", tip: "Use esta visão para encontrar conflitos e espaços livres.", components: [
       { target: "[data-tour='calendar-day']", title: "Detalhes do dia escolhido", description: "A lista abaixo reúne atividades e hábitos da data selecionada.", tip: "Se o dia estiver pesado, use o botão de reorganizar com Alfred." },
     ] },
-    { route: "/assistant", area: "Alfred", target: "[data-tour='assistant-suggestions']", title: "Comece com uma sugestão", description: "Estes atalhos oferecem perguntas prontas quando você não sabe como iniciar a conversa.", tip: "Toque em uma sugestão para colocá-la no campo de mensagem.", components: [
+    { route: "/alfred", area: "Alfred", target: "[data-tour='assistant-suggestions']", title: "Comece com uma sugestão", description: "Estes atalhos oferecem perguntas prontas quando você não sabe como iniciar a conversa.", tip: "Toque em uma sugestão para colocá-la no campo de mensagem.", components: [
       { target: "[data-tour='assistant-conversation']", title: "A conversa fica aqui", description: "Suas mensagens e as respostas de Alfred aparecem nesta área em ordem.", tip: "As mensagens mais recentes ficam próximas ao campo de envio." },
       { target: "[data-tour='assistant-composer']", allowInteraction: true, title: "Escreva e envie", description: "Digite sua pergunta neste campo e use a seta para enviar. O campo cresce se a mensagem ficar maior.", tip: "Fale naturalmente, como falaria com uma pessoa ajudando a planejar." },
     ] },
@@ -150,7 +150,7 @@ const en: TourCopy = {
     { route: "/calendar", area: "Calendar", title: "See how your week fits together", description: "Change months and select a day to see its activities.", tip: "Look for conflicts, free time, and overloaded days.", components: [
       { target: "[data-tour='calendar-day']", title: "Selected day details", description: "This list combines the activities and habits for the selected date.", tip: "Alfred can help reorganize an overloaded day." },
     ] },
-    { route: "/assistant", area: "Alfred", title: "Plan through conversation", description: "Suggestions help you start when you are unsure what to write.", tip: "Select a prepared suggestion to try it.", components: [
+    { route: "/alfred", area: "Alfred", title: "Plan through conversation", description: "Suggestions help you start when you are unsure what to write.", tip: "Select a prepared suggestion to try it.", components: [
       { target: "[data-tour='assistant-conversation']", title: "Your conversation", description: "Your messages and Alfred's replies appear here in order.", tip: "The newest messages stay close to the composer." },
       { target: "[data-tour='assistant-composer']", allowInteraction: true, title: "Write and send", description: "Write naturally, then select the arrow to send your message.", tip: "The field grows automatically for longer messages." },
     ] },
@@ -196,7 +196,7 @@ const es: TourCopy = {
     { route: "/calendar", area: "Calendario", title: "Entiende cómo encaja tu semana", description: "Cambia de mes y toca un día para consultar sus actividades.", tip: "Busca conflictos, espacios libres y días con demasiadas tareas.", components: [
       { target: "[data-tour='calendar-day']", title: "Detalles del día", description: "Esta lista reúne las actividades y hábitos de la fecha seleccionada.", tip: "Alfred puede ayudarte a reorganizar un día demasiado cargado." },
     ] },
-    { route: "/assistant", area: "Alfred", title: "Planifica conversando", description: "Las sugerencias ayudan a iniciar una conversación cuando no sabes qué escribir.", tip: "Puedes tocar una sugerencia preparada.", components: [
+    { route: "/alfred", area: "Alfred", title: "Planifica conversando", description: "Las sugerencias ayudan a iniciar una conversación cuando no sabes qué escribir.", tip: "Puedes tocar una sugerencia preparada.", components: [
       { target: "[data-tour='assistant-conversation']", title: "Tu conversación", description: "Tus mensajes y las respuestas de Alfred aparecen aquí en orden.", tip: "Las respuestas más recientes quedan cerca del campo de envío." },
       { target: "[data-tour='assistant-composer']", allowInteraction: true, title: "Escribe y envía", description: "Escribe con naturalidad y toca la flecha para enviar el mensaje.", tip: "El campo crece automáticamente cuando escribes más." },
     ] },
@@ -242,7 +242,7 @@ const fr: TourCopy = {
     { route: "/calendar", area: "Calendrier", title: "Visualisez votre semaine", description: "Changez de mois et choisissez un jour pour voir ses activités.", tip: "Repérez les conflits, le temps libre et les journées chargées.", components: [
       { target: "[data-tour='calendar-day']", title: "Détails du jour", description: "Cette liste réunit les activités et habitudes de la date choisie.", tip: "Alfred peut aider à réorganiser une journée chargée." },
     ] },
-    { route: "/assistant", area: "Alfred", title: "Planifiez en discutant", description: "Les suggestions vous aident à commencer quand vous ne savez pas quoi écrire.", tip: "Choisissez une suggestion préparée.", components: [
+    { route: "/alfred", area: "Alfred", title: "Planifiez en discutant", description: "Les suggestions vous aident à commencer quand vous ne savez pas quoi écrire.", tip: "Choisissez une suggestion préparée.", components: [
       { target: "[data-tour='assistant-conversation']", title: "Votre conversation", description: "Vos messages et les réponses d’Alfred apparaissent ici dans l’ordre.", tip: "Les messages récents restent près du champ d’envoi." },
       { target: "[data-tour='assistant-composer']", allowInteraction: true, title: "Écrivez et envoyez", description: "Écrivez naturellement puis utilisez la flèche pour envoyer.", tip: "Le champ grandit pour les messages plus longs." },
     ] },
@@ -264,7 +264,7 @@ const defaultTargetByRoute: Record<string, string> = {
   "/goals": "[data-tour='goal-create']",
   "/habits": "[data-tour='habit-guide']",
   "/calendar": "[data-tour='calendar-main']",
-  "/assistant": "[data-tour='assistant-composer']",
+  "/alfred": "[data-tour='assistant-composer']",
   "/settings": "[data-tour='settings-preferences']",
 };
 

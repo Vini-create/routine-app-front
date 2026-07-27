@@ -11,10 +11,23 @@ npm run dev
 
 Acesse `http://localhost:3000`.
 
+### Visualização local sem backend
+
+Para revisar somente o design sem autenticação ou acesso à API:
+
+```bash
+npm run dev:design
+```
+
+Acesse `http://localhost:3000/alfred`. Esse comando habilita um usuário e uma
+conversa fictícios somente no servidor de desenvolvimento. O modo não é ativado
+por `npm run dev`, `npm run build` ou na produção.
+
 ## Scripts
 
 ```bash
 npm run dev
+npm run dev:design
 npm run lint
 npm run build
 npm run start

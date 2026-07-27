@@ -50,14 +50,20 @@ function editableValue(value: PatchOperation["value"]) {
 
 export function PatchConfirmationCard({
   initialPatch,
+  initialStatus = "pending",
   labels,
+  onChange,
+  designPreview = false,
 }: {
   initialPatch: ProposedPatch;
+  initialStatus?: PatchStatus;
   labels: PatchLabels;
+  onChange?: (patch: ProposedPatch, status: PatchStatus, requiresConfirmation: boolean) => void;
+  designPreview?: boolean;
 }) {
   const queryClient = useQueryClient();
   const [patch, setPatch] = useState(initialPatch);
-  const [status, setStatus] = useState<PatchStatus>("pending");
+  const [status, setStatus] = useState<PatchStatus>(initialStatus);
   const [action, setAction] = useState<"accept" | "edit" | "reject" | null>(null);
   const [mode, setMode] = useState<"view" | "edit" | "reject">("view");
   const [reason, setReason] = useState("");
@@ -78,6 +84,27 @@ export function PatchConfirmationCard({
     setAction(nextAction);
     setError("");
     try {
+      if (designPreview) {
+        if (nextAction === "edit") {
+          const operations = patch.operations.map((operation, index): PatchOperation => ({
+            ...operation,
+            ...(operation.op !== "remove"
+              ? { value: parseEditedValue(editedValues[index] ?? editableValue(operation.value), operation.value) }
+              : {}),
+          }));
+          const nextPatch = { ...patch, operations };
+          setPatch(nextPatch);
+          setMode("view");
+          onChange?.(nextPatch, "pending", true);
+        } else {
+          const nextStatus = nextAction === "accept" ? "applied" : "rejected";
+          setStatus(nextStatus);
+          setMode("view");
+          onChange?.(patch, nextStatus, false);
+        }
+        return;
+      }
+
       if (nextAction === "accept") {
         const idempotencyKey = idempotencyKeysRef.current.accept ?? crypto.randomUUID();
         idempotencyKeysRef.current.accept = idempotencyKey;
@@ -85,6 +112,7 @@ export function PatchConfirmationCard({
         delete idempotencyKeysRef.current.accept;
         setPatch(response.proposed_patch);
         setStatus(response.status);
+        onChange?.(response.proposed_patch, response.status, response.requires_confirmation);
         await Promise.all([
           queryClient.invalidateQueries({ queryKey: ["agenda"] }),
           queryClient.invalidateQueries({ queryKey: ["routine-items"] }),
@@ -97,6 +125,7 @@ export function PatchConfirmationCard({
         const response = await alfredApi.rejectPatch(patch.patch_id, reason);
         setPatch(response.proposed_patch);
         setStatus(response.status);
+        onChange?.(response.proposed_patch, response.status, response.requires_confirmation);
         setMode("view");
       } else {
         const operations = patch.operations.map((operation, index): PatchOperation => ({
@@ -111,11 +140,14 @@ export function PatchConfirmationCard({
         delete idempotencyKeysRef.current.edit;
         setPatch(response.proposed_patch);
         setStatus(response.status);
+        onChange?.(response.proposed_patch, response.status, response.requires_confirmation);
         setMode("view");
       }
     } catch (caught) {
       if (caught instanceof ApiError && (caught.status === 409 || caught.status === 410)) {
-        setStatus(caught.status === 410 ? "expired" : "rejected");
+        const terminalStatus = caught.status === 410 ? "expired" : "rejected";
+        setStatus(terminalStatus);
+        onChange?.(patch, terminalStatus, false);
       }
       setError(caught instanceof Error ? caught.message : labels.error);
     } finally {

@@ -22,9 +22,9 @@ export function AlfredShowcase() {
         </div>
         <h2 className="featureTitle text-display">{landing.alfredFeatureTitle}</h2>
         <p className="featureDescription text-display-medium">{landing.alfredFeatureDescription}</p>
-        <Button href="/assistant" variant="secondary" className="mt-8 w-fit">{landing.meetAlfred}</Button>
+        <Button href="/alfred" variant="secondary" className="mt-8 w-fit">{landing.meetAlfred}</Button>
       </div>
-      <AppScreenPreview route="/assistant" title={landing.alfredPreviewLabel} />
+      <AppScreenPreview route="/alfred" title={landing.alfredPreviewLabel} />
     </section>
   );
 }

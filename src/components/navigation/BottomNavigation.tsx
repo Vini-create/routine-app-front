@@ -20,7 +20,7 @@ const items = [
   { href: "/routine", labelKey: "routine", icon: routineIcon },
   { href: "/goals", labelKey: "goals", icon: goalsIcon },
   { href: "/habits", labelKey: "habits", icon: habitsIcon },
-  { href: "/assistant", labelKey: "ai", icon: alfredIcon },
+  { href: "/alfred", labelKey: "ai", icon: alfredIcon },
 ] as const;
 
 function NavigationIcon({
@@ -42,7 +42,7 @@ function NavigationIcon({
   );
 }
 
-export function BottomNavigation() {
+export function BottomNavigation({ showBottomBar = true }: { showBottomBar?: boolean }) {
   const pathname = usePathname();
   const nav = useTranslations("nav");
   const [open, setOpen] = useState(false);
@@ -108,7 +108,7 @@ export function BottomNavigation() {
         type="button"
         aria-label={open ? "Fechar navegação" : "Abrir navegação"}
         onClick={() => setOpen((current) => !current)}
-        className="glass-ambient fixed left-4 top-4 z-50 grid size-12 place-items-center rounded-2xl lg:hidden"
+        className="navigationMenuTrigger glass-ambient fixed left-4 top-1.5 z-50 grid size-12 place-items-center rounded-2xl lg:hidden"
       >
         <span className="grid gap-1.5">
           <i className={cn("block h-0.5 w-5 rounded-full bg-[var(--text-primary)] transition", open && "translate-y-2 rotate-45")} />
@@ -137,8 +137,8 @@ export function BottomNavigation() {
                   href={item.href}
                   onClick={() => setOpen(false)}
                   className={cn(
-                    "grid min-h-12 grid-cols-[2.5rem_1fr] items-center rounded-[1.15rem] px-2 text-sm font-bold text-[var(--text-secondary)] transition hover:bg-[var(--surface-standard)] hover:text-[var(--text-primary)]",
-                    active && "bg-[var(--text-primary)] text-[var(--background-primary)]",
+                    "navigationDrawerItem grid min-h-12 grid-cols-[2.5rem_1fr] items-center rounded-[1.15rem] px-2 text-sm font-bold text-[var(--text-secondary)] transition hover:bg-[var(--surface-standard)] hover:text-[var(--text-primary)]",
+                    active && "is-active bg-[var(--text-primary)] text-[var(--background-primary)]",
                   )}
                 >
                   <span className="grid size-9 place-items-center rounded-full">
@@ -153,8 +153,8 @@ export function BottomNavigation() {
               href="/settings"
               onClick={() => setOpen(false)}
               className={cn(
-                "mt-2 grid min-h-12 grid-cols-[2.5rem_1fr] items-center rounded-[1.15rem] border-t border-[var(--border-soft)] px-2 pt-2 text-sm font-bold text-[var(--text-secondary)] transition hover:bg-[var(--surface-standard)] hover:text-[var(--text-primary)]",
-                pathname === "/settings" && "bg-[var(--text-primary)] text-[var(--background-primary)]",
+                "navigationDrawerItem mt-2 grid min-h-12 grid-cols-[2.5rem_1fr] items-center rounded-[1.15rem] border-t border-[var(--border-soft)] px-2 pt-2 text-sm font-bold text-[var(--text-secondary)] transition hover:bg-[var(--surface-standard)] hover:text-[var(--text-primary)]",
+                pathname === "/settings" && "is-active bg-[var(--text-primary)] text-[var(--background-primary)]",
               )}
             >
               <span className="grid size-9 place-items-center rounded-full">
@@ -166,25 +166,27 @@ export function BottomNavigation() {
         </div>
       ) : null}
 
-      <nav data-tour="app-navigation" className="glass-ambient winperiumMobileNav fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] left-4 right-4 z-30 grid h-[66px] grid-cols-5 items-center rounded-full px-2 lg:hidden" aria-label="Primary">
-        {items.map((item) => {
-          const active = pathname === item.href;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              title={nav[item.labelKey]}
-              aria-label={nav[item.labelKey]}
-              className={cn(
-                "grid min-h-11 place-items-center rounded-full text-base text-[var(--text-tertiary)] transition",
-                active && "bg-[var(--text-primary)] text-[var(--background-primary)] shadow-[inset_0_1px_0_rgba(255,255,255,.22)]",
-              )}
-            >
-              <NavigationIcon icon={item.icon} active={active} />
-            </Link>
-          );
-        })}
-      </nav>
+      {showBottomBar ? (
+        <nav data-tour="app-navigation" className="glass-ambient winperiumMobileNav fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] left-4 right-4 z-30 grid h-[66px] grid-cols-5 items-center rounded-full px-2 lg:hidden" aria-label="Primary">
+          {items.map((item) => {
+            const active = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                title={nav[item.labelKey]}
+                aria-label={nav[item.labelKey]}
+                className={cn(
+                  "grid min-h-11 place-items-center rounded-full text-base text-[var(--text-tertiary)] transition",
+                  active && "bg-[var(--text-primary)] text-[var(--background-primary)] shadow-[inset_0_1px_0_rgba(255,255,255,.22)]",
+                )}
+              >
+                <NavigationIcon icon={item.icon} active={active} />
+              </Link>
+            );
+          })}
+        </nav>
+      ) : null}
     </>
   );
 }

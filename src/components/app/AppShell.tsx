@@ -10,12 +10,14 @@ export function AppShell({
   title,
   children,
   showTitle = true,
+  showBottomNavigation = true,
   mainClassName = "",
   infoPage,
 }: {
   title: string;
   children: ReactNode;
   showTitle?: boolean;
+  showBottomNavigation?: boolean;
   mainClassName?: string;
   infoPage?: PageInfoKey;
 }) {
@@ -32,7 +34,7 @@ export function AppShell({
         ) : null}
         {children}
       </main>
-      <BottomNavigation />
+      <BottomNavigation showBottomBar={showBottomNavigation} />
       <FirstAccessTour />
     </div>
     </AuthGuard>
