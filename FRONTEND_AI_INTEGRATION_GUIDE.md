@@ -437,6 +437,10 @@ nova mensagem intencional, gere outra.
 Não gere uma nova chave automaticamente antes de saber se a tentativa anterior
 chegou ao backend, pois isso pode duplicar consumo e mensagens.
 
+O backend vincula a chave ao payload canônico. Reutilizá-la com texto,
+conversa, habilidade ou contexto visual diferente retorna `409` com
+`code="idempotency_key_reused"`; não trate esse erro como retry.
+
 ## Response
 
 ```json
@@ -1072,6 +1076,7 @@ com `detail`.
 ```ts
 export type AIErrorCode =
   | "invalid_request"
+  | "idempotency_key_reused"
   | "conversation_not_found"
   | "conversation_forbidden"
   | "user_context_forbidden"

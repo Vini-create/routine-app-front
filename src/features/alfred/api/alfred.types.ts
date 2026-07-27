@@ -22,6 +22,7 @@ export type PatchStatus = "pending" | "applied" | "rejected" | "expired";
 
 export type AIErrorCode =
   | "invalid_request"
+  | "idempotency_key_reused"
   | "conversation_not_found"
   | "conversation_forbidden"
   | "user_context_forbidden"

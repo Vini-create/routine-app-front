@@ -11,6 +11,7 @@ import { ApiError } from "@/lib/api";
 import { designPreviewEnabled } from "@/lib/designPreview";
 import { cn } from "@/lib/utils";
 import { alfredApi } from "@/features/alfred/api/alfredApi";
+import { createTurnPayload } from "@/features/alfred/api/createTurnPayload";
 import { AlfredStreamError, joinStreamText } from "@/features/alfred/api/sse";
 import {
   previewCapabilities,
@@ -391,8 +392,11 @@ export default function AssistantPage() {
     replaceMessage(assistantMessageId, { status: "sending", content: "", references: [], analysis: null, proposedPatch: null });
 
     try {
+      let completedConversationId: string | null = null;
+      let completedRequestId: string | null = null;
       if (capabilities?.capabilities.streaming !== false) {
         let receivedDone = false;
+        let receivedText = "";
         await alfredApi.stream(payload, (event, data) => {
           if (event === "status") {
             replaceMessage(assistantMessageId, { status: "streaming" });
@@ -414,12 +418,15 @@ export default function AssistantPage() {
             });
           } else if (event === "token") {
             const chunk = data as { content: string };
+            receivedText = joinStreamText(receivedText, chunk.content);
             setMessages((current) => current.map((message) => message.id === assistantMessageId
-              ? { ...message, content: joinStreamText(message.content, chunk.content), status: "streaming" }
+              ? { ...message, content: receivedText, status: "streaming" }
               : message));
           } else if (event === "done") {
             const done = data as AlfredStreamDone;
             receivedDone = true;
+            completedConversationId = done.conversation_id;
+            completedRequestId = done.request_id;
             setConversationId(done.conversation_id);
             replaceMessage(assistantMessageId, {
               requestId: done.request_id,
@@ -437,8 +444,19 @@ export default function AssistantPage() {
           };
           throw new AlfredStreamError(incomplete);
         }
+        if (!receivedText.trim()) {
+          const emptyResponse: AIErrorResponse = {
+            request_id: completedRequestId,
+            code: "graph_execution_failed",
+            message: assistant.sendError,
+            details: {},
+          };
+          throw new AlfredStreamError(emptyResponse);
+        }
       } else {
         const response = await alfredApi.invoke(payload, controller.signal);
+        completedConversationId = response.conversation_id;
+        completedRequestId = response.request_id;
         setConversationId(response.conversation_id);
         replaceMessage(assistantMessageId, {
           content: response.message,
@@ -453,6 +471,21 @@ export default function AssistantPage() {
         });
       }
 
+      if (completedConversationId && completedRequestId) {
+        try {
+          const detail = await alfredApi.getConversation(completedConversationId);
+          const canonicalMessages = toUiMessages(detail.messages);
+          const persistedResponse = canonicalMessages.find(
+            (message) => message.role === "assistant"
+              && message.requestId === completedRequestId,
+          );
+          if (persistedResponse?.content.trim()) {
+            setMessages(canonicalMessages);
+          }
+        } catch {
+          // The completed response remains usable if only reconciliation fails.
+        }
+      }
       await Promise.all([refreshUsage(), refreshConversations()]);
     } catch (caught) {
       if (controller.signal.aborted) {
@@ -460,14 +493,16 @@ export default function AssistantPage() {
         return;
       }
       const failure = normalizeFailure(caught);
-      const message = failure.code === "plan_unavailable"
+      const message = failure.code === "idempotency_key_reused"
+        ? assistant.sendError
+        : failure.code === "plan_unavailable"
         ? assistant.planUnavailable
         : isQuotaCode(failure.code)
           ? assistant.quotaExceeded
           : failure.code === "model_unavailable" || failure.code === "global_cost_limit_exceeded"
             ? assistant.serviceUnavailable
             : failure.message || assistant.sendError;
-      replaceMessage(assistantMessageId, { status: "failed" });
+      replaceMessage(assistantMessageId, { status: "failed", content: message });
       setError(message);
       setFailedTurn({ payload, assistantMessageId });
       if (isQuotaCode(failure.code)) void refreshUsage();
@@ -499,13 +534,11 @@ export default function AssistantPage() {
       createdAt: now,
       status: "sending",
     };
-    const payload: AIInvokeRequest = {
-      conversation_id: conversationId,
+    const payload = createTurnPayload({
+      conversationId,
       message: messageText,
-      selected_skill: selectedSkill,
-      screen_context: { screen: "alfred" },
-      idempotency_key: crypto.randomUUID(),
-    };
+      selectedSkill,
+    });
 
     setMessages((current) => [...current, userMessage, assistantMessage]);
     setText("");
