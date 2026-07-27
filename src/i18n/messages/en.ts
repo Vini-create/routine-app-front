@@ -545,6 +545,11 @@ export const en = {
     selectedSkill: "Active skill",
     planUnavailable: "Alfred is not available on your current plan.",
     quotaExceeded: "You reached your current Alfred limit. Check the reset time and try again later.",
+    standardQuotaExceeded: "You reached the 30 daily conversation and simple-data requests included in your plan.",
+    ragQuotaExceeded: "You reached the 15 daily research requests with references included in your plan.",
+    deepAnalysisQuotaExceeded: "You reached the 3 deep routine analyses included this week.",
+    rateLimited: "You sent several messages in a short time. Wait a minute and try again; your daily allowance was not used up.",
+    streamAlreadyActive: "Alfred is still completing another response. Wait for it to finish before sending a new message.",
     serviceUnavailable: "Alfred is temporarily unavailable. You can retry this same request.",
     skills: {
       auto: { label: "Automatic", description: "Alfred chooses the best way to help." },

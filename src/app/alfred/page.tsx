@@ -70,6 +70,32 @@ function isQuotaCode(code: string | null) {
   ));
 }
 
+type AlfredQuotaMessages = {
+  quotaExceeded: string;
+  standardQuotaExceeded: string;
+  ragQuotaExceeded: string;
+  deepAnalysisQuotaExceeded: string;
+  rateLimited: string;
+  streamAlreadyActive: string;
+};
+
+function quotaMessage(code: string | null, assistant: AlfredQuotaMessages) {
+  switch (code) {
+    case "daily_standard_limit_exceeded":
+      return assistant.standardQuotaExceeded;
+    case "daily_rag_limit_exceeded":
+      return assistant.ragQuotaExceeded;
+    case "weekly_deep_analysis_limit_exceeded":
+      return assistant.deepAnalysisQuotaExceeded;
+    case "rate_limit_exceeded":
+      return assistant.rateLimited;
+    case "concurrent_stream_limit_exceeded":
+      return assistant.streamAlreadyActive;
+    default:
+      return assistant.quotaExceeded;
+  }
+}
+
 function toUiMessages(messages: AIMessage[]): AlfredUiMessage[] {
   return messages
     .filter((message) => message.role !== "system")
@@ -498,7 +524,7 @@ export default function AssistantPage() {
         : failure.code === "plan_unavailable"
         ? assistant.planUnavailable
         : isQuotaCode(failure.code)
-          ? assistant.quotaExceeded
+          ? quotaMessage(failure.code, assistant)
           : failure.code === "model_unavailable" || failure.code === "global_cost_limit_exceeded"
             ? assistant.serviceUnavailable
             : failure.message || assistant.sendError;

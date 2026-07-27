@@ -543,6 +543,11 @@ export const ptBR = {
     selectedSkill: "Habilidade ativa",
     planUnavailable: "O Alfred não está disponível no seu plano atual.",
     quotaExceeded: "Você atingiu seu limite atual do Alfred. Confira o horário de renovação e tente depois.",
+    standardQuotaExceeded: "Você atingiu as 30 solicitações diárias de conversa e dados simples incluídas no seu plano.",
+    ragQuotaExceeded: "Você atingiu as 15 consultas diárias com referências incluídas no seu plano.",
+    deepAnalysisQuotaExceeded: "Você atingiu as 3 análises profundas de rotina incluídas nesta semana.",
+    rateLimited: "Você enviou várias mensagens em pouco tempo. Aguarde um minuto e tente de novo; seu limite diário não foi consumido.",
+    streamAlreadyActive: "O Alfred ainda está concluindo outra resposta. Aguarde terminar antes de enviar uma nova mensagem.",
     serviceUnavailable: "O Alfred está temporariamente indisponível. Você pode repetir esta mesma solicitação.",
     skills: {
       auto: { label: "Automático", description: "Alfred escolhe a melhor forma de ajudar." },
