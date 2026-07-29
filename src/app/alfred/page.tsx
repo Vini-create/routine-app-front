@@ -144,6 +144,9 @@ export default function AssistantPage() {
   const errorRef = useRef<HTMLDivElement>(null);
   const conversationsCloseRef = useRef<HTMLButtonElement>(null);
   const abortRef = useRef<AbortController | null>(null);
+  // State updates are asynchronous. This ref closes the short interval between
+  // two mobile taps and React applying `isSending=true`.
+  const sendingRef = useRef(false);
 
   const skillOptions = useMemo<SkillOption[]>(() => [
     { value: "auto", ...assistant.skills.auto },
@@ -426,6 +429,7 @@ export default function AssistantPage() {
         requestId: crypto.randomUUID(),
       });
       setIsSending(false);
+      sendingRef.current = false;
       inputRef.current?.focus();
       scrollConversationToLatest();
       return;
@@ -540,6 +544,7 @@ export default function AssistantPage() {
         return;
       }
       const failure = normalizeFailure(caught);
+      const anotherStreamIsActive = failure.code === "concurrent_stream_limit_exceeded";
       const message = failure.code === "idempotency_key_reused"
         ? assistant.sendError
         : failure.code === "plan_unavailable"
@@ -551,10 +556,13 @@ export default function AssistantPage() {
             : failure.message || assistant.sendError;
       replaceMessage(assistantMessageId, { status: "failed", content: message });
       setError(message);
-      setFailedTurn({ payload, assistantMessageId });
+      // Retrying while the existing stream is still reserved only creates
+      // another rejected request. The user can send a new turn once it ends.
+      setFailedTurn(anotherStreamIsActive ? null : { payload, assistantMessageId });
       if (isQuotaCode(failure.code)) void refreshUsage();
     } finally {
       if (abortRef.current === controller) abortRef.current = null;
+      sendingRef.current = false;
       setIsSending(false);
       inputRef.current?.focus();
       scrollConversationToLatest();
@@ -564,7 +572,12 @@ export default function AssistantPage() {
   function sendMessage(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const messageText = text.trim();
-    if (!messageText || isSending || capabilities?.capabilities.conversation === false) return;
+    if (
+      !messageText
+      || isSending
+      || sendingRef.current
+      || capabilities?.capabilities.conversation === false
+    ) return;
 
     const now = new Date().toISOString();
     const userMessage: AlfredUiMessage = {
@@ -591,7 +604,14 @@ export default function AssistantPage() {
     setMessages((current) => [...current, userMessage, assistantMessage]);
     setText("");
     scrollConversationToLatest();
+    sendingRef.current = true;
     void runTurn(payload, assistantMessage.id);
+  }
+
+  function retryFailedTurn() {
+    if (!failedTurn || isSending || sendingRef.current) return;
+    sendingRef.current = true;
+    void runTurn(failedTurn.payload, failedTurn.assistantMessageId);
   }
 
   function handleComposerKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
@@ -716,7 +736,7 @@ export default function AssistantPage() {
                 {error ? (
                   <div ref={errorRef} tabIndex={-1} className="mx-auto flex max-w-md items-center gap-3 rounded-[1.2rem] border border-[var(--border-medium)] bg-[var(--surface-standard)] px-4 py-3 outline-none" role="alert">
                     <p className="min-w-0 flex-1 text-xs font-semibold leading-5">{error}</p>
-                    {failedTurn ? <button type="button" disabled={isSending} onClick={() => void runTurn(failedTurn.payload, failedTurn.assistantMessageId)} className="shrink-0 rounded-full border border-[var(--border-medium)] px-3 py-2 text-xs font-bold">{assistant.retry}</button> : null}
+                    {failedTurn ? <button type="button" disabled={isSending} onClick={retryFailedTurn} className="shrink-0 rounded-full border border-[var(--border-medium)] px-3 py-2 text-xs font-bold">{assistant.retry}</button> : null}
                   </div>
                 ) : null}
 
