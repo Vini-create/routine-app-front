@@ -543,6 +543,9 @@ export default function AssistantPage() {
         replaceMessage(assistantMessageId, { status: "cancelled" });
         return;
       }
+      // Propagate local parser/network failures to the backend immediately so
+      // it can cancel the graph and release the active stream reservation.
+      controller.abort();
       const failure = normalizeFailure(caught);
       const anotherStreamIsActive = failure.code === "concurrent_stream_limit_exceeded";
       const message = failure.code === "idempotency_key_reused"

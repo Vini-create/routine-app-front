@@ -50,4 +50,25 @@ describe("Alfred SSE parser", () => {
 
     expect(references).toEqual([{ document_id: "d1" }, { document_id: "d2" }]);
   });
+
+  it("cancels the response body when an event handler fails", async () => {
+    const encoder = new TextEncoder();
+    const cancel = vi.fn();
+    const response = new Response(new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(encoder.encode(
+          "event: error\ndata: {\"code\":\"graph_execution_failed\"}\n\n",
+        ));
+      },
+      cancel,
+    }));
+    const handlerError = new Error("handler failed");
+
+    await expect(consumeSSE(response, () => {
+      throw handlerError;
+    })).rejects.toBe(handlerError);
+
+    expect(cancel).toHaveBeenCalledOnce();
+    expect(cancel).toHaveBeenCalledWith(handlerError);
+  });
 });
