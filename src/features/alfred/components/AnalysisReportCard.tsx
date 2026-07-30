@@ -1,5 +1,5 @@
 import type { AnalysisReport, IdentifiedPattern, SuccessMetric } from "../api/alfred.types";
-import { cn } from "@/lib/utils";
+import { cn } from "../../../lib/utils";
 
 type AnalysisLabels = {
   title: string;
@@ -12,6 +12,15 @@ type AnalysisLabels = {
   dataQuality: string;
   technicalDetails: string;
   confidence: string;
+  confidenceHigh: string;
+  confidenceMedium: string;
+  confidenceLow: string;
+  analysisBasis: string;
+  plannedLoadComparison: string;
+  completionComparison: string;
+  dailyLoadComparison: string;
+  expectedOccurrences: string;
+  calculationBasedOnHistory: string;
   attention: string;
   positive: string;
   observation: string;
@@ -47,6 +56,106 @@ function fallbackTitle(value: string) {
     .filter(Boolean);
   const title = words.join(" ");
   return title ? title.charAt(0).toUpperCase() + title.slice(1) : value;
+}
+
+function parseEvidence(value: string): Record<string, unknown> | null {
+  try {
+    const parsed: unknown = JSON.parse(value);
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed)
+      ? parsed as Record<string, unknown>
+      : null;
+  } catch {
+    const entries = [...value.matchAll(/["']?([\w-]+)["']?\s*:\s*(?:"([^"]*)"|'([^']*)'|(-?\d+(?:\.\d+)?|true|false|null))/gi)];
+    if (!entries.length) return null;
+    return Object.fromEntries(entries.map((match) => {
+      const rawValue = match[2] ?? match[3] ?? match[4];
+      if (rawValue === "true") return [match[1], true];
+      if (rawValue === "false") return [match[1], false];
+      if (rawValue === "null") return [match[1], null];
+      const numericValue = Number(rawValue);
+      return [match[1], Number.isNaN(numericValue) ? rawValue : numericValue];
+    }));
+  }
+}
+
+function numericField(record: Record<string, unknown>, key: string) {
+  const value = record[key];
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function formatMinutes(value: number, locale: string) {
+  const rounded = Math.max(0, Math.round(value));
+  const hours = Math.floor(rounded / 60);
+  const minutes = rounded % 60;
+  if (!hours) return `${minutes} min`;
+  if (!minutes) return `${new Intl.NumberFormat(locale).format(hours)} h`;
+  return `${new Intl.NumberFormat(locale).format(hours)} h ${minutes} min`;
+}
+
+function formatRate(value: number, locale: string) {
+  return new Intl.NumberFormat(locale, {
+    style: "percent",
+    maximumFractionDigits: 1,
+  }).format(value);
+}
+
+function evidenceReading(
+  pattern: IdentifiedPattern,
+  evidence: string,
+  labels: AnalysisLabels,
+  locale: string,
+) {
+  const record = parseEvidence(evidence);
+  if (!record) {
+    const looksTechnical = /[{}[\]_=]|["']\w+["']\s*:/.test(evidence);
+    return looksTechnical ? labels.calculationBasedOnHistory : evidence;
+  }
+
+  const previousMinutes = numericField(record, "previous_minutes")
+    ?? numericField(record, "previous_7d_minutes");
+  const recentMinutes = numericField(record, "recent_minutes")
+    ?? numericField(record, "recent_7d_minutes");
+  if (previousMinutes !== null && recentMinutes !== null) {
+    return labels.plannedLoadComparison
+      .replace("{previous}", formatMinutes(previousMinutes, locale))
+      .replace("{recent}", formatMinutes(recentMinutes, locale));
+  }
+
+  const previousRate = numericField(record, "previous_rate")
+    ?? numericField(record, "previous_7d_rate");
+  const recentRate = numericField(record, "recent_rate")
+    ?? numericField(record, "recent_7d_rate");
+  if (previousRate !== null && recentRate !== null) {
+    return labels.completionComparison
+      .replace("{previous}", formatRate(previousRate, locale))
+      .replace("{recent}", formatRate(recentRate, locale));
+  }
+
+  const baselineMinutes = numericField(record, "baseline_daily_minutes");
+  const lastDayMinutes = numericField(record, "last_day_minutes");
+  if (baselineMinutes !== null && lastDayMinutes !== null) {
+    return labels.dailyLoadComparison
+      .replace("{usual}", formatMinutes(baselineMinutes, locale))
+      .replace("{last}", formatMinutes(lastDayMinutes, locale));
+  }
+
+  const expected = numericField(record, "expected_7d");
+  if (expected !== null) {
+    return labels.expectedOccurrences.replace(
+      "{value}",
+      new Intl.NumberFormat(locale).format(expected),
+    );
+  }
+
+  return normalizedIdentifier(pattern.name).includes("recent_inactivity")
+    ? labels.expectedOccurrences.replace("{value}", "—")
+    : labels.calculationBasedOnHistory;
+}
+
+function confidenceReading(value: number, labels: AnalysisLabels) {
+  if (value >= 0.75) return labels.confidenceHigh;
+  if (value >= 0.45) return labels.confidenceMedium;
+  return labels.confidenceLow;
 }
 
 function patternTitle(pattern: IdentifiedPattern, labels: AnalysisLabels) {
@@ -200,11 +309,27 @@ export function AnalysisReportCard({
                   </div>
 
                   <details className="mt-3 border-t border-[var(--border-soft)] pt-2.5">
-                    <summary className="cursor-pointer text-[10px] font-bold text-[var(--text-tertiary)]">{labels.technicalDetails}</summary>
-                    <div className="mt-2 grid gap-1.5 text-[10px] leading-4 text-[var(--text-tertiary)]">
-                      <p className="break-words">{pattern.description}</p>
-                      <p>{labels.confidence}: {Math.round(pattern.confidence * 100)}%</p>
-                      {pattern.evidence.map((evidence) => <p key={evidence} className="break-words">• {evidence}</p>)}
+                    <summary className="cursor-pointer text-[10px] font-bold text-[var(--text-tertiary)] marker:text-[var(--text-tertiary)]">{labels.technicalDetails}</summary>
+                    <div className="mt-3 grid gap-3 text-xs leading-5 text-[var(--text-secondary)]">
+                      <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-[var(--surface-ambient)] px-3 py-2">
+                        <span className="font-semibold">{labels.confidence}</span>
+                        <span className="rounded-full border border-[var(--border-soft)] px-2 py-0.5 text-[10px] font-extrabold text-[var(--text-primary)]">
+                          {confidenceReading(pattern.confidence, labels)} · {Math.round(pattern.confidence * 100)}%
+                        </span>
+                      </div>
+                      {pattern.evidence.length ? (
+                        <div>
+                          <p className="mb-1.5 text-[10px] font-extrabold uppercase tracking-[.07em] text-[var(--text-tertiary)]">{labels.analysisBasis}</p>
+                          <ul className="grid gap-1.5">
+                            {pattern.evidence.map((evidence) => (
+                              <li key={evidence} className="flex gap-2 rounded-xl bg-[var(--surface-ambient)] px-3 py-2">
+                                <span aria-hidden="true" className="text-[var(--text-tertiary)]">•</span>
+                                <span>{evidenceReading(pattern, evidence, labels, locale)}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ) : null}
                     </div>
                   </details>
                 </article>

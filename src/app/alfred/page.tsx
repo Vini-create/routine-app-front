@@ -36,6 +36,7 @@ import type {
   ProposedPatch,
 } from "@/features/alfred/api/alfred.types";
 import type { AlfredUiMessage } from "@/features/alfred/alfred.ui.types";
+import { AlfredMarkdown } from "@/features/alfred/components/AlfredMarkdown";
 import { AnalysisReportCard } from "@/features/alfred/components/AnalysisReportCard";
 import { EvidenceReferences } from "@/features/alfred/components/EvidenceReferences";
 import { PatchConfirmationCard } from "@/features/alfred/components/PatchConfirmationCard";
@@ -754,7 +755,11 @@ export default function AssistantPage() {
                       />
                     ) : null}
                     <div className={cn("assistantBubble max-w-[90%] rounded-[1.35rem] px-4 py-3 sm:max-w-[78%]", message.role === "user" ? "assistantBubbleUser rounded-br-md" : "assistantBubbleBot rounded-bl-md")}>
-                      {message.content ? <p className="whitespace-pre-wrap text-sm leading-6">{message.content}</p> : null}
+                      {message.content ? (
+                        message.role === "assistant"
+                          ? <AlfredMarkdown content={message.content} />
+                          : <p className="whitespace-pre-wrap text-sm leading-6">{message.content}</p>
+                      ) : null}
                       {message.role === "assistant" && (message.status === "sending" || (message.status === "streaming" && !message.content)) ? (
                         <div className="assistantTyping flex items-center gap-1 py-1" aria-label={message.status === "sending" ? assistant.connecting : assistant.typing}>
                           <span className="size-1.5 rounded-full bg-zinc-500 dark:bg-zinc-300" /><span className="size-1.5 rounded-full bg-zinc-500 dark:bg-zinc-300" /><span className="size-1.5 rounded-full bg-zinc-500 dark:bg-zinc-300" />
