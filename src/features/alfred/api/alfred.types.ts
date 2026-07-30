@@ -87,15 +87,20 @@ export interface AICapabilitiesResponse {
 }
 
 export interface EvidenceReference {
-  document_id: string;
-  chunk_id: string;
+  source_id?: string | null;
   title: string;
-  source: string;
+  authors?: string[];
+  publication_year?: number | null;
+  url?: string | null;
+  doi?: string | null;
+  document_id?: string | null;
+  chunk_id?: string | null;
+  source?: string | null;
   source_ids: string[];
   topic: string | null;
   supporting_excerpt: string | null;
-  retrieval_score: number;
-  rerank_score: number;
+  retrieval_score: number | null;
+  rerank_score: number | null;
 }
 
 export interface ExecutionDiagnosis {

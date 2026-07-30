@@ -15,13 +15,34 @@ export function EvidenceReferences({
         {title} · {references.length}
       </summary>
       <div className="mt-3 grid gap-2">
-        {references.map((reference) => (
-          <article key={`${reference.document_id}-${reference.chunk_id}`} className="rounded-xl border border-[var(--border-soft)] bg-[var(--surface-standard)] p-3">
-            <p className="text-sm font-bold text-[var(--text-primary)]">{reference.title}</p>
-            <p className="mt-1 text-[10px] font-bold uppercase tracking-[.06em] text-[var(--text-tertiary)]">{reference.source}</p>
-            {reference.supporting_excerpt ? <p className="mt-2 text-xs leading-5 text-[var(--text-secondary)]">{reference.supporting_excerpt}</p> : null}
-          </article>
-        ))}
+        {references.map((reference) => {
+          const author =
+            reference.authors?.length
+              ? `${reference.authors[0]}${reference.authors.length > 1 ? " et al." : ""}`
+              : null;
+          const attribution = [author, reference.publication_year].filter(Boolean).join(" · ");
+          const key = reference.source_id ?? `${reference.document_id}-${reference.chunk_id}`;
+          return (
+            <article key={key} className="rounded-xl border border-[var(--border-soft)] bg-[var(--surface-standard)] p-3">
+              {reference.url ? (
+                <a
+                  href={reference.url}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="inline-flex items-start gap-2 text-sm font-bold text-[var(--text-primary)] underline decoration-transparent underline-offset-4 transition hover:decoration-current"
+                >
+                  <span>{reference.title}</span>
+                  <span aria-hidden="true">↗</span>
+                </a>
+              ) : (
+                <p className="text-sm font-bold text-[var(--text-primary)]">{reference.title}</p>
+              )}
+              {attribution ? (
+                <p className="mt-1 text-xs text-[var(--text-tertiary)]">{attribution}</p>
+              ) : null}
+            </article>
+          );
+        })}
       </div>
     </details>
   );
