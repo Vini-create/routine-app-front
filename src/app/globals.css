@@ -2300,10 +2300,10 @@ h3,
   filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.12)) drop-shadow(0 7px 16px rgba(0, 0, 0, 0.18));
 }
 
-/* SplitText places the glyphs in child spans. Mobile Chromium does not
-   reliably clip a parent's background through those transformed children,
-   so each generated glyph owns its metallic fill. */
-.text-silver .storySplitChar {
+/* Highlight glyphs are rendered explicitly so mobile Chromium never has to
+   propagate background-clip through a DOM tree rebuilt by SplitText. */
+.text-silver .storyHighlightChar {
+  display: inline-block;
   color: #d9dbe0;
   background: var(--silver-text-gradient);
   background-clip: text;
@@ -2551,6 +2551,10 @@ h3,
 }
 
 .storySplitChar {
+  will-change: transform, opacity;
+}
+
+.storyHighlightChar {
   will-change: transform, opacity;
 }
 
@@ -3494,7 +3498,7 @@ h3,
 }
 
 @media (max-width: 767px) {
-  .storyTextStep .text-silver .storySplitChar {
+  .storyTextStep .text-silver .storyHighlightChar {
     color: #e2e4e8;
     background: none;
     -webkit-text-fill-color: #e2e4e8;

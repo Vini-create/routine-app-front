@@ -125,24 +125,24 @@ export function ScrollVideoStory() {
 
   const storyCopy = useMemo<Record<StoryStepId, StoryCopy>>(() => ({
     dreams: {
-      title: <><StoryTextSegment>{landing.storyDreamsLead}</StoryTextSegment><br /><SilverHighlight>{landing.storyDreamsHighlight}</SilverHighlight></>,
+      title: <><StoryTextSegment>{landing.storyDreamsLead}</StoryTextSegment><br /><SilverHighlight animateByLetter>{landing.storyDreamsHighlight}</SilverHighlight></>,
     },
     goals: {
-      title: <><StoryTextSegment>{landing.storyGoalsLead}</StoryTextSegment><br /><SilverHighlight>{landing.storyGoalsHighlight}</SilverHighlight></>,
+      title: <><StoryTextSegment>{landing.storyGoalsLead}</StoryTextSegment><br /><SilverHighlight animateByLetter>{landing.storyGoalsHighlight}</SilverHighlight></>,
     },
     path: {
-      title: <><StoryTextSegment>{landing.storyPathLead}</StoryTextSegment><br /><SilverHighlight>{landing.storyPathHighlight}</SilverHighlight></>,
+      title: <><StoryTextSegment>{landing.storyPathLead}</StoryTextSegment><br /><SilverHighlight animateByLetter>{landing.storyPathHighlight}</SilverHighlight></>,
     },
     resilience: {
-      title: <><StoryTextSegment>{landing.storyResilienceLead}</StoryTextSegment><br /><SilverHighlight>{landing.storyResilienceHighlight}</SilverHighlight></>,
-      support: <><StoryTextSegment className="storyPathSupportCopy">{landing.storyPathSupportLead}<br />{landing.storyPathSupportMiddle}</StoryTextSegment><SilverHighlight>{landing.storyPathSupportHighlight}.</SilverHighlight></>,
+      title: <><StoryTextSegment>{landing.storyResilienceLead}</StoryTextSegment><br /><SilverHighlight animateByLetter>{landing.storyResilienceHighlight}</SilverHighlight></>,
+      support: <><StoryTextSegment className="storyPathSupportCopy">{landing.storyPathSupportLead}<br />{landing.storyPathSupportMiddle}</StoryTextSegment><SilverHighlight animateByLetter>{`${landing.storyPathSupportHighlight}.`}</SilverHighlight></>,
     },
     consistency: {
-      title: <><StoryTextSegment>{landing.storyConsistencyLead}</StoryTextSegment><br /><StoryTextSegment>{landing.storyConsistencyMiddle}</StoryTextSegment><br /><SilverHighlight>{landing.storyConsistencyHighlight}</SilverHighlight><StoryTextSegment>.</StoryTextSegment></>,
+      title: <><StoryTextSegment>{landing.storyConsistencyLead}</StoryTextSegment><br /><StoryTextSegment>{landing.storyConsistencyMiddle}</StoryTextSegment><br /><SilverHighlight animateByLetter>{landing.storyConsistencyHighlight}</SilverHighlight><StoryTextSegment>.</StoryTextSegment></>,
     },
     organization: {
       eyebrow: landing.storyOrganizationEyebrow,
-      title: <><StoryTextSegment>{landing.storyOrganizationLead}</StoryTextSegment><br /><StoryTextSegment>{landing.storyOrganizationMiddle}</StoryTextSegment><br /><SilverHighlight>{landing.storyOrganizationHighlight}</SilverHighlight><StoryTextSegment>.</StoryTextSegment></>,
+      title: <><StoryTextSegment>{landing.storyOrganizationLead}</StoryTextSegment><br /><StoryTextSegment>{landing.storyOrganizationMiddle}</StoryTextSegment><br /><SilverHighlight animateByLetter>{landing.storyOrganizationHighlight}</SilverHighlight><StoryTextSegment>.</StoryTextSegment></>,
     },
   }), [landing]);
 

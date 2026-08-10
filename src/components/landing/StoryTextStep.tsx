@@ -9,8 +9,26 @@ import type { StoryStepConfig } from "./storyConfig";
 
 gsap.registerPlugin(useGSAP, SplitText);
 
-export function SilverHighlight({ children }: { children: ReactNode }) {
-  return <span className="text-silver" data-story-split>{children}</span>;
+export function SilverHighlight({
+  children,
+  animateByLetter = false,
+}: {
+  children: ReactNode;
+  animateByLetter?: boolean;
+}) {
+  if (!animateByLetter || typeof children !== "string") {
+    return <span className="text-silver">{children}</span>;
+  }
+
+  return (
+    <span className="text-silver" data-story-highlight aria-label={children}>
+      {Array.from(children).map((character, index) => (
+        <span className="storyHighlightChar" aria-hidden="true" key={`${character}-${index}`}>
+          {character === " " ? "\u00a0" : character}
+        </span>
+      ))}
+    </span>
+  );
 }
 
 export function StoryTextSegment({
@@ -47,14 +65,22 @@ export function StoryTextStep({
   useGSAP(() => {
     if (index === 0 || !articleRef.current) return;
 
-    const targets = articleRef.current.querySelectorAll<HTMLElement>("[data-story-split]");
-    const splits = Array.from(targets, (target) => SplitText.create(target, {
-      type: "words,chars",
-      charsClass: "storySplitChar",
-      wordsClass: "storySplitWord",
-      aria: "auto",
-    }));
-    const groups = splits.map((split) => split.chars as HTMLElement[]);
+    const targets = articleRef.current.querySelectorAll<HTMLElement>("[data-story-split], [data-story-highlight]");
+    const splits: ReturnType<typeof SplitText.create>[] = [];
+    const groups = Array.from(targets, (target) => {
+      if (target.hasAttribute("data-story-highlight")) {
+        return Array.from(target.querySelectorAll<HTMLElement>(".storyHighlightChar"));
+      }
+
+      const split = SplitText.create(target, {
+        type: "words,chars",
+        charsClass: "storySplitChar",
+        wordsClass: "storySplitWord",
+        aria: "auto",
+      });
+      splits.push(split);
+      return split.chars as HTMLElement[];
+    });
     const chars = groups.flat();
     splitGroupsRef.current = groups;
 
