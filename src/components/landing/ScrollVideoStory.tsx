@@ -13,6 +13,10 @@ import { useLandingMediaReady } from "./LandingLoadGate";
 type VideoMode = "desktop" | "mobile";
 type StoryCopy = { title: ReactNode; eyebrow?: string; support?: ReactNode };
 type PreparedVideo = { src: string; type: string };
+type VideoManifest = { version: number; type: string; size: number; parts: string[] };
+type VideoAsset =
+  | { kind: "manifest"; manifest: string; type: string }
+  | { kind: "single"; src: string; type: string };
 
 export function ScrollVideoStory() {
   const landing = useTranslations("landing");
@@ -106,39 +110,85 @@ export function ScrollVideoStory() {
     const controller = new AbortController();
     const timeoutId = window.setTimeout(() => controller.abort(), 300_000);
     const webmSupported = document.createElement("video").canPlayType('video/webm; codecs="vp9"') !== "";
-    const asset = videoMode === "mobile"
-      ? { src: "/videos/landing-scroll-mobile-premium.mp4", type: "video/mp4" }
+    const asset: VideoAsset = videoMode === "mobile"
+      ? { kind: "manifest", manifest: "/videos/landing-scroll-mobile-premium.json", type: "video/mp4" }
       : webmSupported
-        ? { src: "/videos/landing-scroll-desktop.webm", type: "video/webm" }
-        : { src: "/videos/landing-scroll-desktop.mp4", type: "video/mp4" };
+        ? { kind: "single", src: "/videos/landing-scroll-desktop.webm", type: "video/webm" }
+        : { kind: "single", src: "/videos/landing-scroll-desktop.mp4", type: "video/mp4" };
 
     async function prepareVideo() {
       try {
-        const response = await fetch(asset.src, { cache: "force-cache", signal: controller.signal });
-        if (!response.ok) throw new Error(`Video request failed with ${response.status}`);
-
-        const totalBytes = Number(response.headers.get("content-length")) || 0;
         let blob: Blob;
 
-        if (!response.body || !totalBytes) {
-          reportProgress(null);
-          blob = await response.blob();
+        if (asset.kind === "manifest") {
+          const manifestResponse = await fetch(asset.manifest, { cache: "no-cache", signal: controller.signal });
+          if (!manifestResponse.ok) throw new Error(`Video manifest failed with ${manifestResponse.status}`);
+          const manifest = await manifestResponse.json() as VideoManifest;
+          const validManifest = manifest.version === 1
+            && manifest.type === asset.type
+            && Number.isSafeInteger(manifest.size)
+            && manifest.size > 0
+            && Array.isArray(manifest.parts)
+            && manifest.parts.length > 0
+            && manifest.parts.every((part) => (
+              typeof part === "string"
+              && part.startsWith("/videos/landing-scroll-mobile-premium-")
+              && part.endsWith(".part")
+              && !part.includes("..")
+            ));
+          if (!validManifest) throw new Error("Invalid mobile video manifest");
+
+          const receivedByPart = manifest.parts.map(() => 0);
+          const partBlobs = await Promise.all(manifest.parts.map(async (part, partIndex) => {
+            const response = await fetch(part, { cache: "force-cache", signal: controller.signal });
+            if (!response.ok) throw new Error(`Video part failed with ${response.status}`);
+
+            if (!response.body) {
+              const partBlob = await response.blob();
+              receivedByPart[partIndex] = partBlob.size;
+              reportProgress(receivedByPart.reduce((sum, size) => sum + size, 0) / manifest.size);
+              return partBlob;
+            }
+
+            const reader = response.body.getReader();
+            const chunks: ArrayBuffer[] = [];
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              const chunk = new Uint8Array(value.byteLength);
+              chunk.set(value);
+              chunks.push(chunk.buffer);
+              receivedByPart[partIndex] += value.byteLength;
+              reportProgress(receivedByPart.reduce((sum, size) => sum + size, 0) / manifest.size);
+            }
+            return new Blob(chunks, { type: "application/octet-stream" });
+          }));
+
+          blob = new Blob(partBlobs, { type: asset.type });
+          if (blob.size !== manifest.size) throw new Error("Incomplete mobile video");
         } else {
-          const reader = response.body.getReader();
-          const chunks: ArrayBuffer[] = [];
-          let receivedBytes = 0;
+          const response = await fetch(asset.src, { cache: "force-cache", signal: controller.signal });
+          if (!response.ok) throw new Error(`Video request failed with ${response.status}`);
+          const totalBytes = Number(response.headers.get("content-length")) || 0;
 
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            const chunk = new Uint8Array(value.byteLength);
-            chunk.set(value);
-            chunks.push(chunk.buffer);
-            receivedBytes += value.byteLength;
-            reportProgress(receivedBytes / totalBytes);
+          if (!response.body || !totalBytes) {
+            reportProgress(null);
+            blob = await response.blob();
+          } else {
+            const reader = response.body.getReader();
+            const chunks: ArrayBuffer[] = [];
+            let receivedBytes = 0;
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              const chunk = new Uint8Array(value.byteLength);
+              chunk.set(value);
+              chunks.push(chunk.buffer);
+              receivedBytes += value.byteLength;
+              reportProgress(receivedBytes / totalBytes);
+            }
+            blob = new Blob(chunks, { type: asset.type });
           }
-
-          blob = new Blob(chunks, { type: asset.type });
         }
 
         if (cancelled) return;

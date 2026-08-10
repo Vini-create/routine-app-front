@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import shutil
 import subprocess
@@ -22,6 +23,7 @@ STORY_POSTERS = {
     "seasons": 20.1,
     "summit": 31.2,
 }
+MOBILE_PART_SIZE = 20 * 1024 * 1024
 
 
 def run(command: list[str]) -> None:
@@ -198,6 +200,38 @@ def make_posters(ffmpeg: str) -> None:
         )
 
 
+def split_mobile_asset() -> None:
+    source = VIDEO_DIR / "landing-scroll-mobile-premium.mp4"
+    for stale_part in VIDEO_DIR.glob("landing-scroll-mobile-premium-*.part"):
+        stale_part.unlink()
+    digest = hashlib.sha256()
+    with source.open("rb") as video:
+        while chunk := video.read(MOBILE_PART_SIZE):
+            digest.update(chunk)
+    asset_id = digest.hexdigest()[:12]
+
+    part_names: list[str] = []
+    with source.open("rb") as video:
+        part_index = 0
+        while chunk := video.read(MOBILE_PART_SIZE):
+            part_name = f"landing-scroll-mobile-premium-{asset_id}-{part_index:02d}.part"
+            (VIDEO_DIR / part_name).write_bytes(chunk)
+            part_names.append(f"/videos/{part_name}")
+            part_index += 1
+
+    manifest = {
+        "version": 1,
+        "type": "video/mp4",
+        "size": source.stat().st_size,
+        "parts": part_names,
+    }
+    (VIDEO_DIR / "landing-scroll-mobile-premium.json").write_text(
+        json.dumps(manifest, separators=(",", ":")),
+        encoding="utf-8",
+    )
+    source.unlink()
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--source-dir", type=Path, default=DEFAULT_SOURCE_DIR)
@@ -219,6 +253,8 @@ def main() -> None:
     for variant, output in variants.items():
         metadata = probe(args.ffprobe, output)
         print(json.dumps({"variant": variant, **metadata}, indent=2))
+
+    split_mobile_asset()
 
     webm = VIDEO_DIR / "landing-scroll-desktop.webm"
     print(json.dumps({"variant": "desktop-webm", **probe(args.ffprobe, webm)}, indent=2))
