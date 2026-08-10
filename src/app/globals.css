@@ -2282,8 +2282,7 @@ h3,
 }
 
 .text-silver {
-  color: #d9dbe0;
-  background: linear-gradient(
+  --silver-text-gradient: linear-gradient(
     112deg,
     #777a81 0%,
     #d9dbe0 16%,
@@ -2293,10 +2292,23 @@ h3,
     #eceef1 84%,
     #777a81 100%
   );
+  color: #d9dbe0;
+  background: var(--silver-text-gradient);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.12)) drop-shadow(0 7px 16px rgba(0, 0, 0, 0.18));
+}
+
+/* SplitText places the glyphs in child spans. Mobile Chromium does not
+   reliably clip a parent's background through those transformed children,
+   so each generated glyph owns its metallic fill. */
+.text-silver .storySplitChar {
+  color: #d9dbe0;
+  background: var(--silver-text-gradient);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .winLandingPage {
@@ -3482,6 +3494,11 @@ h3,
 }
 
 @media (max-width: 767px) {
+  .storyTextStep .text-silver .storySplitChar {
+    color: #e2e4e8;
+    background: none;
+    -webkit-text-fill-color: #e2e4e8;
+  }
   .winLandingHeader[data-scrolled="true"] {
     border-color: rgba(255, 255, 255, 0.07);
     background: linear-gradient(180deg, rgba(9, 9, 11, 0.58), rgba(9, 9, 11, 0.3));

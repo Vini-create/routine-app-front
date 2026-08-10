@@ -63,7 +63,7 @@ export function LandingLoadGate({ children }: { children: React.ReactNode }) {
   }, [mediaReady, pageReady]);
 
   useEffect(() => {
-    const safetyTimeout = window.setTimeout(() => setRevealed(true), 125_000);
+    const safetyTimeout = window.setTimeout(() => setRevealed(true), 305_000);
     return () => window.clearTimeout(safetyTimeout);
   }, []);
 

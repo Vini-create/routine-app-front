@@ -29,11 +29,11 @@ export function useScrollVideo({
     let lastSeek = 0;
     let cancelled = false;
     let storyVisible = true;
-    // The source is 24 fps. Seeking faster than its frame cadence makes mobile
-    // decoders do duplicate work without producing any additional visual detail.
-    const seekInterval = lowPowerMode ? 42 : 32;
-    const seekThreshold = lowPowerMode ? 0.02 : 0.012;
-    const smoothing = lowPowerMode ? 0.3 : 0.14;
+    // Mobile uses a 24 fps all-intra encode: every source frame can be decoded
+    // independently. Quantizing seeks avoids uneven requests between frames.
+    const seekInterval = lowPowerMode ? 16 : 32;
+    const seekThreshold = lowPowerMode ? 1 / 48 : 0.012;
+    const smoothing = lowPowerMode ? 0.48 : 0.14;
 
     function measure() {
       measureFrame = 0;
@@ -71,6 +71,13 @@ export function useScrollVideo({
 
       renderedTimeRef.current += difference * smoothing;
       if (Math.abs(difference) < 0.002) renderedTimeRef.current = targetTimeRef.current;
+      const requestedTime = lowPowerMode
+        ? Math.round(renderedTimeRef.current * 24) / 24
+        : renderedTimeRef.current;
+      const lastDisplayableTime = video && Number.isFinite(video.duration)
+        ? Math.max(0, video.duration - (1 / 48))
+        : requestedTime;
+      const seekTime = Math.min(requestedTime, lastDisplayableTime);
 
       if (
         video
@@ -79,9 +86,9 @@ export function useScrollVideo({
         && !video.seeking
         && video.readyState >= HTMLMediaElement.HAVE_METADATA
         && timestamp - lastSeek >= seekInterval
-        && Math.abs(video.currentTime - renderedTimeRef.current) > seekThreshold
+        && Math.abs(video.currentTime - seekTime) > seekThreshold
       ) {
-        video.currentTime = renderedTimeRef.current;
+        video.currentTime = seekTime;
         lastSeek = timestamp;
       }
 

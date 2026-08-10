@@ -68,7 +68,7 @@ def encode_story(ffmpeg: str, clips: list[Path]) -> None:
         "scale=1080:1920:flags=lanczos,format=yuv420p[mobile]"
     )
     desktop_temp = VIDEO_DIR / ".landing-scroll-desktop.mp4"
-    mobile_temp = VIDEO_DIR / ".landing-scroll-mobile.mp4"
+    mobile_temp = VIDEO_DIR / ".landing-scroll-mobile-premium.mp4"
 
     run(
         [
@@ -108,15 +108,15 @@ def encode_story(ffmpeg: str, clips: list[Path]) -> None:
             "-preset",
             "medium",
             "-crf",
-            "25",
+            "22",
             "-profile:v",
             "high",
             "-level",
             "4.1",
             "-g",
-            "6",
+            "1",
             "-keyint_min",
-            "6",
+            "1",
             "-sc_threshold",
             "0",
             "-movflags",
@@ -126,7 +126,7 @@ def encode_story(ffmpeg: str, clips: list[Path]) -> None:
     )
 
     desktop_temp.replace(VIDEO_DIR / "landing-scroll-desktop.mp4")
-    mobile_temp.replace(VIDEO_DIR / "landing-scroll-mobile.mp4")
+    mobile_temp.replace(VIDEO_DIR / "landing-scroll-mobile-premium.mp4")
 
 
 def encode_desktop_webm(ffmpeg: str) -> None:
@@ -184,9 +184,9 @@ def extract_frame(ffmpeg: str, video: Path, timestamp: float, output: Path, scal
 
 def make_posters(ffmpeg: str) -> None:
     desktop = VIDEO_DIR / "landing-scroll-desktop.mp4"
-    mobile = VIDEO_DIR / "landing-scroll-mobile.mp4"
+    mobile = VIDEO_DIR / "landing-scroll-mobile-premium.mp4"
     extract_frame(ffmpeg, desktop, 0.4, IMAGE_DIR / "landing-scroll-poster.webp")
-    extract_frame(ffmpeg, mobile, 0.4, IMAGE_DIR / "landing-scroll-poster-mobile.webp")
+    extract_frame(ffmpeg, mobile, 0.4, IMAGE_DIR / "landing-scroll-poster-mobile-premium.webp")
 
     for name, timestamp in STORY_POSTERS.items():
         extract_frame(
@@ -212,8 +212,11 @@ def main() -> None:
     encode_desktop_webm(args.ffmpeg)
     make_posters(args.ffmpeg)
 
-    for variant in ("desktop", "mobile"):
-        output = VIDEO_DIR / f"landing-scroll-{variant}.mp4"
+    variants = {
+        "desktop": VIDEO_DIR / "landing-scroll-desktop.mp4",
+        "mobile-premium": VIDEO_DIR / "landing-scroll-mobile-premium.mp4",
+    }
+    for variant, output in variants.items():
         metadata = probe(args.ffprobe, output)
         print(json.dumps({"variant": variant, **metadata}, indent=2))
 

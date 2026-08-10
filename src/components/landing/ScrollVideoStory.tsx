@@ -54,11 +54,13 @@ export function ScrollVideoStory() {
     let cancelled = false;
     let objectUrl: string | null = null;
     const controller = new AbortController();
-    const timeoutId = window.setTimeout(() => controller.abort(), 120_000);
+    const timeoutId = window.setTimeout(() => controller.abort(), 300_000);
     const webmSupported = document.createElement("video").canPlayType('video/webm; codecs="vp9"') !== "";
-    const asset = videoMode === "desktop" && webmSupported
-      ? { src: "/videos/landing-scroll-desktop.webm", type: "video/webm" }
-      : { src: `/videos/landing-scroll-${videoMode}.mp4`, type: "video/mp4" };
+    const asset = videoMode === "mobile"
+      ? { src: "/videos/landing-scroll-mobile-premium.mp4", type: "video/mp4" }
+      : webmSupported
+        ? { src: "/videos/landing-scroll-desktop.webm", type: "video/webm" }
+        : { src: "/videos/landing-scroll-desktop.mp4", type: "video/mp4" };
 
     async function prepareVideo() {
       try {
@@ -171,7 +173,7 @@ export function ScrollVideoStory() {
   }
 
   const poster = videoMode === "mobile"
-    ? "/images/landing-scroll-poster-mobile.webp"
+    ? "/images/landing-scroll-poster-mobile-premium.webp"
     : "/images/landing-scroll-poster.webp";
 
   return (
