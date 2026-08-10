@@ -19,6 +19,7 @@ export function ScrollVideoStory() {
   const { language } = useLanguage();
   const containerRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const reducedMotion = useReducedMotion();
   const [videoMode, setVideoMode] = useState<VideoMode | null>(null);
   const [activeStep, setActiveStep] = useState<StoryStepId | null>("dreams");
@@ -26,6 +27,38 @@ export function ScrollVideoStory() {
   const [videoFailed, setVideoFailed] = useState(false);
   const [preparedVideo, setPreparedVideo] = useState<PreparedVideo | null>(null);
   const { markReady: markLandingMediaReady, reportProgress } = useLandingMediaReady();
+
+  const drawMobileFrame = useCallback(() => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    if (!video || !canvas || !video.videoWidth || !video.videoHeight) return false;
+
+    const bounds = canvas.getBoundingClientRect();
+    if (!bounds.width || !bounds.height) return false;
+
+    const density = Math.min(window.devicePixelRatio || 1, 2.5);
+    const width = Math.max(1, Math.round(bounds.width * density));
+    const height = Math.max(1, Math.round(bounds.height * density));
+    if (canvas.width !== width || canvas.height !== height) {
+      canvas.width = width;
+      canvas.height = height;
+    }
+
+    const context = canvas.getContext("2d", { alpha: false });
+    if (!context) return false;
+
+    const scale = Math.max(width / video.videoWidth, height / video.videoHeight);
+    const drawnWidth = video.videoWidth * scale;
+    const drawnHeight = video.videoHeight * scale;
+    context.drawImage(
+      video,
+      (width - drawnWidth) / 2,
+      (height - drawnHeight) / 2,
+      drawnWidth,
+      drawnHeight,
+    );
+    return true;
+  }, []);
 
   useEffect(() => {
     if (reducedMotion) {
@@ -48,6 +81,23 @@ export function ScrollVideoStory() {
     query.addEventListener("change", update);
     return () => query.removeEventListener("change", update);
   }, [reportProgress]);
+
+  useEffect(() => {
+    if (videoMode !== "mobile" || !videoReady) return;
+    let resizeFrame = 0;
+    const redraw = () => {
+      window.cancelAnimationFrame(resizeFrame);
+      resizeFrame = window.requestAnimationFrame(() => { drawMobileFrame(); });
+    };
+
+    window.addEventListener("resize", redraw);
+    window.visualViewport?.addEventListener("resize", redraw);
+    return () => {
+      window.cancelAnimationFrame(resizeFrame);
+      window.removeEventListener("resize", redraw);
+      window.visualViewport?.removeEventListener("resize", redraw);
+    };
+  }, [drawMobileFrame, videoMode, videoReady]);
 
   useEffect(() => {
     if (!videoMode || reducedMotion || videoFailed) return;
@@ -181,24 +231,38 @@ export function ScrollVideoStory() {
       <div className="scrollVideoSticky">
         <div className="storyPoster" style={{ backgroundImage: `url(${poster})` }} aria-hidden="true" />
         {preparedVideo ? (
-          <video
-            key={preparedVideo.src}
-            ref={videoRef}
-            className="storyVideo"
-            data-ready={videoReady && !videoFailed}
-            muted
-            playsInline
-            preload="auto"
-            poster={poster}
-            src={preparedVideo.src}
-            aria-hidden="true"
-            tabIndex={-1}
-            onLoadedData={() => {
-              setVideoReady(true);
-              markLandingMediaReady();
-            }}
-            onError={() => { setVideoFailed(true); markLandingMediaReady(); }}
-          />
+          <>
+            <video
+              key={preparedVideo.src}
+              ref={videoRef}
+              className={`storyVideo ${videoMode === "mobile" ? "storyVideoDecoder" : ""}`}
+              data-ready={videoReady && !videoFailed}
+              muted
+              playsInline
+              preload="auto"
+              poster={poster}
+              src={preparedVideo.src}
+              aria-hidden="true"
+              tabIndex={-1}
+              onLoadedData={() => {
+                if (videoMode === "mobile") drawMobileFrame();
+                setVideoReady(true);
+                markLandingMediaReady();
+              }}
+              onSeeked={() => {
+                if (videoMode === "mobile") drawMobileFrame();
+              }}
+              onError={() => { setVideoFailed(true); markLandingMediaReady(); }}
+            />
+            {videoMode === "mobile" ? (
+              <canvas
+                ref={canvasRef}
+                className="storyVideo storyVideoCanvas"
+                data-ready={videoReady && !videoFailed}
+                aria-hidden="true"
+              />
+            ) : null}
+          </>
         ) : null}
         <div className="storyVignette" aria-hidden="true" />
         <div className="storyCutFade" aria-hidden="true" />

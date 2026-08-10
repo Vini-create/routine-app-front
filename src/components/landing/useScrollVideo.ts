@@ -31,9 +31,9 @@ export function useScrollVideo({
     let storyVisible = true;
     // Mobile uses a 24 fps all-intra encode: every source frame can be decoded
     // independently. Quantizing seeks avoids uneven requests between frames.
-    const seekInterval = lowPowerMode ? 16 : 32;
+    const seekInterval = 32;
     const seekThreshold = lowPowerMode ? 1 / 48 : 0.012;
-    const smoothing = lowPowerMode ? 0.48 : 0.14;
+    const smoothing = lowPowerMode ? 0.38 : 0.14;
 
     function measure() {
       measureFrame = 0;

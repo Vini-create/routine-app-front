@@ -2509,6 +2509,17 @@ h3,
   opacity: 1;
 }
 
+.storyVideoCanvas {
+  z-index: 1;
+  display: block;
+  background: #09090b;
+}
+
+.storyVideoDecoder {
+  opacity: 0 !important;
+  pointer-events: none;
+}
+
 .storyVignette {
   z-index: 2;
   pointer-events: none;
@@ -3498,6 +3509,12 @@ h3,
 }
 
 @media (max-width: 767px) {
+  .storyTextStep {
+    transition-duration: 140ms, 180ms, 260ms;
+  }
+  .storyTextStep[data-active="true"] {
+    transition-duration: 260ms, 360ms, 480ms;
+  }
   .storyTextStep .text-silver .storyHighlightChar {
     color: #e2e4e8;
     background: none;
