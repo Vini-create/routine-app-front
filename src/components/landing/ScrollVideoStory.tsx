@@ -4,7 +4,7 @@ import Image from "next/image";
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLanguage, useTranslations } from "@/components/app/LanguageProvider";
-import { SilverHighlight, StoryTextStep } from "./StoryTextStep";
+import { SilverHighlight, StoryTextSegment, StoryTextStep } from "./StoryTextStep";
 import { storySteps, type StoryStepId } from "./storyConfig";
 import { useReducedMotion } from "./useReducedMotion";
 import { useScrollVideo } from "./useScrollVideo";
@@ -54,7 +54,7 @@ export function ScrollVideoStory() {
     let cancelled = false;
     let objectUrl: string | null = null;
     const controller = new AbortController();
-    const timeoutId = window.setTimeout(() => controller.abort(), 40_000);
+    const timeoutId = window.setTimeout(() => controller.abort(), 120_000);
     const webmSupported = document.createElement("video").canPlayType('video/webm; codecs="vp9"') !== "";
     const asset = videoMode === "desktop" && webmSupported
       ? { src: "/videos/landing-scroll-desktop.webm", type: "video/webm" }
@@ -93,7 +93,6 @@ export function ScrollVideoStory() {
         reportProgress(1);
         objectUrl = URL.createObjectURL(blob);
         setPreparedVideo({ src: objectUrl, type: asset.type });
-        markLandingMediaReady();
       } catch {
         if (cancelled) return;
         setVideoFailed(true);
@@ -124,24 +123,24 @@ export function ScrollVideoStory() {
 
   const storyCopy = useMemo<Record<StoryStepId, StoryCopy>>(() => ({
     dreams: {
-      title: <>{landing.storyDreamsLead}<br /><SilverHighlight>{landing.storyDreamsHighlight}</SilverHighlight></>,
+      title: <><StoryTextSegment>{landing.storyDreamsLead}</StoryTextSegment><br /><SilverHighlight>{landing.storyDreamsHighlight}</SilverHighlight></>,
     },
     goals: {
-      title: <>{landing.storyGoalsLead}<br /><SilverHighlight>{landing.storyGoalsHighlight}</SilverHighlight></>,
+      title: <><StoryTextSegment>{landing.storyGoalsLead}</StoryTextSegment><br /><SilverHighlight>{landing.storyGoalsHighlight}</SilverHighlight></>,
     },
     path: {
-      title: <>{landing.storyPathLead}<br /><SilverHighlight>{landing.storyPathHighlight}</SilverHighlight></>,
+      title: <><StoryTextSegment>{landing.storyPathLead}</StoryTextSegment><br /><SilverHighlight>{landing.storyPathHighlight}</SilverHighlight></>,
     },
     resilience: {
-      title: <>{landing.storyResilienceLead}<br /><SilverHighlight>{landing.storyResilienceHighlight}</SilverHighlight></>,
-      support: <><span className="storyPathSupportCopy">{landing.storyPathSupportLead}<br />{landing.storyPathSupportMiddle}</span><SilverHighlight>{landing.storyPathSupportHighlight}.</SilverHighlight></>,
+      title: <><StoryTextSegment>{landing.storyResilienceLead}</StoryTextSegment><br /><SilverHighlight>{landing.storyResilienceHighlight}</SilverHighlight></>,
+      support: <><StoryTextSegment className="storyPathSupportCopy">{landing.storyPathSupportLead}<br />{landing.storyPathSupportMiddle}</StoryTextSegment><SilverHighlight>{landing.storyPathSupportHighlight}.</SilverHighlight></>,
     },
     consistency: {
-      title: <>{landing.storyConsistencyLead}<br />{landing.storyConsistencyMiddle}<br /><SilverHighlight>{landing.storyConsistencyHighlight}</SilverHighlight>.</>,
+      title: <><StoryTextSegment>{landing.storyConsistencyLead}</StoryTextSegment><br /><StoryTextSegment>{landing.storyConsistencyMiddle}</StoryTextSegment><br /><SilverHighlight>{landing.storyConsistencyHighlight}</SilverHighlight><StoryTextSegment>.</StoryTextSegment></>,
     },
     organization: {
       eyebrow: landing.storyOrganizationEyebrow,
-      title: <>{landing.storyOrganizationLead}<br />{landing.storyOrganizationMiddle}<br /><SilverHighlight>{landing.storyOrganizationHighlight}</SilverHighlight>.</>,
+      title: <><StoryTextSegment>{landing.storyOrganizationLead}</StoryTextSegment><br /><StoryTextSegment>{landing.storyOrganizationMiddle}</StoryTextSegment><br /><SilverHighlight>{landing.storyOrganizationHighlight}</SilverHighlight><StoryTextSegment>.</StoryTextSegment></>,
     },
   }), [landing]);
 
@@ -192,7 +191,10 @@ export function ScrollVideoStory() {
             src={preparedVideo.src}
             aria-hidden="true"
             tabIndex={-1}
-            onLoadedData={() => setVideoReady(true)}
+            onLoadedData={() => {
+              setVideoReady(true);
+              markLandingMediaReady();
+            }}
             onError={() => { setVideoFailed(true); markLandingMediaReady(); }}
           />
         ) : null}

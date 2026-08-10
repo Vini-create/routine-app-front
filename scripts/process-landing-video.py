@@ -65,7 +65,7 @@ def encode_story(ffmpeg: str, clips: list[Path]) -> None:
         "[v0][v1][v2][v3]concat=n=4:v=1:a=0,split=2[desktopbase][mobilebase];"
         "[desktopbase]scale=1600:900:flags=lanczos,format=yuv420p[desktop];"
         "[mobilebase]crop=1216:2160:(iw-1216)/2:0,"
-        "scale=540:960:flags=lanczos,format=yuv420p[mobile]"
+        "scale=1080:1920:flags=lanczos,format=yuv420p[mobile]"
     )
     desktop_temp = VIDEO_DIR / ".landing-scroll-desktop.mp4"
     mobile_temp = VIDEO_DIR / ".landing-scroll-mobile.mp4"
@@ -108,15 +108,15 @@ def encode_story(ffmpeg: str, clips: list[Path]) -> None:
             "-preset",
             "medium",
             "-crf",
-            "30",
+            "25",
             "-profile:v",
             "high",
             "-level",
-            "3.1",
+            "4.1",
             "-g",
-            "12",
+            "6",
             "-keyint_min",
-            "12",
+            "6",
             "-sc_threshold",
             "0",
             "-movflags",

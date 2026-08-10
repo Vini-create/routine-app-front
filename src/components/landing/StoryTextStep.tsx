@@ -10,7 +10,17 @@ import type { StoryStepConfig } from "./storyConfig";
 gsap.registerPlugin(useGSAP, SplitText);
 
 export function SilverHighlight({ children }: { children: ReactNode }) {
-  return <span className="text-silver">{children}</span>;
+  return <span className="text-silver" data-story-split>{children}</span>;
+}
+
+export function StoryTextSegment({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return <span className={className} data-story-split>{children}</span>;
 }
 
 export function StoryTextStep({
@@ -32,7 +42,7 @@ export function StoryTextStep({
 }) {
   const TitleTag = step.id === "dreams" ? "h1" : "h2";
   const articleRef = useRef<HTMLElement>(null);
-  const splitCharsRef = useRef<HTMLElement[]>([]);
+  const splitGroupsRef = useRef<HTMLElement[][]>([]);
 
   useGSAP(() => {
     if (index === 0 || !articleRef.current) return;
@@ -44,8 +54,9 @@ export function StoryTextStep({
       wordsClass: "storySplitWord",
       aria: "auto",
     }));
-    const chars = splits.flatMap((split) => split.chars) as HTMLElement[];
-    splitCharsRef.current = chars;
+    const groups = splits.map((split) => split.chars as HTMLElement[]);
+    const chars = groups.flat();
+    splitGroupsRef.current = groups;
 
     gsap.set(chars, {
       autoAlpha: 0,
@@ -53,24 +64,30 @@ export function StoryTextStep({
     });
 
     return () => {
-      splitCharsRef.current = [];
+      splitGroupsRef.current = [];
       splits.forEach((split) => split.revert());
     };
   }, { scope: articleRef, dependencies: [eyebrow, index, support, title], revertOnUpdate: true });
 
   useGSAP(() => {
-    if (index === 0 || splitCharsRef.current.length === 0) return;
-    const chars = splitCharsRef.current;
+    if (index === 0 || splitGroupsRef.current.length === 0) return;
+    const groups = splitGroupsRef.current;
+    const chars = groups.flat();
     gsap.killTweensOf(chars);
 
     if (active) {
-      gsap.to(chars, {
-        autoAlpha: 1,
-        yPercent: 0,
-        duration: 0.88,
-        ease: "power4.out",
-        stagger: { each: 0.034, from: "start" },
-        overwrite: true,
+      const mobile = window.matchMedia("(max-width: 767px)").matches;
+      const timeline = gsap.timeline({
+        defaults: { overwrite: true },
+      });
+      groups.forEach((group, groupIndex) => {
+        timeline.to(group, {
+          autoAlpha: 1,
+          yPercent: 0,
+          duration: mobile ? 0.68 : 0.88,
+          ease: "power4.out",
+          stagger: { each: mobile ? 0.022 : 0.034, from: "start" },
+        }, groupIndex * (mobile ? 0.09 : 0.13));
       });
     } else {
       gsap.set(chars, { autoAlpha: 0, yPercent: 72 });
@@ -90,8 +107,8 @@ export function StoryTextStep({
         <span>{String(total).padStart(2, "0")}</span>
       </p>
       {eyebrow ? <p className="storyEyebrow text-body" data-story-split>{eyebrow}</p> : null}
-      <TitleTag className="story-title text-display" data-story-split>{title}</TitleTag>
-      {support ? <p className="storySupport text-display-medium" data-story-split>{support}</p> : null}
+      <TitleTag className="story-title text-display">{title}</TitleTag>
+      {support ? <p className="storySupport text-display-medium">{support}</p> : null}
     </article>
   );
 }

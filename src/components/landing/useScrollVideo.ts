@@ -29,9 +29,11 @@ export function useScrollVideo({
     let lastSeek = 0;
     let cancelled = false;
     let storyVisible = true;
-    const seekInterval = lowPowerMode ? 33 : 32;
-    const seekThreshold = lowPowerMode ? 0.014 : 0.012;
-    const smoothing = lowPowerMode ? 0.24 : 0.14;
+    // The source is 24 fps. Seeking faster than its frame cadence makes mobile
+    // decoders do duplicate work without producing any additional visual detail.
+    const seekInterval = lowPowerMode ? 42 : 32;
+    const seekThreshold = lowPowerMode ? 0.02 : 0.012;
+    const smoothing = lowPowerMode ? 0.3 : 0.14;
 
     function measure() {
       measureFrame = 0;

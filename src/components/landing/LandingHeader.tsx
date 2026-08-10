@@ -34,7 +34,7 @@ export function LandingHeader() {
     <header className="winLandingHeader" data-scrolled={scrolled || menuOpen}>
       <div className="winLandingHeaderInner">
         <Link href="/" aria-label={landing.homeAriaLabel} onClick={closeMenu}>
-          <BrandMark iconClassName="size-8 sm:size-9" wordmarkClassName="text-[1.55rem] sm:text-[1.8rem]" />
+          <BrandMark iconClassName="size-7 min-[390px]:size-8 sm:size-9" wordmarkClassName="text-[1.3rem] min-[390px]:text-[1.5rem] sm:text-[1.8rem]" />
         </Link>
 
         <nav className="winLandingDesktopNav text-body" aria-label={landing.mainNavigationLabel}>
@@ -45,8 +45,8 @@ export function LandingHeader() {
         </nav>
 
         <div className="winLandingHeaderActions">
-          <InstallAppButton className="min-h-10" labelClassName="hidden lg:inline" />
-          <Button href="/login" className="hidden min-h-10 px-4 sm:inline-flex">{landing.login}</Button>
+          <InstallAppButton className="winLandingInstallAction min-h-10" labelClassName="hidden lg:inline" />
+          <Button href="/login" className="winLandingLoginAction hidden min-h-10 px-4 sm:inline-flex">{landing.login}</Button>
           <button
             type="button"
             className="winLandingMenuButton"
