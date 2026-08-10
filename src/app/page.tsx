@@ -6,6 +6,7 @@ import { LandingHeader } from "@/components/landing/LandingHeader";
 import { LandingLoadGate } from "@/components/landing/LandingLoadGate";
 import { ProductIntroduction } from "@/components/landing/ProductIntroduction";
 import { ScrollVideoStory } from "@/components/landing/ScrollVideoStory";
+import { StoryPageTransition } from "@/components/landing/StoryPageTransition";
 
 export default function LandingPage() {
   return (
@@ -13,8 +14,9 @@ export default function LandingPage() {
       <main className="winLandingPage">
         <LandingHeader />
         <ScrollVideoStory />
-        <div className="storyToProductTransition" aria-hidden="true" />
-        <ProductIntroduction />
+        <StoryPageTransition>
+          <ProductIntroduction />
+        </StoryPageTransition>
         <FeatureShowcase />
         <AlfredShowcase />
         <FinalCTA />

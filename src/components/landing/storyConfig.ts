@@ -1,4 +1,4 @@
-export type StoryStepId = "dreams" | "goals" | "path" | "consistency" | "organization";
+export type StoryStepId = "dreams" | "goals" | "path" | "resilience" | "consistency" | "organization";
 
 export type StoryStepConfig = {
   id: StoryStepId;
@@ -10,70 +10,77 @@ export type StoryStepConfig = {
   poster: string;
 };
 
-export const landingVideoDuration = 12.933;
+export const landingVideoDuration = 32.166667;
+export const climbToTimelapseScroll = 0.465;
+const climbToTimelapseFadeRadius = 0.014;
 
 export const storySteps: StoryStepConfig[] = [
   {
     id: "dreams",
     scrollStart: 0,
-    scrollEnd: 0.085,
+    scrollEnd: 0.09,
     videoStart: 0,
-    videoEnd: 1.12,
+    videoEnd: 4.5,
     placement: "top-left",
-    poster: "/images/landing-story-helmet.webp",
+    poster: "/images/landing-story-mountain.webp",
   },
   {
     id: "goals",
-    scrollStart: 0.085,
-    scrollEnd: 0.263,
-    videoStart: 1.12,
-    videoEnd: 2.15,
+    scrollStart: 0.09,
+    scrollEnd: 0.165,
+    videoStart: 4.5,
+    videoEnd: 8.041667,
     placement: "bottom-right",
-    poster: "/images/landing-story-rocket.webp",
+    poster: "/images/landing-story-climber.webp",
   },
   {
     id: "path",
-    scrollStart: 0.263,
-    scrollEnd: 0.422,
-    videoStart: 2.15,
-    videoEnd: 3.2,
+    scrollStart: 0.165,
+    scrollEnd: 0.315,
+    videoStart: 8.041667,
+    videoEnd: 12,
     placement: "top-left",
-    poster: "/images/landing-story-blueprint.webp",
+    poster: "/images/landing-story-struggle.webp",
+  },
+  {
+    id: "resilience",
+    scrollStart: 0.315,
+    scrollEnd: climbToTimelapseScroll,
+    videoStart: 12,
+    videoEnd: 16.083333,
+    placement: "bottom-right",
+    poster: "/images/landing-story-resilience.webp",
   },
   {
     id: "consistency",
-    scrollStart: 0.422,
-    scrollEnd: 0.65,
-    videoStart: 3.2,
-    videoEnd: 7.7,
+    scrollStart: climbToTimelapseScroll,
+    scrollEnd: 0.82,
+    videoStart: 16.083333,
+    videoEnd: 24.125,
     placement: "bottom-left",
-    poster: "/images/landing-story-pieces.webp",
+    poster: "/images/landing-story-seasons.webp",
   },
   {
     id: "organization",
-    scrollStart: 0.65,
-    scrollEnd: 0.87,
-    videoStart: 7.7,
-    videoEnd: 10.55,
+    scrollStart: 0.82,
+    scrollEnd: 0.97,
+    videoStart: 24.125,
+    videoEnd: landingVideoDuration,
     placement: "center-left",
-    poster: "/images/landing-story-assembly.webp",
+    poster: "/images/landing-story-summit.webp",
   },
 ];
 
-// The first three scenes contain long still frames separated by short,
-// visually rich transitions. These control points cross the still portions
-// quickly and reserve most of the scroll gesture for the transformations.
+// Each control point matches a visual beat in the four source clips: the
+// mountain, the climber reveal, the difficult ascent, the passing days and
+// the summit. Keeping these boundaries explicit makes copy changes safe.
 export const videoTimeline = [
   { scroll: 0, time: 0 },
-  { scroll: 0.019, time: 0.82 },
-  { scroll: 0.099, time: 1.12 },
-  { scroll: 0.183, time: 1.85 },
-  { scroll: 0.263, time: 2.15 },
-  { scroll: 0.335, time: 2.85 },
-  { scroll: 0.415, time: 3.15 },
-  { scroll: 0.422, time: 3.2 },
-  { scroll: 0.65, time: 7.7 },
-  { scroll: 0.87, time: 10.55 },
+  { scroll: 0.09, time: 4.5 },
+  { scroll: 0.165, time: 8.041667 },
+  { scroll: 0.315, time: 12 },
+  { scroll: climbToTimelapseScroll, time: 16.083333 },
+  { scroll: 0.82, time: 24.125 },
   { scroll: 1, time: landingVideoDuration },
 ] as const;
 
@@ -92,4 +99,12 @@ export function mapScrollToVideoTime(progress: number) {
 
 export function getActiveStoryStep(progress: number) {
   return storySteps.find((step) => progress >= step.scrollStart && progress < step.scrollEnd)?.id ?? null;
+}
+
+export function getClimbToTimelapseFade(progress: number) {
+  const distance = Math.abs(progress - climbToTimelapseScroll);
+  if (distance >= climbToTimelapseFadeRadius) return 0;
+
+  const amount = 1 - (distance / climbToTimelapseFadeRadius);
+  return amount * amount * (3 - (2 * amount));
 }

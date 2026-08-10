@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
-"""Build non-destructive, scroll-friendly landing video assets.
-
-The source file is never modified. The pipeline first composites the near-black
-background over Winperium's #09090B using a soft RGB key, writes a high-quality
-master, and only then creates browser variants and posters.
-"""
+"""Build the browser-ready mountain landing story from four HEVC clips."""
 
 from __future__ import annotations
 
@@ -16,30 +11,17 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_INPUT = ROOT / "background_interacting_landing_page" / "lv_0_20260630215405.mp4"
+DEFAULT_SOURCE_DIR = ROOT / "src" / "components" / "landing" / "new_landing_video"
 VIDEO_DIR = ROOT / "public" / "videos"
 IMAGE_DIR = ROOT / "public" / "images"
-COMPARE_DIR = ROOT / "artifacts" / "landing-video-comparison"
-BACKGROUND = "#09090B"
-SCENE_TIMES = (0.40, 1.40, 2.40, 4.50, 7.50, 10.80, 12.20)
 STORY_POSTERS = {
-    "helmet": 0.40,
-    "rocket": 1.40,
-    "blueprint": 2.40,
-    "pieces": 4.50,
-    "assembly": 8.60,
-    "complete": 11.40,
+    "mountain": 1.5,
+    "climber": 7.2,
+    "struggle": 13.0,
+    "resilience": 14.5,
+    "seasons": 20.1,
+    "summit": 31.2,
 }
-
-
-def has_encoder(name: str) -> bool:
-    result = subprocess.run(
-        ["ffmpeg", "-hide_banner", "-encoders"],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    return name in result.stdout
 
 
 def run(command: list[str]) -> None:
@@ -47,15 +29,14 @@ def run(command: list[str]) -> None:
     subprocess.run(command, check=True)
 
 
-def probe(path: Path) -> dict:
+def probe(ffprobe: str, path: Path) -> dict:
     result = subprocess.run(
         [
-            "ffprobe",
+            ffprobe,
             "-v",
             "error",
-            "-show_format",
-            "-show_streams",
-            "-count_frames",
+            "-show_entries",
+            "format=duration,size:stream=codec_name,width,height,r_frame_rate,nb_frames",
             "-of",
             "json",
             str(path),
@@ -67,150 +48,122 @@ def probe(path: Path) -> dict:
     return json.loads(result.stdout)
 
 
-def video_stream(metadata: dict) -> dict:
-    return next(stream for stream in metadata["streams"] if stream["codec_type"] == "video")
+def source_clips(source_dir: Path) -> list[Path]:
+    clips = sorted(source_dir.glob("*.mp4"))
+    if len(clips) != 4:
+        raise SystemExit(f"Expected exactly four MP4 clips in {source_dir}, found {len(clips)}")
+    return clips
 
 
-def corrected_filter(width: int, height: int, fps: str, duration: str) -> str:
-    # colorkey works in RGB and therefore preserves neutral chrome; chromakey
-    # would key all grayscale pixels because it primarily compares chroma.
-    return (
-        f"[0:v]format=rgba,colorkey=0x000000:0.06:0.035[fg];"
-        f"color=c={BACKGROUND}:s={width}x{height}:r={fps}:d={duration}[bg];"
-        "[bg][fg]overlay=shortest=1:format=auto,format=yuv420p[outv]"
+def encode_story(ffmpeg: str, clips: list[Path]) -> None:
+    inputs = [argument for clip in clips for argument in ("-i", str(clip))]
+    filter_graph = (
+        "[0:v]setpts=PTS-STARTPTS[v0];"
+        "[1:v]setpts=PTS-STARTPTS[v1];"
+        "[2:v]setpts=PTS-STARTPTS[v2];"
+        "[3:v]setpts=PTS-STARTPTS[v3];"
+        "[v0][v1][v2][v3]concat=n=4:v=1:a=0,split=2[desktopbase][mobilebase];"
+        "[desktopbase]scale=1600:900:flags=lanczos,format=yuv420p[desktop];"
+        "[mobilebase]crop=1216:2160:(iw-1216)/2:0,"
+        "scale=540:960:flags=lanczos,format=yuv420p[mobile]"
     )
+    desktop_temp = VIDEO_DIR / ".landing-scroll-desktop.mp4"
+    mobile_temp = VIDEO_DIR / ".landing-scroll-mobile.mp4"
 
-
-def make_master(source: Path, master: Path, metadata: dict) -> None:
-    stream = video_stream(metadata)
-    filter_graph = corrected_filter(
-        int(stream["width"]),
-        int(stream["height"]),
-        stream["r_frame_rate"],
-        stream["duration"],
-    )
-    codec_args = (
-        ["-c:v", "libx264", "-preset", "slow", "-crf", "12", "-profile:v", "high"]
-        if has_encoder("libx264")
-        else [
-            "-c:v",
-            "libopenh264",
-            "-b:v",
-            "28M",
-            "-maxrate",
-            "36M",
-            "-profile:v",
-            "high",
-            "-coder",
-            "cabac",
-            "-rc_mode",
-            "quality",
-        ]
-    )
     run(
         [
-            "ffmpeg",
+            ffmpeg,
             "-y",
             "-hide_banner",
-            "-i",
-            str(source),
+            *inputs,
             "-filter_complex",
             filter_graph,
             "-map",
-            "[outv]",
+            "[desktop]",
             "-an",
-            *codec_args,
-            "-pix_fmt",
-            "yuv420p",
-            "-movflags",
-            "+faststart",
-            str(master),
-        ]
-    )
-
-
-def make_mp4(master: Path, output: Path, scale: str | None = None, gop: int = 15) -> None:
-    command = ["ffmpeg", "-y", "-hide_banner", "-i", str(master), "-an"]
-    if scale:
-        command.extend(["-vf", scale])
-    codec_args = (
-        [
             "-c:v",
             "libx264",
             "-preset",
-            "slow",
+            "medium",
             "-crf",
-            "22" if scale is None else "23",
+            "26",
             "-profile:v",
             "high",
-        ]
-        if has_encoder("libx264")
-        else [
-            "-c:v",
-            "libopenh264",
-            "-b:v",
-            "6M" if scale is None else "3000k",
-            "-maxrate",
-            "8M" if scale is None else "4500k",
-            "-profile:v",
-            "high",
-            "-coder",
-            "cabac",
-            "-rc_mode",
-            "quality",
-        ]
-    )
-    command.extend(
-        [
-            *codec_args,
-            "-pix_fmt",
-            "yuv420p",
+            "-level",
+            "4.0",
             "-g",
-            str(gop),
+            "24",
             "-keyint_min",
-            str(gop),
+            "24",
             "-sc_threshold",
             "0",
             "-movflags",
             "+faststart",
-            str(output),
+            str(desktop_temp),
+            "-map",
+            "[mobile]",
+            "-an",
+            "-c:v",
+            "libx264",
+            "-preset",
+            "medium",
+            "-crf",
+            "30",
+            "-profile:v",
+            "high",
+            "-level",
+            "3.1",
+            "-g",
+            "12",
+            "-keyint_min",
+            "12",
+            "-sc_threshold",
+            "0",
+            "-movflags",
+            "+faststart",
+            str(mobile_temp),
         ]
     )
-    run(command)
+
+    desktop_temp.replace(VIDEO_DIR / "landing-scroll-desktop.mp4")
+    mobile_temp.replace(VIDEO_DIR / "landing-scroll-mobile.mp4")
 
 
-def make_webm(master: Path, output: Path, scale: str | None = None, preview: bool = False, gop: int = 15) -> None:
-    command = ["ffmpeg", "-y", "-hide_banner", "-i", str(master), "-an"]
-    if preview:
-        command.extend(["-t", "4", "-vf", "scale=960:-2:flags=lanczos"])
-    elif scale:
-        command.extend(["-vf", scale])
-    command.extend(
+def encode_desktop_webm(ffmpeg: str) -> None:
+    source = VIDEO_DIR / "landing-scroll-desktop.mp4"
+    output_temp = VIDEO_DIR / ".landing-scroll-desktop.webm"
+    run(
         [
+            ffmpeg,
+            "-y",
+            "-hide_banner",
+            "-i",
+            str(source),
+            "-an",
             "-c:v",
             "libvpx-vp9",
             "-crf",
-            "34" if preview else "30",
+            "39",
             "-b:v",
             "0",
-            "-row-mt",
-            "1",
             "-deadline",
             "good",
             "-cpu-used",
-            "2",
+            "4",
+            "-row-mt",
+            "1",
             "-g",
-            str(gop),
+            "24",
             "-pix_fmt",
             "yuv420p",
-            str(output),
+            str(output_temp),
         ]
     )
-    run(command)
+    output_temp.replace(VIDEO_DIR / "landing-scroll-desktop.webm")
 
 
-def make_poster(master: Path, output: Path, scale: str | None = None) -> None:
-    command = ["ffmpeg", "-y", "-hide_banner", "-ss", "0.10", "-i", str(master)]
+def extract_frame(ffmpeg: str, video: Path, timestamp: float, output: Path, scale: str | None = None) -> None:
+    command = [ffmpeg, "-y", "-hide_banner", "-loglevel", "error", "-ss", str(timestamp), "-i", str(video)]
     if scale:
         command.extend(["-vf", scale])
     command.extend(
@@ -220,7 +173,7 @@ def make_poster(master: Path, output: Path, scale: str | None = None) -> None:
             "-c:v",
             "libwebp",
             "-quality",
-            "88",
+            "84",
             "-compression_level",
             "6",
             str(output),
@@ -229,104 +182,43 @@ def make_poster(master: Path, output: Path, scale: str | None = None) -> None:
     run(command)
 
 
-def make_story_posters(master: Path) -> None:
+def make_posters(ffmpeg: str) -> None:
+    desktop = VIDEO_DIR / "landing-scroll-desktop.mp4"
+    mobile = VIDEO_DIR / "landing-scroll-mobile.mp4"
+    extract_frame(ffmpeg, desktop, 0.4, IMAGE_DIR / "landing-scroll-poster.webp")
+    extract_frame(ffmpeg, mobile, 0.4, IMAGE_DIR / "landing-scroll-poster-mobile.webp")
+
     for name, timestamp in STORY_POSTERS.items():
-        run(
-            [
-                "ffmpeg",
-                "-y",
-                "-hide_banner",
-                "-loglevel",
-                "error",
-                "-ss",
-                f"{timestamp:.2f}",
-                "-i",
-                str(master),
-                "-frames:v",
-                "1",
-                "-vf",
-                "scale=1280:-2:flags=lanczos",
-                "-c:v",
-                "libwebp",
-                "-quality",
-                "86",
-                "-compression_level",
-                "6",
-                str(IMAGE_DIR / f"landing-story-{name}.webp"),
-            ]
+        extract_frame(
+            ffmpeg,
+            desktop,
+            timestamp,
+            IMAGE_DIR / f"landing-story-{name}.webp",
+            "scale=1280:-2:flags=lanczos",
         )
-
-
-def extract_comparisons(source: Path, master: Path, desktop_webm: Path, desktop_mp4: Path) -> None:
-    COMPARE_DIR.mkdir(parents=True, exist_ok=True)
-    variants = {
-        "original": source,
-        "master": master,
-        "desktop-webm": desktop_webm,
-        "desktop-mp4": desktop_mp4,
-    }
-    for label, path in variants.items():
-        for index, timestamp in enumerate(SCENE_TIMES):
-            run(
-                [
-                    "ffmpeg",
-                    "-y",
-                    "-hide_banner",
-                    "-loglevel",
-                    "error",
-                    "-ss",
-                    f"{timestamp:.2f}",
-                    "-i",
-                    str(path),
-                    "-frames:v",
-                    "1",
-                    "-vf",
-                    "scale=960:-2:flags=lanczos",
-                    str(COMPARE_DIR / f"{index:02d}-{timestamp:05.2f}-{label}.png"),
-                ]
-            )
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--input", type=Path, default=DEFAULT_INPUT)
-    parser.add_argument("--skip-comparison", action="store_true")
+    parser.add_argument("--source-dir", type=Path, default=DEFAULT_SOURCE_DIR)
+    parser.add_argument("--ffmpeg", default=shutil.which("ffmpeg") or "ffmpeg")
+    parser.add_argument("--ffprobe", default=shutil.which("ffprobe") or "ffprobe")
     args = parser.parse_args()
-
-    if not shutil.which("ffmpeg") or not shutil.which("ffprobe"):
-        raise SystemExit("ffmpeg and ffprobe are required")
-    source = args.input.resolve()
-    if not source.exists():
-        raise SystemExit(f"Source video not found: {source}")
 
     VIDEO_DIR.mkdir(parents=True, exist_ok=True)
     IMAGE_DIR.mkdir(parents=True, exist_ok=True)
+    clips = source_clips(args.source_dir)
+    encode_story(args.ffmpeg, clips)
+    encode_desktop_webm(args.ffmpeg)
+    make_posters(args.ffmpeg)
 
-    master = VIDEO_DIR / "landing-scroll-master.mp4"
-    preview = VIDEO_DIR / "landing-scroll-preview.webm"
-    desktop_webm = VIDEO_DIR / "landing-scroll-desktop.webm"
-    desktop_mp4 = VIDEO_DIR / "landing-scroll-desktop.mp4"
-    mobile_webm = VIDEO_DIR / "landing-scroll-mobile.webm"
-    mobile_mp4 = VIDEO_DIR / "landing-scroll-mobile.mp4"
+    for variant in ("desktop", "mobile"):
+        output = VIDEO_DIR / f"landing-scroll-{variant}.mp4"
+        metadata = probe(args.ffprobe, output)
+        print(json.dumps({"variant": variant, **metadata}, indent=2))
 
-    metadata = probe(source)
-    make_master(source, master, metadata)
-    make_webm(master, preview, preview=True)
-    make_webm(master, desktop_webm)
-    make_mp4(master, desktop_mp4)
-    mobile_scale = "scale=1080:-2:flags=lanczos"
-    make_webm(master, mobile_webm, scale=mobile_scale, gop=3)
-    make_mp4(master, mobile_mp4, scale=mobile_scale, gop=3)
-    make_poster(master, IMAGE_DIR / "landing-scroll-poster.webp")
-    make_poster(master, IMAGE_DIR / "landing-scroll-poster-mobile.webp", scale=mobile_scale)
-    make_story_posters(master)
-
-    if not args.skip_comparison:
-        extract_comparisons(source, master, desktop_webm, desktop_mp4)
-
-    print("\nGenerated assets:")
-    for path in (master, preview, desktop_webm, desktop_mp4, mobile_webm, mobile_mp4):
-        print(f"- {path.relative_to(ROOT)}: {path.stat().st_size / 1_048_576:.2f} MiB")
+    webm = VIDEO_DIR / "landing-scroll-desktop.webm"
+    print(json.dumps({"variant": "desktop-webm", **probe(args.ffprobe, webm)}, indent=2))
 
 
 if __name__ == "__main__":

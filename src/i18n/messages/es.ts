@@ -107,6 +107,17 @@ export const es = {
   landing: {
     ...en.landing,
     loadingExperience: "Preparando tu experiencia…",
+    loadingFilm: "CARGANDO PELÍCULA",
+    loadingMessages: [
+      "Trazando la mejor ruta.",
+      "Preparando cada etapa del camino.",
+      "Sincronizando imagen y movimiento.",
+      "Los grandes logros comienzan con dirección.",
+      "El próximo paso ya está más cerca.",
+      "La cima aparece para quienes continúan.",
+      "Organizando el camino que tienes delante.",
+      "Transformando intención en movimiento.",
+    ],
     login: "Iniciar sesión",
     badge: "Copiloto personal con IA",
     headline: "Transforma tus SUEÑOS en METAS.",

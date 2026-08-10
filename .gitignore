@@ -50,3 +50,6 @@ next-env.d.ts
 app_flow_logic_rules.txt
 frontend_api_flow.txt
 /design_ref
+
+# Local 4K generation sources; optimized browser outputs live in public/videos.
+/src/components/landing/new_landing_video/*.mp4

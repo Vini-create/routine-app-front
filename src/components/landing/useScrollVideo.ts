@@ -2,7 +2,7 @@
 
 import type { RefObject } from "react";
 import { useEffect, useRef } from "react";
-import { getActiveStoryStep, mapScrollToVideoTime, type StoryStepId } from "./storyConfig";
+import { getActiveStoryStep, getClimbToTimelapseFade, mapScrollToVideoTime, type StoryStepId } from "./storyConfig";
 
 export function useScrollVideo({
   containerRef,
@@ -40,10 +40,13 @@ export function useScrollVideo({
 
       const rect = container.getBoundingClientRect();
       storyVisible = rect.bottom > 0 && rect.top < window.innerHeight;
-      const distance = Math.max(1, rect.height - window.innerHeight);
+      // The final viewport is reserved for the next section to rise over the
+      // pinned summit frame. Excluding it keeps the original video pacing.
+      const distance = Math.max(1, rect.height - (window.innerHeight * 2));
       const progress = Math.min(1, Math.max(0, -rect.top / distance));
       targetTimeRef.current = mapScrollToVideoTime(progress);
       container.style.setProperty("--story-progress", String(progress));
+      container.style.setProperty("--story-cut-fade", String(getClimbToTimelapseFade(progress)));
 
       const nextStep = getActiveStoryStep(progress);
       if (nextStep !== activeStepRef.current) {
@@ -57,7 +60,10 @@ export function useScrollVideo({
     }
 
     function renderVideo(timestamp: number) {
-      if (cancelled) return;
+      if (cancelled || !storyVisible) {
+        playbackFrame = 0;
+        return;
+      }
       const video = videoRef.current;
       const difference = targetTimeRef.current - renderedTimeRef.current;
 
@@ -80,8 +86,28 @@ export function useScrollVideo({
       playbackFrame = window.requestAnimationFrame(renderVideo);
     }
 
+    function startPlayback() {
+      if (!playbackFrame && storyVisible && !cancelled) {
+        playbackFrame = window.requestAnimationFrame(renderVideo);
+      }
+    }
+
+    const observer = new IntersectionObserver(([entry]) => {
+      storyVisible = entry.isIntersecting;
+      if (storyVisible) {
+        measure();
+        startPlayback();
+      } else if (playbackFrame) {
+        window.cancelAnimationFrame(playbackFrame);
+        playbackFrame = 0;
+      }
+    });
+
+    const container = containerRef.current;
+    if (container) observer.observe(container);
+
     measure();
-    playbackFrame = window.requestAnimationFrame(renderVideo);
+    startPlayback();
     window.addEventListener("scroll", requestMeasure, { passive: true });
     window.addEventListener("resize", requestMeasure);
 
@@ -89,6 +115,7 @@ export function useScrollVideo({
       cancelled = true;
       window.removeEventListener("scroll", requestMeasure);
       window.removeEventListener("resize", requestMeasure);
+      observer.disconnect();
       window.cancelAnimationFrame(measureFrame);
       window.cancelAnimationFrame(playbackFrame);
     };

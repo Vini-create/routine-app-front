@@ -107,6 +107,17 @@ export const fr = {
   landing: {
     ...en.landing,
     loadingExperience: "Préparation de votre expérience…",
+    loadingFilm: "CHARGEMENT DU FILM",
+    loadingMessages: [
+      "Traçage du meilleur itinéraire.",
+      "Préparation de chaque étape du voyage.",
+      "Synchronisation de l’image et du mouvement.",
+      "Les grandes réussites commencent par une direction.",
+      "La prochaine étape est déjà plus proche.",
+      "Le sommet apparaît à ceux qui continuent.",
+      "Organisation du chemin à venir.",
+      "Transformation de l’intention en mouvement.",
+    ],
     login: "Se connecter",
     badge: "Copilote personnel IA",
     headline: "Transformez vos RÊVES en OBJECTIFS.",

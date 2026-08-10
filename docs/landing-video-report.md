@@ -1,76 +1,52 @@
 # Relatório do vídeo da landing
 
-## Original
+## Narrativa
 
-- Arquivo: `background_interacting_landing_page/lv_0_20260630215405.mp4`
-- Tamanho: 12.320.287 bytes (11,75 MiB)
-- Resolução: 1918×1080 (aproximadamente 16:9)
-- Duração: 12,933 s
-- FPS: 30
-- Frames: 388
-- Vídeo: H.264 High, yuv420p progressivo, aproximadamente 7,51 Mb/s
-- Áudio: AAC-LC estéreo, 44,1 kHz, aproximadamente 100 kb/s
-- Perfil de cores: não sinalizado no arquivo
-- Transparência: impossível no original; yuv420p não contém alpha
+Os quatro clipes em `src/components/landing/new_landing_video/` formam uma única jornada visual:
 
-## Cenas observadas
+| Ordem | Arquivo (início) | Cena | Intervalo final |
+| --- | --- | --- | ---: |
+| 1 | `hf_20260801_003325` | aproximação da montanha e revelação do escalador | 0–8,04 s |
+| 2 | `hf_20260801_011402` | escalada sob neve e dificuldade | 8,04–16,08 s |
+| 3 | `hf_20260801_015007` | passagem por noite, amanhecer, dia e pôr do sol | 16,08–24,13 s |
+| 4 | `hf_20260801_022537` | aproximação final e chegada ao topo | 24,13–32,17 s |
 
-| Cena | Tempo no vídeo | Percentual aproximado |
-| --- | ---: | ---: |
-| Capacete | 0–0,95 s | 0–7,35% |
-| Foguete isolado | 0,95–1,95 s | 7,35–15,08% |
-| Blueprint | 1,95–2,95 s | 15,08–22,81% |
-| Peças e início da montagem | 2,95–7,70 s | 22,81–59,54% |
-| Montagem em progresso | 7,70–10,55 s | 59,54–81,58% |
-| Foguete completo | 10,55–12,933 s | 81,58–100% |
+Os arquivos originais permanecem intactos no ambiente local. Como somam aproximadamente 199 MiB, ficam fora do Git; o deploy usa somente as variantes otimizadas em `public/videos/`. O script `scripts/process-landing-video.py` ordena os clipes pelo nome, concatena a história e gera os assets usados pelo navegador.
 
-O mapeamento de scroll não é linear por cena: cenas curtas recebem mais espaço narrativo. Os intervalos editáveis estão centralizados em `src/components/landing/storyConfig.ts`.
+## Assets entregues
 
-## Correção do fundo
+| Arquivo | Codec | Resolução | FPS | Keyframe | Tamanho aproximado |
+| --- | --- | ---: | ---: | ---: | ---: |
+| `public/videos/landing-scroll-desktop.mp4` | H.264 High | 1600×900 | 24 | 1 s | 15,6 MiB |
+| `public/videos/landing-scroll-desktop.webm` | VP9 | 1600×900 | 24 | 1 s | 12,4 MiB |
+| `public/videos/landing-scroll-mobile.mp4` | H.264 High | 540×960 | 24 | 0,5 s | 5,0 MiB |
 
-Os cantos do original mudavam de Y≈16 para Y≈21 durante a montagem. O pipeline converte temporariamente para RGBA, cria uma máscara suave com `colorkey` RGB (`similarity=0.06`, `blend=0.035`) e compõe o objeto sobre `#09090B`. RGB foi escolhido porque `chromakey` em YUV removia também os cromados neutros.
+As variantes usam `yuv420p` e não contêm áudio. Desktop oferece VP9 primeiro e mantém H.264 como fallback; mobile portrait usa um crop 9:16 dedicado e H.264 com decodificação por hardware. Em landscape, o desktop é selecionado. Posters WebP cobrem carregamento, falhas e movimento reduzido.
 
-Depois da correção, amostras de 160×160 no canto superior esquerdo do master permaneceram em Y=24 em todos os segundos do vídeo. A máscara preservou visor, bandeira Winperium™, linhas do blueprint, motores, peças pequenas e reflexos escuros. Não foi aplicada transparência nem crop.
+## Mapeamento do scroll
 
-## Arquivos gerados
+Os pontos editáveis ficam em `src/components/landing/storyConfig.ts`:
 
-| Arquivo | Codec | Resolução | FPS | Configuração | Tamanho | Redução vs. original |
-| --- | --- | ---: | ---: | --- | ---: | ---: |
-| `public/videos/landing-scroll-master.mp4` | H.264 High | 1918×1080 | 30 | OpenH264 quality, alvo 28 Mb/s | 6.913.267 B | 43,89% |
-| `public/videos/landing-scroll-desktop.webm` | VP9 Profile 0 | 1918×1080 | 30 | CRF 30, GOP 15 | 2.849.048 B | 76,88% |
-| `public/videos/landing-scroll-desktop.mp4` | H.264 High | 1918×1080 | 30 | OpenH264 quality, alvo 6 Mb/s, GOP 15 | 5.631.025 B | 54,29% |
-| `public/videos/landing-scroll-mobile.webm` | VP9 Profile 0 | 1080×608 | 30 | CRF 30, GOP 3 | 3.779.749 B | 69,32% |
-| `public/videos/landing-scroll-mobile.mp4` | H.264 High | 1080×608 | 30 | OpenH264 quality, alvo 3 Mb/s, GOP 3 | 4.015.033 B | 67,41% |
-| `public/videos/landing-scroll-preview.webm` | VP9 Profile 0 | 960×540 | 30 | CRF 34, primeiros 4 s | 290.501 B | 97,64% |
+| Progresso | Tempo | Beat |
+| ---: | ---: | --- |
+| 0% | 0 s | sonho / montanha |
+| 9% | 4,5 s | meta / aproximação do escalador |
+| 16,5% | 8,04 s | caminho / início da dificuldade |
+| 31,5% | 12 s | hábitos / escalada sob neve |
+| 46,5% | 16,08 s | início do timelapse e fade de transição |
+| 82% | 24,13 s | organização / subida final |
+| 100% | 32,17 s | topo livre de texto |
 
-Os arquivos de navegador não contêm áudio. No desktop, WebM é oferecido primeiro e MP4 funciona como fallback. No mobile, MP4 é oferecido primeiro para aproveitar a decodificação H.264 por hardware disponível na maioria dos aparelhos. Desktop e mobile são escolhidos antes da criação do elemento de vídeo, evitando baixar as duas variantes.
+O scrub usa `requestAnimationFrame`, interpolação e seeks limitados. No mobile, o GOP menor reduz o trabalho de decodificação ao buscar frames. A distância útil é de `1300svh` no desktop e `1120svh` no mobile; o timelapse ocupa 35,5% dela. Um fade calculado em tempo real oculta o corte entre a escalada e a passagem dos dias. O último frame permanece fixo por mais um viewport enquanto a introdução do produto sobe como card.
 
-O FFmpeg disponível não inclui `libx264`, apenas `libopenh264`. Por isso os MP4 desta execução usam controle de qualidade/bitrate do OpenH264, não CRF. O script detecta `libx264` automaticamente e usa CRF 12 no master, CRF 22 no desktop e CRF 23 no mobile quando esse encoder estiver disponível.
+## Reprocessamento
 
-## Keyframes e scrub
+O FFmpeg precisa incluir os decodificadores HEVC e o encoder `libx264`. Exemplo:
 
-- GOP desktop: 15 frames; GOP mobile: 3 frames
-- Intervalo: 0,5 s no desktop e 0,1 s no mobile, ambos em 30 fps
-- Verificação mobile: keyframes presentes em 0,0; 0,1; 0,2; 0,3 s e assim por diante
-- Sincronização: `requestAnimationFrame`, interpolação de 14% no desktop e 24% no mobile. No mobile, os seeks são limitados a aproximadamente 30 Hz, ignoram variações mínimas e nunca são disparados enquanto o vídeo ainda está buscando o frame anterior
-- Os pontos de controle separam platôs e movimento. A distância útil da narrativa foi ampliada em aproximadamente 33%, deixando todas as transições 33% mais longas sem alongar os frames parados; apenas o primeiro foguete ganhou cerca de 10% adicionais de leitura. “EM METAS” começa pouco antes do frame 1,12 s, e os textos seguintes coincidem com 2,15 s (blueprint aberto) e 3,20 s (início das peças)
-- O vídeo não possui `autoplay`, `loop` ou controles e nenhuma chamada a `play()` é feita
+```bash
+python scripts/process-landing-video.py --ffmpeg /caminho/para/ffmpeg --ffprobe /caminho/para/ffprobe
+```
 
-## Posters e comparação
+Após qualquer alteração de duração, os limites em `storyConfig.ts` também devem ser revisados.
 
-- `public/images/landing-scroll-poster.webp`: 1918×1080, 85.420 bytes
-- `public/images/landing-scroll-poster-mobile.webp`: 1080×608, 47.784 bytes
-- Frames estáticos por cena: `public/images/landing-story-*.webp`
-- Comparações: `artifacts/landing-video-comparison/`
-- Folha de contato: `artifacts/landing-video-comparison/comparison-sheet.jpg`
-
-Frames equivalentes foram comparados em 0,40; 1,40; 2,40; 4,50; 7,50; 10,80 e 12,20 s para original, master, WebM e MP4.
-
-## Responsividade e fallback
-
-- Desktop mantém o quadro 1918×1080 inteiro com `object-fit: contain`.
-- Mobile usa 1080×608 e zoom visual de 10%. A pequena redução de resolução financia GOP 3 e buscas a aproximadamente 30 Hz, priorizando fluidez sem perder definição perceptível na viewport móvel.
-- Apenas a variante correspondente ao `matchMedia` é montada.
-- Poster fica visível até `loadeddata` e permanece em falha de mídia.
-- Em `prefers-reduced-motion`, o scrub não é montado; cada cena aparece como quadro estático com texto HTML.
-- O master nunca é referenciado pela landing.
+Os quatro MP4 de origem precisam ser fornecidos localmente no diretório padrão acima ou por `--source-dir`. Eles não são necessários para executar, testar ou publicar a aplicação.

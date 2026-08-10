@@ -58,9 +58,21 @@ export function InstallAppButton({
 
   useEffect(() => {
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(() => {
-        // Installation remains hidden if the browser cannot register the worker.
-      });
+      if (process.env.NODE_ENV === "production") {
+        navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(() => {
+          // Installation remains hidden if the browser cannot register the worker.
+        });
+      } else {
+        // A worker left behind by a production preview can take control of localhost
+        // and fight Next's dev refresh cycle. Development should always be network-first.
+        void navigator.serviceWorker.getRegistrations().then((registrations) => {
+          registrations.forEach((registration) => {
+            if (registration.scope.startsWith(window.location.origin)) {
+              void registration.unregister();
+            }
+          });
+        });
+      }
     }
 
     const availabilityFrame = window.requestAnimationFrame(() => {

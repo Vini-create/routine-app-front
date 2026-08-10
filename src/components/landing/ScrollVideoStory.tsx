@@ -3,7 +3,7 @@
 import Image from "next/image";
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useTranslations } from "@/components/app/LanguageProvider";
+import { useLanguage, useTranslations } from "@/components/app/LanguageProvider";
 import { SilverHighlight, StoryTextStep } from "./StoryTextStep";
 import { storySteps, type StoryStepId } from "./storyConfig";
 import { useReducedMotion } from "./useReducedMotion";
@@ -12,9 +12,11 @@ import { useLandingMediaReady } from "./LandingLoadGate";
 
 type VideoMode = "desktop" | "mobile";
 type StoryCopy = { title: ReactNode; eyebrow?: string; support?: ReactNode };
+type PreparedVideo = { src: string; type: string };
 
 export function ScrollVideoStory() {
   const landing = useTranslations("landing");
+  const { language } = useLanguage();
   const containerRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const reducedMotion = useReducedMotion();
@@ -22,46 +24,100 @@ export function ScrollVideoStory() {
   const [activeStep, setActiveStep] = useState<StoryStepId | null>("dreams");
   const [videoReady, setVideoReady] = useState(false);
   const [videoFailed, setVideoFailed] = useState(false);
-  const markLandingMediaReady = useLandingMediaReady();
+  const [preparedVideo, setPreparedVideo] = useState<PreparedVideo | null>(null);
+  const { markReady: markLandingMediaReady, reportProgress } = useLandingMediaReady();
 
   useEffect(() => {
-    if (reducedMotion) markLandingMediaReady();
-  }, [markLandingMediaReady, reducedMotion]);
+    if (reducedMotion) {
+      reportProgress(1);
+      markLandingMediaReady();
+    }
+  }, [markLandingMediaReady, reducedMotion, reportProgress]);
 
   useEffect(() => {
-    const query = window.matchMedia("(max-width: 767px)");
-    const update = () => setVideoMode(query.matches ? "mobile" : "desktop");
+    const query = window.matchMedia("(max-width: 767px) and (orientation: portrait)");
+    const update = () => {
+      setVideoReady(false);
+      setVideoFailed(false);
+      setPreparedVideo(null);
+      reportProgress(0);
+      setVideoMode(query.matches ? "mobile" : "desktop");
+    };
 
     update();
     query.addEventListener("change", update);
     return () => query.removeEventListener("change", update);
-  }, []);
+  }, [reportProgress]);
 
   useEffect(() => {
     if (!videoMode || reducedMotion || videoFailed) return;
-    const video = videoRef.current;
-    if (!video) return;
+    let cancelled = false;
+    let objectUrl: string | null = null;
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 40_000);
+    const webmSupported = document.createElement("video").canPlayType('video/webm; codecs="vp9"') !== "";
+    const asset = videoMode === "desktop" && webmSupported
+      ? { src: "/videos/landing-scroll-desktop.webm", type: "video/webm" }
+      : { src: `/videos/landing-scroll-${videoMode}.mp4`, type: "video/mp4" };
 
-    const preload = () => {
-      video.preload = "auto";
-      video.load();
-    };
-    const browser = window as typeof window & { requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number; cancelIdleCallback?: (id: number) => void };
-    const idleId = browser.requestIdleCallback?.(preload, { timeout: 1400 });
-    const timeoutId = idleId === undefined ? window.setTimeout(preload, 500) : 0;
+    async function prepareVideo() {
+      try {
+        const response = await fetch(asset.src, { cache: "force-cache", signal: controller.signal });
+        if (!response.ok) throw new Error(`Video request failed with ${response.status}`);
+
+        const totalBytes = Number(response.headers.get("content-length")) || 0;
+        let blob: Blob;
+
+        if (!response.body || !totalBytes) {
+          reportProgress(null);
+          blob = await response.blob();
+        } else {
+          const reader = response.body.getReader();
+          const chunks: ArrayBuffer[] = [];
+          let receivedBytes = 0;
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            const chunk = new Uint8Array(value.byteLength);
+            chunk.set(value);
+            chunks.push(chunk.buffer);
+            receivedBytes += value.byteLength;
+            reportProgress(receivedBytes / totalBytes);
+          }
+
+          blob = new Blob(chunks, { type: asset.type });
+        }
+
+        if (cancelled) return;
+        reportProgress(1);
+        objectUrl = URL.createObjectURL(blob);
+        setPreparedVideo({ src: objectUrl, type: asset.type });
+        markLandingMediaReady();
+      } catch {
+        if (cancelled) return;
+        setVideoFailed(true);
+        reportProgress(1);
+        markLandingMediaReady();
+      }
+    }
+
+    void prepareVideo();
 
     return () => {
-      if (idleId !== undefined) browser.cancelIdleCallback?.(idleId);
-      if (timeoutId) window.clearTimeout(timeoutId);
+      cancelled = true;
+      controller.abort();
+      window.clearTimeout(timeoutId);
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [reducedMotion, videoFailed, videoMode]);
+  }, [markLandingMediaReady, reducedMotion, reportProgress, videoFailed, videoMode]);
 
   const handleActiveStep = useCallback((step: StoryStepId | null) => setActiveStep(step), []);
 
   useScrollVideo({
     containerRef,
     videoRef,
-    disabled: reducedMotion || videoFailed || !videoMode,
+    disabled: reducedMotion || videoFailed || !videoMode || !preparedVideo,
     lowPowerMode: videoMode === "mobile",
     onActiveStep: handleActiveStep,
   });
@@ -75,6 +131,9 @@ export function ScrollVideoStory() {
     },
     path: {
       title: <>{landing.storyPathLead}<br /><SilverHighlight>{landing.storyPathHighlight}</SilverHighlight></>,
+    },
+    resilience: {
+      title: <>{landing.storyResilienceLead}<br /><SilverHighlight>{landing.storyResilienceHighlight}</SilverHighlight></>,
       support: <><span className="storyPathSupportCopy">{landing.storyPathSupportLead}<br />{landing.storyPathSupportMiddle}</span><SilverHighlight>{landing.storyPathSupportHighlight}.</SilverHighlight></>,
     },
     consistency: {
@@ -86,18 +145,21 @@ export function ScrollVideoStory() {
     },
   }), [landing]);
 
-  if (reducedMotion) {
+  if (reducedMotion || videoFailed) {
     return (
       <section className="reducedStory" aria-label={landing.storyAriaLabel}>
-        {storySteps.map((step) => {
+        {storySteps.map((step, index) => {
           const copy = storyCopy[step.id];
           const TitleTag = step.id === "dreams" ? "h1" : "h2";
           return (
             <article className="reducedStoryScene" key={step.id}>
               <div className="reducedStoryImage">
-                <Image src={step.poster} alt="" fill sizes="100vw" className="object-contain" />
+                <Image src={step.poster} alt="" fill sizes="100vw" className="object-cover" />
               </div>
               <div className="reducedStoryCopy">
+                <p className="storyChapter" aria-hidden="true">
+                  <span>{String(index + 1).padStart(2, "0")}</span><i /><span>{String(storySteps.length).padStart(2, "0")}</span>
+                </p>
                 {copy.eyebrow ? <p className="storyEyebrow text-body">{copy.eyebrow}</p> : null}
                 <TitleTag className="story-title text-display">{copy.title}</TitleTag>
                 {copy.support ? <p className="storySupport text-display-medium">{copy.support}</p> : null}
@@ -109,7 +171,6 @@ export function ScrollVideoStory() {
     );
   }
 
-  const sourceBase = videoMode ? `/videos/landing-scroll-${videoMode}` : null;
   const poster = videoMode === "mobile"
     ? "/images/landing-scroll-poster-mobile.webp"
     : "/images/landing-scroll-poster.webp";
@@ -118,55 +179,45 @@ export function ScrollVideoStory() {
     <section ref={containerRef} className="scrollVideoStory" aria-label={landing.storyAriaLabel}>
       <div className="scrollVideoSticky">
         <div className="storyPoster" style={{ backgroundImage: `url(${poster})` }} aria-hidden="true" />
-        {sourceBase ? (
+        {preparedVideo ? (
           <video
-            key={videoMode}
+            key={preparedVideo.src}
             ref={videoRef}
             className="storyVideo"
             data-ready={videoReady && !videoFailed}
             muted
             playsInline
-            preload="metadata"
+            preload="auto"
             poster={poster}
+            src={preparedVideo.src}
             aria-hidden="true"
             tabIndex={-1}
-            onLoadedData={() => { setVideoReady(true); markLandingMediaReady(); }}
+            onLoadedData={() => setVideoReady(true)}
             onError={() => { setVideoFailed(true); markLandingMediaReady(); }}
-          >
-            {videoMode === "mobile" ? (
-              <>
-                <source src={`${sourceBase}.mp4`} type="video/mp4" />
-                <source src={`${sourceBase}.webm`} type="video/webm" />
-              </>
-            ) : (
-              <>
-                <source src={`${sourceBase}.webm`} type="video/webm" />
-                <source src={`${sourceBase}.mp4`} type="video/mp4" />
-              </>
-            )}
-          </video>
+          />
         ) : null}
         <div className="storyVignette" aria-hidden="true" />
+        <div className="storyCutFade" aria-hidden="true" />
 
         <div className="storyCopyLayer">
-          {storySteps.map((step) => {
+          {storySteps.map((step, index) => {
             const copy = storyCopy[step.id];
             return (
               <StoryTextStep
-                key={step.id}
+                key={`${step.id}-${language}`}
                 step={step}
                 active={activeStep === step.id}
                 eyebrow={copy.eyebrow}
                 title={copy.title}
                 support={copy.support}
+                index={index}
+                total={storySteps.length}
               />
             );
           })}
         </div>
 
-        <div className="storyProgress" aria-hidden="true">
-          {storySteps.map((step) => <i key={step.id} data-active={activeStep === step.id} />)}
-        </div>
+        <div className="storyProgress" aria-hidden="true"><span><i /></span></div>
         <p className="storyScrollHint text-body" data-hidden={activeStep !== "dreams"}>
           <span />{landing.scrollToTransform}
         </p>
