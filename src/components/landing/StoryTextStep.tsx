@@ -22,10 +22,18 @@ export function SilverHighlight({
 
   return (
     <span className="text-silver" data-story-highlight aria-label={children}>
-      {Array.from(children).map((character, index) => (
-        <span className="storyHighlightChar" aria-hidden="true" key={`${character}-${index}`}>
-          {character === " " ? "\u00a0" : character}
-        </span>
+      {children.split(/(\s+)/).map((token, tokenIndex) => (
+        /^\s+$/.test(token)
+          ? token
+          : (
+              <span className="storyHighlightWord" aria-hidden="true" key={`${token}-${tokenIndex}`}>
+                {Array.from(token).map((character, characterIndex) => (
+                  <span className="storyHighlightChar" key={`${character}-${characterIndex}`}>
+                    {character}
+                  </span>
+                ))}
+              </span>
+            )
       ))}
     </span>
   );

@@ -2569,6 +2569,11 @@ h3,
   will-change: transform, opacity;
 }
 
+.storyHighlightWord {
+  display: inline-block;
+  white-space: nowrap;
+}
+
 .storySplitWord {
   white-space: nowrap;
 }
@@ -3557,6 +3562,10 @@ h3,
   .storyVideo { bottom: -1px; }
   .storyCopyLayer { width: calc(100% - 2rem); }
   .storyTextStep { width: min(100%, 31rem); }
+  .storyTextStep[data-story-step="dreams"] .story-title {
+    font-size: clamp(2.9rem, 13.5vw, 4.9rem);
+    line-height: 0.82;
+  }
   .storyTextStep--top-left { top: 13%; left: 0; }
   .storyTextStep--bottom-right { right: 0; bottom: 11%; }
   .storyTextStep--top-right { top: 13%; right: 0; }
@@ -3585,7 +3594,10 @@ h3,
     width: min(82%, 20rem);
     font-size: clamp(0.68rem, 2.8vw, 0.82rem);
   }
-  .storyTextStep[data-story-step="resilience"] .storySupport .text-silver { font-size: clamp(3.2rem, 17vw, 5.1rem); }
+  .storyTextStep[data-story-step="resilience"] .storySupport .text-silver {
+    font-size: clamp(2.65rem, 11.8vw, 4.1rem);
+    line-height: 0.86;
+  }
   .storyTextStep[data-story-step="consistency"] .story-title { font-size: clamp(2.8rem, min(11.5vw, 7.5vh), 4.35rem); line-height: 0.86; }
   .storyTextStep[data-story-step="organization"] .storyEyebrow { font-size: clamp(0.65rem, 2.8vw, 0.78rem); }
   .storyTextStep[data-story-step="organization"] { width: min(100%, 31rem); }

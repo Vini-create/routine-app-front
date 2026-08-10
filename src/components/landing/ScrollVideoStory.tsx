@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLanguage, useTranslations } from "@/components/app/LanguageProvider";
 import { SilverHighlight, StoryTextSegment, StoryTextStep } from "./StoryTextStep";
-import { storySteps, type StoryStepId } from "./storyConfig";
+import { landingVideoInitialTime, storySteps, type StoryStepId } from "./storyConfig";
 import { useReducedMotion } from "./useReducedMotion";
 import { useScrollVideo } from "./useScrollVideo";
 import { useLandingMediaReady } from "./LandingLoadGate";
@@ -24,6 +24,7 @@ export function ScrollVideoStory() {
   const containerRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const videoReadyRef = useRef(false);
   const reducedMotion = useReducedMotion();
   const [videoMode, setVideoMode] = useState<VideoMode | null>(null);
   const [activeStep, setActiveStep] = useState<StoryStepId | null>("dreams");
@@ -31,6 +32,13 @@ export function ScrollVideoStory() {
   const [videoFailed, setVideoFailed] = useState(false);
   const [preparedVideo, setPreparedVideo] = useState<PreparedVideo | null>(null);
   const { markReady: markLandingMediaReady, reportProgress } = useLandingMediaReady();
+
+  const markVideoReady = useCallback(() => {
+    if (videoReadyRef.current) return;
+    videoReadyRef.current = true;
+    setVideoReady(true);
+    markLandingMediaReady();
+  }, [markLandingMediaReady]);
 
   const drawMobileFrame = useCallback(() => {
     const video = videoRef.current;
@@ -74,6 +82,7 @@ export function ScrollVideoStory() {
   useEffect(() => {
     const query = window.matchMedia("(max-width: 767px) and (orientation: portrait)");
     const update = () => {
+      videoReadyRef.current = false;
       setVideoReady(false);
       setVideoFailed(false);
       setPreparedVideo(null);
@@ -294,13 +303,20 @@ export function ScrollVideoStory() {
               src={preparedVideo.src}
               aria-hidden="true"
               tabIndex={-1}
-              onLoadedData={() => {
-                if (videoMode === "mobile") drawMobileFrame();
-                setVideoReady(true);
-                markLandingMediaReady();
+              onLoadedData={(event) => {
+                if (videoMode === "mobile") {
+                  const video = event.currentTarget;
+                  if (Math.abs(video.currentTime - landingVideoInitialTime) > 0.01) {
+                    video.currentTime = landingVideoInitialTime;
+                    return;
+                  }
+                  if (drawMobileFrame()) markVideoReady();
+                  return;
+                }
+                markVideoReady();
               }}
               onSeeked={() => {
-                if (videoMode === "mobile") drawMobileFrame();
+                if (videoMode === "mobile" && drawMobileFrame()) markVideoReady();
               }}
               onError={() => { setVideoFailed(true); markLandingMediaReady(); }}
             />

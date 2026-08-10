@@ -11,7 +11,8 @@ describe("SilverHighlight", () => {
 
     expect(html).toContain('data-story-highlight="true"');
     expect(html).toContain('aria-label="um caminho"');
-    expect(html.match(/storyHighlightChar/g)).toHaveLength(Array.from(copy).length);
+    expect(html.match(/storyHighlightWord/g)).toHaveLength(2);
+    expect(html.match(/storyHighlightChar/g)).toHaveLength(Array.from(copy.replaceAll(" ", "")).length);
   });
 
   it("keeps regular silver copy unsplit", () => {

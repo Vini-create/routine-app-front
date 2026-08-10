@@ -11,6 +11,7 @@ export type StoryStepConfig = {
 };
 
 export const landingVideoDuration = 32.166667;
+export const landingVideoInitialTime = 0.4;
 export const climbToTimelapseScroll = 0.465;
 const climbToTimelapseFadeRadius = 0.014;
 
@@ -19,7 +20,7 @@ export const storySteps: StoryStepConfig[] = [
     id: "dreams",
     scrollStart: 0,
     scrollEnd: 0.09,
-    videoStart: 0,
+    videoStart: landingVideoInitialTime,
     videoEnd: 4.5,
     placement: "top-left",
     poster: "/images/landing-story-mountain.webp",
@@ -75,7 +76,7 @@ export const storySteps: StoryStepConfig[] = [
 // mountain, the climber reveal, the difficult ascent, the passing days and
 // the summit. Keeping these boundaries explicit makes copy changes safe.
 export const videoTimeline = [
-  { scroll: 0, time: 0 },
+  { scroll: 0, time: landingVideoInitialTime },
   { scroll: 0.09, time: 4.5 },
   { scroll: 0.165, time: 8.041667 },
   { scroll: 0.315, time: 12 },

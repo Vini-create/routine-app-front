@@ -4,14 +4,15 @@ import {
   getActiveStoryStep,
   getClimbToTimelapseFade,
   landingVideoDuration,
+  landingVideoInitialTime,
   mapScrollToVideoTime,
   storySteps,
 } from "./storyConfig";
 
 describe("mountain landing story timeline", () => {
   it("maps the scroll endpoints to the complete video", () => {
-    expect(mapScrollToVideoTime(-1)).toBe(0);
-    expect(mapScrollToVideoTime(0)).toBe(0);
+    expect(mapScrollToVideoTime(-1)).toBe(landingVideoInitialTime);
+    expect(mapScrollToVideoTime(0)).toBe(landingVideoInitialTime);
     expect(mapScrollToVideoTime(1)).toBe(landingVideoDuration);
     expect(mapScrollToVideoTime(2)).toBe(landingVideoDuration);
   });
