@@ -53,3 +53,4 @@ frontend_api_flow.txt
 
 # Local 4K generation sources; optimized browser outputs live in public/videos.
 /src/components/landing/new_landing_video/*.mp4
+FRONTEND_AI_INTEGRATION_GUIDE.md
