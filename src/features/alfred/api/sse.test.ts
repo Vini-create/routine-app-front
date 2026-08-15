@@ -51,6 +51,26 @@ describe("Alfred SSE parser", () => {
     expect(references).toEqual([{ document_id: "d1" }, { document_id: "d2" }]);
   });
 
+  it("delivers a structured patch event without losing its simulation", async () => {
+    const handler = vi.fn();
+    const response = chunkedResponse([
+      "event: patch\ndata: {\"patch\":{\"patch_id\":\"p1\",\"operations\":[{\"op\":\"replace\",\"path\":\"/duration_minutes\",\"value\":40}],\"simulation\":{\"status\":\"validated\",\"before\":{\"duration_minutes\":60},\"after\":{\"duration_minutes\":40},\"changed_fields\":[\"duration_minutes\"]}},\"requires_confirmation\":true}\n\n",
+    ]);
+
+    await consumeSSE(response, handler);
+
+    expect(handler).toHaveBeenCalledWith("patch", expect.objectContaining({
+      requires_confirmation: true,
+      patch: expect.objectContaining({
+        patch_id: "p1",
+        simulation: expect.objectContaining({
+          before: { duration_minutes: 60 },
+          after: { duration_minutes: 40 },
+        }),
+      }),
+    }));
+  });
+
   it("cancels the response body when an event handler fails", async () => {
     const encoder = new TextEncoder();
     const cancel = vi.fn();

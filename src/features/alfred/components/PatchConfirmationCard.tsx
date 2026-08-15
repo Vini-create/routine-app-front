@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { ApiError } from "@/lib/api";
+import { ApiError } from "../../../lib/api";
 import { alfredApi } from "../api/alfredApi";
 import type { PatchOperation, PatchStatus, ProposedPatch } from "../api/alfred.types";
 
@@ -24,15 +24,23 @@ type PatchLabels = {
   error: string;
   cancel: string;
   successMetrics: string;
+  minutes: string;
+  days: string;
+  fields: Record<string, string>;
+  values: Record<string, string>;
 };
 
-function fieldLabel(path: string) {
-  return path.replace(/^\//, "").replaceAll("_", " ");
+function fieldLabel(path: string, labels: PatchLabels) {
+  const field = path.replace(/^\//, "");
+  return labels.fields[field] ?? field.replaceAll("_", " ");
 }
 
-function formatValue(value: unknown) {
+function formatValue(value: unknown, field: string, labels: PatchLabels) {
   if (value === null || value === undefined || value === "") return "—";
-  if (typeof value === "boolean") return value ? "Sim" : "Não";
+  if (typeof value === "boolean") return value ? labels.values.true : labels.values.false;
+  if (field === "duration_minutes" && typeof value === "number") return `${value} ${labels.minutes}`;
+  if (field === "evaluation_window_days" && typeof value === "number") return `${value} ${labels.days}`;
+  if (typeof value === "string" && labels.values[value]) return labels.values[value];
   if (typeof value === "object") return JSON.stringify(value);
   return String(value);
 }
@@ -172,12 +180,12 @@ export function PatchConfirmationCard({
             <div key={field} className="grid grid-cols-[1fr_auto_1fr] items-stretch overflow-hidden rounded-xl border border-[var(--border-soft)] bg-[var(--surface-ambient)]">
               <div className="min-w-0 p-3">
                 <p className="text-[9px] font-extrabold uppercase tracking-[.07em] text-[var(--text-tertiary)]">{labels.before}</p>
-                <p className="mt-1 break-words text-xs font-semibold">{formatValue(simulation.before[field])}</p>
+                <p className="mt-1 break-words text-xs font-semibold">{formatValue(simulation.before[field], field, labels)}</p>
               </div>
               <span className="self-center text-[var(--text-tertiary)]" aria-hidden="true">→</span>
               <div className="min-w-0 p-3">
-                <p className="text-[9px] font-extrabold uppercase tracking-[.07em] text-[var(--text-tertiary)]">{labels.after} · {fieldLabel(field)}</p>
-                <p className="mt-1 break-words text-xs font-semibold">{formatValue(simulation.after[field])}</p>
+                <p className="text-[9px] font-extrabold uppercase tracking-[.07em] text-[var(--text-tertiary)]">{labels.after} · {fieldLabel(field, labels)}</p>
+                <p className="mt-1 break-words text-xs font-semibold">{formatValue(simulation.after[field], field, labels)}</p>
               </div>
             </div>
           ))}
@@ -190,7 +198,7 @@ export function PatchConfirmationCard({
           <div className="mt-2 flex flex-wrap gap-2">
             {patch.success_metrics.map((metric, index) => (
               <span key={index} className="rounded-full border border-[var(--border-soft)] bg-[var(--surface-ambient)] px-3 py-1.5 text-[10px] font-semibold text-[var(--text-secondary)]">
-                {Object.entries(metric).map(([key, value]) => `${fieldLabel(key)}: ${formatValue(value)}`).join(" · ")}
+                {Object.entries(metric).map(([key, value]) => `${fieldLabel(key, labels)}: ${formatValue(value, key, labels)}`).join(" · ")}
               </span>
             ))}
           </div>
@@ -201,15 +209,15 @@ export function PatchConfirmationCard({
         <div className="mt-3 grid gap-2 rounded-xl border border-[var(--border-soft)] bg-[var(--surface-ambient)] p-3">
           {patch.operations.map((operation, index) => (
             <label key={`${operation.path}-${index}`} className="grid gap-1 text-xs font-bold capitalize text-[var(--text-secondary)]">
-              {fieldLabel(operation.path)}
+              {fieldLabel(operation.path, labels)}
               {typeof operation.value === "boolean" ? (
                 <select
                   value={editedValues[index] ?? String(operation.value)}
                   onChange={(event) => setEditedValues((current) => ({ ...current, [index]: event.target.value }))}
                   className="min-h-10 rounded-xl border border-[var(--border-medium)] bg-[var(--surface-standard)] px-3 text-[var(--text-primary)]"
                 >
-                  <option value="true">Sim</option>
-                  <option value="false">Não</option>
+                  <option value="true">{labels.values.true}</option>
+                  <option value="false">{labels.values.false}</option>
                 </select>
               ) : (
                 <input

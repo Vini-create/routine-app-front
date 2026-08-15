@@ -25,7 +25,6 @@ import type {
   AIConversationSummary,
   AIErrorResponse,
   AIInvokeRequest,
-  AIMessage,
   AIUsageResponse,
   AlfredStreamDone,
   AlfredStreamPatch,
@@ -36,6 +35,7 @@ import type {
   ProposedPatch,
 } from "@/features/alfred/api/alfred.types";
 import type { AlfredUiMessage } from "@/features/alfred/alfred.ui.types";
+import { toUiMessages } from "@/features/alfred/conversationMapper";
 import { AlfredMarkdown } from "@/features/alfred/components/AlfredMarkdown";
 import { AnalysisReportCard } from "@/features/alfred/components/AnalysisReportCard";
 import { EvidenceReferences } from "@/features/alfred/components/EvidenceReferences";
@@ -95,30 +95,6 @@ function quotaMessage(code: string | null, assistant: AlfredQuotaMessages) {
     default:
       return assistant.quotaExceeded;
   }
-}
-
-function toUiMessages(messages: AIMessage[]): AlfredUiMessage[] {
-  return messages
-    .filter((message) => message.role !== "system")
-    .sort((a, b) => Date.parse(a.created_at) - Date.parse(b.created_at))
-    .map((message) => {
-      return {
-        id: message.id,
-        role: message.role,
-        content: message.content,
-        createdAt: message.created_at,
-        status: "completed" as const,
-        requestId: message.request_id,
-        route: message.route,
-        ...(message.role === "assistant" ? {
-          analysis: message.analysis,
-          references: message.references ?? [],
-          proposedPatch: message.proposed_patch,
-          requiresConfirmation: message.requires_confirmation ?? false,
-          patchStatus: message.patch_status ?? undefined,
-        } : {}),
-      };
-    });
 }
 
 export default function AssistantPage() {
@@ -710,11 +686,18 @@ export default function AssistantPage() {
               <div className="hidden items-center gap-2 lg:flex">
                 <h2 className="display-title metallicPageTitle whitespace-nowrap text-[2.35rem] leading-none sm:text-5xl">{assistant.title}</h2>
                 <PageInfoButton page="assistant" className="size-8 sm:size-9" />
+                <button type="button" onClick={() => setShowConversations(true)} className="ml-2 inline-flex min-h-9 items-center gap-2 rounded-full border border-[var(--border-soft)] bg-[var(--surface-ambient)] px-3 text-[10px] font-extrabold uppercase tracking-[.06em] text-[var(--text-secondary)] transition hover:border-[var(--border-medium)] hover:text-[var(--text-primary)]" aria-label={assistant.conversations} aria-expanded={showConversations}>
+                  <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M9.5 16.5a6.4 6.4 0 0 1-2.35-.44L3.5 17.5l1.22-3.12A6.5 6.5 0 1 1 9.5 16.5Z" />
+                    <path d="M10.6 18.42a6.52 6.52 0 0 0 6.25-.36l3.65 1.44-1.22-3.12a6.5 6.5 0 0 0-3.53-9.04" />
+                  </svg>
+                  {assistant.conversations}
+                </button>
               </div>
             </div>
           </div>
-          <UsageIndicator usage={usage} loading={isLoadingUsage} label={assistant.usageLabel} unlimitedLabel={assistant.unlimited} />
-          <button type="button" onClick={() => setShowConversations((current) => !current)} className="grid size-10 place-items-center rounded-full border border-[var(--border-soft)] bg-[var(--surface-ambient)] text-[var(--text-secondary)] transition hover:text-[var(--text-primary)]" aria-label={assistant.conversations} aria-expanded={showConversations}>
+          <UsageIndicator usage={usage} loading={isLoadingUsage} labels={assistant.usage} locale={language} />
+          <button type="button" onClick={() => setShowConversations((current) => !current)} className="grid size-10 place-items-center rounded-full border border-[var(--border-soft)] bg-[var(--surface-ambient)] text-[var(--text-secondary)] transition hover:text-[var(--text-primary)] lg:hidden" aria-label={assistant.conversations} aria-expanded={showConversations}>
             <svg viewBox="0 0 24 24" className="size-[1.15rem]" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M9.5 16.5a6.4 6.4 0 0 1-2.35-.44L3.5 17.5l1.22-3.12A6.5 6.5 0 1 1 9.5 16.5Z" />
               <path d="M10.6 18.42a6.52 6.52 0 0 0 6.25-.36l3.65 1.44-1.22-3.12a6.5 6.5 0 0 0-3.53-9.04" />

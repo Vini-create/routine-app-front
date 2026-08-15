@@ -162,7 +162,7 @@ export function SkillMenu({
     : null;
 
   return (
-    <div className="assistantSkillMenuRoot shrink-0">
+    <div className="assistantSkillMenuRoot shrink-0 lg:flex lg:items-center">
       <button
         type="button"
         disabled={disabled}
@@ -185,7 +185,7 @@ export function SkillMenu({
           type="button"
           disabled={disabled}
           onClick={() => setOpen(true)}
-          className="assistantCurrentSkill hidden min-w-0 items-center gap-1.5 rounded-full px-2.5 py-1.5 text-[10px] font-extrabold text-[var(--text-secondary)] transition hover:text-[var(--text-primary)] disabled:opacity-45"
+          className="assistantCurrentSkill hidden min-w-0 items-center gap-1.5 rounded-full px-2.5 py-1.5 text-[10px] font-extrabold text-[var(--text-secondary)] transition hover:text-[var(--text-primary)] disabled:opacity-45 lg:inline-flex"
           aria-label={`${addLabel}: ${current.label}`}
         >
           <span className="max-w-32 truncate">{current.label}</span>
