@@ -10,7 +10,7 @@ export function EvidenceReferences({
   if (!references.length) return null;
 
   return (
-    <details className="mt-3 rounded-[1.1rem] border border-[var(--border-soft)] bg-[var(--surface-ambient)] px-4 py-3">
+    <details open className="mt-3 rounded-[1.1rem] border border-[var(--border-soft)] bg-[var(--surface-ambient)] px-4 py-3">
       <summary className="cursor-pointer text-xs font-extrabold uppercase tracking-[.07em] text-[var(--text-secondary)]">
         {title} · {references.length}
       </summary>

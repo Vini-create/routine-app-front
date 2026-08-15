@@ -31,6 +31,7 @@ describe("EvidenceReferences", () => {
     expect(html).toContain("Piers Steel");
     expect(html).toContain("2007");
     expect(html).toContain("https://pubmed.ncbi.nlm.nih.gov/17201571/");
+    expect(html).toContain("<details open=\"\"");
     expect(html).not.toContain("internal excerpt");
     expect(html).not.toContain("canonical/procrastination");
   });

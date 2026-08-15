@@ -768,7 +768,7 @@ export default function AssistantPage() {
                       {message.status === "cancelled" ? <p className="text-xs font-semibold text-[var(--text-tertiary)]">{assistant.cancelled}</p> : null}
                       {message.analysis ? <AnalysisReportCard analysis={message.analysis} labels={assistant.analysis} locale={language} /> : null}
                       {message.references?.length ? <EvidenceReferences references={message.references} title={assistant.references} /> : null}
-                      {message.proposedPatch?.patch_id && (message.requiresConfirmation || message.patchStatus) ? (
+                      {message.proposedPatch?.patch_id ? (
                         <PatchConfirmationCard
                           initialPatch={message.proposedPatch}
                           initialStatus={message.patchStatus}
