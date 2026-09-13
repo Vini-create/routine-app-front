@@ -117,8 +117,15 @@ export function BottomNavigation({ showBottomBar = true }: { showBottomBar?: boo
         </span>
       </button>
 
-      {open ? (
-        <div className="fixed inset-0 z-40 bg-black/35 backdrop-blur-sm lg:hidden" onClick={() => setOpen(false)}>
+      <div
+        aria-hidden={!open}
+        inert={!open ? true : undefined}
+        className={cn(
+          "fixed inset-0 z-40 bg-black/35 backdrop-blur-sm transition-opacity lg:hidden",
+          open ? "opacity-100" : "pointer-events-none invisible opacity-0",
+        )}
+        onClick={() => setOpen(false)}
+      >
           <nav
             className="glass-focus absolute left-4 top-20 grid w-[min(18rem,calc(100vw-2rem))] gap-2 rounded-[1.8rem] p-3"
             onClick={(event) => event.stopPropagation()}
@@ -148,7 +155,7 @@ export function BottomNavigation({ showBottomBar = true }: { showBottomBar?: boo
                 </Link>
               );
             })}
-            <InstallAppButton className="mt-2 w-full" />
+            <InstallAppButton className="mt-2 w-full" persistent />
             <Link
               href="/settings"
               onClick={() => setOpen(false)}
@@ -163,8 +170,7 @@ export function BottomNavigation({ showBottomBar = true }: { showBottomBar?: boo
               <span>{nav.profile}</span>
             </Link>
           </nav>
-        </div>
-      ) : null}
+      </div>
 
       {showBottomBar ? (
         <nav data-tour="app-navigation" className="glass-ambient winperiumMobileNav fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] left-4 right-4 z-30 grid h-[66px] grid-cols-5 items-center rounded-full px-2 lg:hidden" aria-label="Primary">

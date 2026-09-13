@@ -35,6 +35,14 @@ function shouldOpenInChrome() {
   return isAndroid && !isChrome && !isRunningStandalone();
 }
 
+function supportsManualInstall() {
+  const userAgent = navigator.userAgent;
+  const isChromium = /Chrome\/|Chromium\/|Edg\//i.test(userAgent);
+  const isAlternativeBrowser = /OPR|Opera|SamsungBrowser|DuckDuckGo/i.test(userAgent);
+
+  return isChromium && !isAlternativeBrowser && !isRunningStandalone();
+}
+
 function openCurrentPageInChrome() {
   const { host, pathname, search, protocol } = window.location;
   const scheme = protocol.replace(":", "");
@@ -45,16 +53,20 @@ function openCurrentPageInChrome() {
 export function InstallAppButton({
   className,
   labelClassName,
+  persistent = false,
 }: {
   className?: string;
   labelClassName?: string;
+  persistent?: boolean;
 }) {
   const common = useTranslations("common");
   const [nativePromptAvailable, setNativePromptAvailable] = useState(false);
   const [iosInstallAvailable, setIosInstallAvailable] = useState(false);
   const [chromeRedirectAvailable, setChromeRedirectAvailable] = useState(false);
+  const [manualInstallAvailable, setManualInstallAvailable] = useState(false);
   const [iosInstructionsOpen, setIosInstructionsOpen] = useState(false);
   const [chromeConfirmationOpen, setChromeConfirmationOpen] = useState(false);
+  const [manualInstructionsOpen, setManualInstructionsOpen] = useState(false);
 
   useEffect(() => {
     if ("serviceWorker" in navigator) {
@@ -80,6 +92,7 @@ export function InstallAppButton({
       setNativePromptAvailable(Boolean(deferredInstallPrompt) && !standalone);
       setIosInstallAvailable(isIosDevice() && !standalone);
       setChromeRedirectAvailable(shouldOpenInChrome());
+      setManualInstallAvailable(persistent && supportsManualInstall());
     });
     availabilityListeners.add(setNativePromptAvailable);
 
@@ -93,6 +106,7 @@ export function InstallAppButton({
       deferredInstallPrompt = null;
       setIosInstallAvailable(false);
       setChromeRedirectAvailable(false);
+      setManualInstallAvailable(false);
       publishAvailability(false);
     }
 
@@ -105,13 +119,14 @@ export function InstallAppButton({
       window.removeEventListener("beforeinstallprompt", handleInstallPrompt);
       window.removeEventListener("appinstalled", handleInstalled);
     };
-  }, []);
+  }, [persistent]);
 
   async function install() {
     const prompt = deferredInstallPrompt;
     if (!prompt) {
       if (iosInstallAvailable) setIosInstructionsOpen(true);
       else if (chromeRedirectAvailable) setChromeConfirmationOpen(true);
+      else if (manualInstallAvailable) setManualInstructionsOpen(true);
       return;
     }
 
@@ -124,7 +139,12 @@ export function InstallAppButton({
     }
   }
 
-  if (!nativePromptAvailable && !iosInstallAvailable && !chromeRedirectAvailable) return null;
+  const installAvailable = nativePromptAvailable
+    || iosInstallAvailable
+    || chromeRedirectAvailable
+    || manualInstallAvailable;
+
+  if (!installAvailable) return null;
 
   return (
     <>
@@ -229,6 +249,62 @@ export function InstallAppButton({
             <button
               type="button"
               onClick={() => setIosInstructionsOpen(false)}
+              className="metallicButton mt-5 min-h-11 w-full rounded-[1.2rem] px-5 text-sm font-bold"
+            >
+              {common.understood}
+            </button>
+          </section>
+        </div>
+      ) : null}
+
+      {manualInstructionsOpen ? (
+        <div
+          className="fixed inset-0 z-[80] grid place-items-end bg-black/55 p-4 backdrop-blur-md sm:place-items-center"
+          onClick={() => setManualInstructionsOpen(false)}
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="manual-install-title"
+            className="alfredModalSurface w-full max-w-md rounded-[1.75rem] border p-5 text-left text-[var(--text-primary)] shadow-focus"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="label-micro">Winperium</p>
+                <h2 id="manual-install-title" className="mt-2 text-xl font-black">
+                  {common.installManualTitle}
+                </h2>
+              </div>
+              <button
+                type="button"
+                aria-label={common.close}
+                onClick={() => setManualInstructionsOpen(false)}
+                className="grid size-10 shrink-0 place-items-center rounded-full bg-[var(--surface-standard)] text-xl text-[var(--text-secondary)]"
+              >
+                ×
+              </button>
+            </div>
+            <p className="mt-3 text-sm leading-6 text-[var(--text-secondary)]">
+              {common.installManualDescription}
+            </p>
+            <ol className="mt-5 grid gap-3">
+              {[
+                common.installManualStepMenu,
+                common.installManualStepInstall,
+                common.installManualStepConfirm,
+              ].map((step, index) => (
+                <li key={step} className="grid grid-cols-[2rem_1fr] items-center gap-3 rounded-2xl bg-[var(--surface-ambient)] p-3 text-sm font-semibold">
+                  <span className="grid size-8 place-items-center rounded-full bg-[var(--text-primary)] text-xs font-black text-[var(--background-primary)]">
+                    {index + 1}
+                  </span>
+                  <span>{step}</span>
+                </li>
+              ))}
+            </ol>
+            <button
+              type="button"
+              onClick={() => setManualInstructionsOpen(false)}
               className="metallicButton mt-5 min-h-11 w-full rounded-[1.2rem] px-5 text-sm font-bold"
             >
               {common.understood}

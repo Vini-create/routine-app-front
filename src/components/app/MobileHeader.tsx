@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { BrandMark } from "./BrandMark";
-import { InstallAppButton } from "./InstallAppButton";
 import { PageInfoButton } from "./PageInfoButton";
 import { PlanBadge } from "./PlanBadge";
 import type { PageInfoKey } from "@/data/pageInfo";
@@ -43,7 +42,6 @@ export function MobileHeader({ title, infoPage }: { title: string; infoPage?: Pa
             wordmarkClassName="text-[2rem]"
           />
         </Link>
-        <InstallAppButton labelClassName="max-[339px]:hidden" />
       </div>
     </header>
   );
